@@ -3,7 +3,7 @@ package me.theeninja.islandroyale.client;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.backends.gwt.GwtApplication;
 import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
-import me.theeninja.islandroyale.IslandRoyale;
+import me.theeninja.islandroyale.IslandRoyaleGame;
 
 public class HtmlLauncher extends GwtApplication {
 
@@ -46,6 +46,6 @@ public class HtmlLauncher extends GwtApplication {
 
         @Override
         public ApplicationListener createApplicationListener () {
-                return new IslandRoyale();
+                return new IslandRoyaleGame();
         }
 }

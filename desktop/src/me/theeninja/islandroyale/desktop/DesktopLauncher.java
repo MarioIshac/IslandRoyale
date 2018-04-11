@@ -2,7 +2,7 @@ package me.theeninja.islandroyale.desktop;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import me.theeninja.islandroyale.IslandRoyale;
+import me.theeninja.islandroyale.IslandRoyaleGame;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
@@ -14,6 +14,6 @@ public class DesktopLauncher {
 		config.fullscreen = true;
 		config.vSyncEnabled = true;
 
-		new LwjglApplication(new IslandRoyale(), config);
+		new LwjglApplication(new IslandRoyaleGame(), config);
 	}
 }

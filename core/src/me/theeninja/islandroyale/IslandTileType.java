@@ -1,18 +1,29 @@
 package me.theeninja.islandroyale;
 
+import com.badlogic.gdx.graphics.Texture;
+
 public enum IslandTileType {
-    DIRT,
-    N_GRASS,
-    E_GRASS,
-    S_GRASS,
-    W_GRASS,
-    NE_U_GRASS,
-    SE_U_GRASS,
-    NW_U_GRASS,
-    SW_U_GRASS,
-    NE_I_GRASS,
-    SE_I_GRASS,
-    NW_I_GRASS,
-    SW_I_GRASS,
-    WATER;
+    DIRT("tile/Dirt.png"),
+    N_GRASS(null),
+    E_GRASS(null),
+    S_GRASS(null),
+    W_GRASS(null),
+    NE_U_GRASS(null),
+    SE_U_GRASS(null),
+    NW_U_GRASS(null),
+    SW_U_GRASS(null),
+    NE_I_GRASS(null),
+    SE_I_GRASS(null),
+    NW_I_GRASS(null),
+    SW_I_GRASS(null);
+
+    private final String texturePath;
+
+    private IslandTileType(String texturePath) {
+        this.texturePath = texturePath;
+    }
+
+    public String getTexturePath() {
+        return texturePath;
+    }
 }

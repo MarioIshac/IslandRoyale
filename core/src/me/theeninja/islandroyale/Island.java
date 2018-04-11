@@ -3,8 +3,12 @@ package me.theeninja.islandroyale;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+
+import me.theeninja.islandroyale.building.Building;
 
 public class Island {
     private IslandTileType[][] repr;
@@ -16,6 +20,10 @@ public class Island {
     private final int maxWidth;
     private final int maxHeight;
 
+    Island(int unScaledMaxSideLength) {
+        this(unScaledMaxSideLength, unScaledMaxSideLength);
+    }
+
     Island(int unScaledMaxWidth, int unscaledMaxHeight) {
         this.maxHeight = unScaledMaxWidth * BLOCK_MULTIPLIER;
         this.maxWidth = unscaledMaxHeight * BLOCK_MULTIPLIER;
@@ -26,6 +34,8 @@ public class Island {
         smoothIsland();
         scaleIsland();
     }
+
+    List<Building> associatedBuildings = new ArrayList<>();
 
     public void smoothIsland() {
         IslandTileType[][] oldRepr = Arrays.copyOfRange(repr, 0, repr.length);
@@ -153,5 +163,10 @@ public class Island {
 
     public IslandTileType[][] getRepr() {
         return repr;
+    }
+
+    @Override
+    public String toString() {
+        return Island.class.getSimpleName() + "[" + getMaxWidth() + ", " + getMaxHeight() + "]";
     }
 }
