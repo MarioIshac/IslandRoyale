@@ -6,7 +6,7 @@ import java.util.Map;
 public class Inventory {
     private final Map<Resource, Integer> resourceMap = new HashMap<Resource, Integer>();
 
-    Inventory() {
+    public Inventory() {
         for (Resource resource : Resource.values())
             getResourceMap().put(resource, 0);
 

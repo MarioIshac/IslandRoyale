@@ -2,7 +2,11 @@ package me.theeninja.islandroyale;
 
 public class Player {
     private final Inventory inventory = new Inventory();
-    private final Island mainIsland = new Island(11, 11);
+    private final Island mainIsland;
+
+    public Player(Island island) {
+        this.mainIsland = island;
+    }
 
     public Inventory getInventory() {
         return inventory;

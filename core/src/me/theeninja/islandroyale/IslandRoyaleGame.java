@@ -20,4 +20,9 @@ public class IslandRoyaleGame extends Game {
 
         setScreen(matchScreen);
     }
+
+    @Override
+    public void render() {
+        super.render();
+    }
 }
