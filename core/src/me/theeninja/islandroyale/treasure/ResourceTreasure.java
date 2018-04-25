@@ -15,10 +15,7 @@ public class ResourceTreasure extends Treasure {
 
     @Override
     void onTreasureFound(Player player) {
-        player.getInventory().getResourceMap().computeIfPresent(
-            getResource(),
-            (res, count) -> count + getResourceCount()
-        );
+        player.getInventory().put(getResource(), getResourceCount());
     }
 
     @Override

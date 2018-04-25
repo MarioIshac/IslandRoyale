@@ -1,0 +1,10 @@
+{
+  "name": "Fishery",
+  "baseHealth": 100,
+  "maxLevel": 10,
+  "tileWidth": 2,
+  "tileHeight": 2,
+  "minGroundFiles": 3,
+  "resource": "FOOD",
+  "baseRate": 10,
+}

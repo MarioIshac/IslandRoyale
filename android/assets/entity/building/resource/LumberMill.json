@@ -1,0 +1,19 @@
+{
+  "name": "Lumber Mill",
+  "baseHealth": 100,
+  "maxLevel": 10,
+  "tileWidth": 2,
+  "tileHeight": 2,
+  "minGroundFiles": 4,
+  "resource": "WOOD",
+  "baseRate": 1,
+  "inventoryCost": {
+    "resourceEntries": [
+      {
+        "resource":"WOOD",
+        "cost": 1100
+      }
+    ]
+  },
+  "texturePath": "LumberMill.png"
+}

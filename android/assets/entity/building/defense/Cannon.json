@@ -1,0 +1,20 @@
+{
+  "name": "Cannon",
+  "baseHealth": 100,
+  "maxLevel": 10,
+  "tileWidth": 2,
+  "tileHeight": 2,
+  "minGroundFiles": 3,
+  "baseFireRate": 1,
+  "baseDamage": 20,
+  "baseRange": 15,
+  "inventoryCost": {
+    "resourceEntries": [
+      {
+        "resource":"WOOD",
+        "cost": 50
+      }
+    ]
+  },
+  "texturePath": "Cannon.png"
+}

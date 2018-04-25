@@ -1,9 +1,9 @@
 package me.theeninja.islandroyale;
 
 import com.badlogic.gdx.math.GridPoint2;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector3;
-import me.theeninja.islandroyale.building.Building;
+import com.badlogic.gdx.math.Vector2;
+import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.treasure.ResourceTreasure;
 import me.theeninja.islandroyale.treasure.Treasure;
 
@@ -16,10 +16,16 @@ public class MatchMap {
 
     private static final int ISLAND_GAP = 110;
 
-    private final Map<Island, Vector3> islands = new HashMap<>();
-    private final Map<Treasure, Vector3> treasures = new HashMap<>();
+    private final Map<Island, GridPoint2> islands = new HashMap<>();
+    private final Map<Treasure, GridPoint2> treasures = new HashMap<>();
 
-    private final Vector3 bottomLeft;
+    private final Map<Entity<? extends EntityType>, Vector2> entities = new HashMap<>();
+
+    public void flushDeadEntities() {
+        entities.entrySet().removeIf(Entity::isEntityDead);
+    }
+
+    private final GridPoint2 focusOrigin;
 
     public MatchMap(int tileLength, int tileWidth) {
         this.tileLength = tileLength;
@@ -28,14 +34,14 @@ public class MatchMap {
         generateIslands();
         generateTreasures();
 
-        bottomLeft = new Vector3(0, 0, 0);
+        focusOrigin = new GridPoint2(0, 0);
     }
 
     private void generateIslands() {
         for (int xTile = 0; xTile < getTileWidth(); xTile += ISLAND_GAP) {
             for (int yTile = 0; yTile < getTileLength(); yTile += ISLAND_GAP) {
                 Island island = new Island(11, 11);
-                Vector3 point = new Vector3(xTile, yTile, 0);
+                GridPoint2 point = new GridPoint2(xTile, yTile);
 
                 getIslands().put(island, point);
             }
@@ -48,55 +54,9 @@ public class MatchMap {
                 if (xTile % 2 == 0 && yTile % 2 == 0) {
                     ResourceTreasure resourceTreasure = new ResourceTreasure(Resource.WOOD, 5);
 
-                    getTreasures().put(resourceTreasure, new Vector3(xTile, yTile, 0));
+                    getTreasures().put(resourceTreasure, new GridPoint2(xTile, yTile));
                 }
             }
-        }
-    }
-
-    private boolean canBuild(Building building, int x, int y) {
-        for (Map.Entry<Island, Vector3> entry : getIslands().entrySet()) {
-            Island island = entry.getKey();
-            Vector3 location = entry.getValue();
-
-            int relativeToIslandX = (int) location.x - x;
-            int relativeToIslandY = (int) location.y - y;
-
-            boolean xInIsland = 0 <= relativeToIslandX && relativeToIslandX < island.getMaxWidth();
-            boolean yInIsland = 0 <= relativeToIslandY && relativeToIslandY < island.getMaxHeight();
-
-            if (!(xInIsland && yInIsland))
-                continue;
-
-            int groundTiles = 0;
-
-            for (int xIndex = 0; xIndex < building.getTileWidth(); xIndex++)
-                for (int yIndex = 0; yIndex < building.getTileWidth(); yIndex++)
-                    if (island.getRepr()[relativeToIslandX + xIndex][relativeToIslandY + yIndex] != null)
-                        groundTiles++;
-
-            if (groundTiles >= building.getMinGroundTiles())
-                return true;
-        }
-
-        return false;
-    }
-
-    private void build(Building building, int x, int y) {
-        for (Map.Entry<Island, Vector3> entry : getIslands().entrySet()) {
-            Island island = entry.getKey();
-            Vector3 location = entry.getValue();
-
-            int relativeToIslandX = (int) location.x - x;
-            int relativeToIslandY = (int) location.y - y;
-
-            boolean xInIsland = 0 <= relativeToIslandX && relativeToIslandX < island.getMaxWidth();
-            boolean yInIsland = 0 <= relativeToIslandY && relativeToIslandY < island.getMaxHeight();
-
-            if (!(xInIsland && yInIsland))
-                continue;
-
-
         }
     }
 
@@ -108,15 +68,19 @@ public class MatchMap {
         return tileWidth;
     }
 
-    public Map<Island, Vector3> getIslands() {
+    public Map<Island, GridPoint2> getIslands() {
         return islands;
     }
 
-    public Vector3 getBottomLeft() {
-        return bottomLeft;
+    public GridPoint2 getFocusOrigin() {
+        return focusOrigin;
     }
 
-    public Map<Treasure, Vector3> getTreasures() {
+    public Map<Treasure, GridPoint2> getTreasures() {
         return treasures;
+    }
+
+    public Map<Entity<? extends EntityType>, Vector2> getEntities() {
+        return entities;
     }
 }

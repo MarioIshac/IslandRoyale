@@ -1,5 +1,7 @@
 package me.theeninja.islandroyale;
 
-public enum Resource {
+import java.io.Serializable;
+
+public enum Resource implements Serializable {
     WOOD,
 }

@@ -1,14 +1,12 @@
 package me.theeninja.islandroyale;
 
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.utils.Array;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
-import me.theeninja.islandroyale.building.Building;
+import me.theeninja.islandroyale.entity.BuildingEntityType;
+import me.theeninja.islandroyale.entity.Entity;
 
 public class Island {
     private IslandTileType[][] repr;
@@ -16,6 +14,8 @@ public class Island {
     public static final int BLOCK_MULTIPLIER = 2;
     private static final float NON_SCALED_CENTER_BLOCKS = (float) Math.sqrt(2);
     private static final int SURROUNDING_BLOCKS_REQUIRED = 2;
+
+    private final Map<Entity<? extends BuildingEntityType>, GridPoint2> buildings = new HashMap<>();
 
     private final int maxWidth;
     private final int maxHeight;
@@ -34,8 +34,6 @@ public class Island {
         smoothIsland();
         scaleIsland();
     }
-
-    List<Building> associatedBuildings = new ArrayList<>();
 
     public void smoothIsland() {
         IslandTileType[][] oldRepr = Arrays.copyOfRange(repr, 0, repr.length);
@@ -145,6 +143,37 @@ public class Island {
         }
     }
 
+    public void build(Entity<? extends BuildingEntityType> entity, int xTile, int yTile) {
+        GridPoint2 gridPoint = new GridPoint2(xTile, yTile);
+
+        getBuildings().put(entity, gridPoint);
+    }
+
+    public boolean canBuild(BuildingEntityType buildingEntityType, int xTile, int yTile) {
+        int groundTilesNum = 0;
+
+        for (int xOffset = 0; xOffset < buildingEntityType.getTileWidth(); xOffset++) {
+            for (int yOffset = 0; yOffset < buildingEntityType.getTileHeight(); yOffset++) {
+                int newX = xTile + xOffset;
+                int newY = yTile + yOffset;
+
+                IslandTileType islandTileType;
+
+                boolean xOutOfBounds = !(0 < newX && newX < getMaxWidth());
+                boolean yOutOfBounds = !(0 < newY && newY < getMaxHeight());
+
+                boolean outOfBounds = xOutOfBounds || yOutOfBounds;
+
+                islandTileType = outOfBounds ? null : getRepr()[newX][newY];
+
+                if (islandTileType != null)
+                    groundTilesNum++;
+            }
+        }
+
+        return groundTilesNum >= buildingEntityType.getMinGroundTiles();
+    }
+
     public int getMaxWidth() {
         return maxWidth;
     }
@@ -168,5 +197,9 @@ public class Island {
     @Override
     public String toString() {
         return Island.class.getSimpleName() + "[" + getMaxWidth() + ", " + getMaxHeight() + "]";
+    }
+
+    public Map<Entity<? extends BuildingEntityType>, GridPoint2> getBuildings() {
+        return buildings;
     }
 }

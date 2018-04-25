@@ -1,0 +1,7 @@
+{
+  "name": "Boat",
+  "maxLevel": 10,
+  "baseHealth": 600,
+  "baseMovementSpeed": 2,
+  "texturePath": "Boat.png"
+}
