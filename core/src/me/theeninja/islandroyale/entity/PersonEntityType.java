@@ -9,23 +9,23 @@ import me.theeninja.islandroyale.Player;
 
 import java.util.Map;
 
-public class PersonEntityType extends MovingEntityType<PersonEntityType> implements Offensive<PersonEntityType> {
+public class PersonEntityType extends MovingEntityType<PersonEntityType> implements Offensive<MovingEntityType<PersonEntityType>> {
     public static final String PERSON_DIRECTORY = "person/";
 
     private float baseDamage;
-    private float baseFireRate; Entity<DefenseBuildingType>
+    private float baseFireRate;
 
     public static final String IS_CARRIED_LABEL = "isCarried";
 
     private final static String TIME_LEFT_LABEL = "timeLeft";
 
     @Override
-    public void initialize(Entity<PersonEntityType> entity) {
+    public void initialize(Entity<MovingEntityType<PersonEntityType>> entity) {
         entity.getProperties().put(TIME_LEFT_LABEL, 1 / getBaseFireRate());
     }
 
     @Override
-    public void check(Entity<PersonEntityType> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<MovingEntityType<PersonEntityType>> entity, float delta, Player player, MatchMap matchMap) {
         boolean isCarried = getProperty(entity, IS_CARRIED_LABEL);
 
         // If this person is being carried by transporation, let the transporter
@@ -42,7 +42,7 @@ public class PersonEntityType extends MovingEntityType<PersonEntityType> impleme
         performDamageCheck(entity, delta);
     }
 
-    private void performDamageCheck(Entity<PersonEntityType> entity, float delta) {
+    private void performDamageCheck(Entity<MovingEntityType<PersonEntityType>> entity, float delta) {
         float timeLeft = getProperty(entity, TIME_LEFT_LABEL);
         timeLeft -= delta;
 
@@ -56,7 +56,7 @@ public class PersonEntityType extends MovingEntityType<PersonEntityType> impleme
     }
 
     @Override
-    public void present(Entity<PersonEntityType> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<MovingEntityType<PersonEntityType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
 
     }
 

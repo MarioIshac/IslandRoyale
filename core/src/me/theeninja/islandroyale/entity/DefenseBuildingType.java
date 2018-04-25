@@ -9,7 +9,7 @@ import me.theeninja.islandroyale.Player;
 
 import java.util.List;
 
-public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<DefenseBuildingType> {
+public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<BuildingEntityType<DefenseBuildingType>> {
     private float baseDamage;
 
     /**
@@ -36,12 +36,12 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
     private static final String SECONDS_ELAPSED_SINCE_LAST_SHOT = "secondsElapsed";
 
     @Override
-    public void initialize(Entity<DefenseBuildingType> entity) {
+    public void initialize(Entity<BuildingEntityType<DefenseBuildingType>> entity) {
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
     }
 
     @Override
-    public void check(Entity<DefenseBuildingType> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<BuildingEntityType<DefenseBuildingType>> entity, float delta, Player player, MatchMap matchMap) {
         // Does 2 things:
         // 1) Ensures that there is always the requested field within map (obvious)
         // 2) Ensures that upon entity construction, a shot is not fired IMMEDIATELY. Rather, it is fired
@@ -71,7 +71,7 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
      * (in tiles) of said entity.
      */
     @Override
-    public void present(Entity<DefenseBuildingType> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<BuildingEntityType<DefenseBuildingType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
         float tileRange = getRangeMultiplier(entity.getLevel());
 
         int tilePixels = Math.round(tileRange * 16);

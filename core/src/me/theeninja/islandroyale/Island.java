@@ -15,7 +15,7 @@ public class Island {
     private static final float NON_SCALED_CENTER_BLOCKS = (float) Math.sqrt(2);
     private static final int SURROUNDING_BLOCKS_REQUIRED = 2;
 
-    private final Map<Entity<? extends BuildingEntityType>, GridPoint2> buildings = new HashMap<>();
+    private final Map<Entity<? extends BuildingEntityType<?>>, GridPoint2> buildings = new HashMap<>();
 
     private final int maxWidth;
     private final int maxHeight;
@@ -199,7 +199,7 @@ public class Island {
         return Island.class.getSimpleName() + "[" + getMaxWidth() + ", " + getMaxHeight() + "]";
     }
 
-    public Map<Entity<? extends BuildingEntityType>, GridPoint2> getBuildings() {
+    public Map<Entity<? extends BuildingEntityType<?>>, GridPoint2> getBuildings() {
         return buildings;
     }
 }

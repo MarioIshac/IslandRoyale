@@ -104,12 +104,12 @@ public class MatchScreen implements Screen {
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
 
-        Array<? extends BuildingEntityType<?>> buildingTypes = null; //= BuildingEntityType.loadBuildingEntityTypes();
+        Array<BuildingEntityType<?>> buildingTypes = BuildingEntityType.loadBuildingEntityTypes();
 
-        /*for (BuildingEntityType<? super <?> buildingEntityType : buildingTypes) {
-            BuildButton<BuildingEntityType> buildButton = new BuildButton<>(buildingEntityType);
+        for (BuildingEntityType<?> buildingEntityType : buildingTypes) {
+            BuildButton<?> buildButton = new BuildButton<>(buildingEntityType);
             getBuildMenu().addActor(buildButton);
-        }*/
+        }
 
         for (BuildingEntityType<?> buildingType : buildingTypes) {
 
@@ -224,7 +224,7 @@ public class MatchScreen implements Screen {
         getMatchMap().flushDeadEntities();
 
         for (TransportEntityType transportEntityType : transportEntityTypes) {
-            Entity<TransportEntityType> entity = new Entity<>(transportEntityType);
+            Entity<MovingEntityType<TransportEntityType>> entity = new Entity<>(transportEntityType);
             getBatch().draw(entity.getType().getTexture(), 500, 500);
             getMatchMap().getEntities().clear();
             getMatchMap().getEntities().put(entity, new Vector2(500, 500));
@@ -236,7 +236,7 @@ public class MatchScreen implements Screen {
             if (!(actor instanceof BuildButton))
                 continue;
 
-            BuildButton buildButton = (BuildButton) actor;
+            BuildButton<?> buildButton = (BuildButton<?>) actor;
 
             if (!isBuildButtonInDragState(buildButton))
                 continue;
@@ -281,8 +281,9 @@ public class MatchScreen implements Screen {
             Island island = islandEntry.getKey();
             GridPoint2 islandLoc = islandEntry.getValue();
 
-            for (Map.Entry<Entity<? extends BuildingEntityType>, GridPoint2> buildEntry : island.getBuildings().entrySet()) {
-                Entity<? extends BuildingEntityType> entity = buildEntry.getKey();
+            for (Map.Entry<Entity<? extends BuildingEntityType<?>>, GridPoint2> buildEntry : island.getBuildings().entrySet()) {
+                Entity<BuildingEntityType<?>> a;
+
                 GridPoint2 buildingLocation = buildEntry.getValue();
 
                 float relativeToFocusX = islandLoc.x + buildingLocation.x;
@@ -337,8 +338,7 @@ public class MatchScreen implements Screen {
         getBatch().draw(canBuild ? checkmark : x, adjustedAbsoluteX, adjustedAbsoluteY + associatedTexture.getHeight());
 
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
-            Entity<? extends BuildingEntityType> newEntity = new Entity<>(buildButton.getBuildingType());
-            getPlayer().getMainIsland().build(newEntity, xTilePosition, yTilePosition);
+            getPlayer().getMainIsland().build(buildButton.newBuilding(), xTilePosition, yTilePosition);
 
             buildButton.setBuildPosition(null);
             buildButton.getBuildingType().charge(getPlayer().getInventory());

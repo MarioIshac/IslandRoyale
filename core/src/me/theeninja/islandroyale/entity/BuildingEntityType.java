@@ -38,8 +38,8 @@ public abstract class BuildingEntityType<T extends BuildingEntityType<T>> extend
         return cost;
     }
 
-    public static Array<? extends BuildingEntityType> loadBuildingEntityTypes() {
-        Array<BuildingEntityType> buildingTypes = new Array<>();
+    public static Array<BuildingEntityType<?>> loadBuildingEntityTypes() {
+        Array<BuildingEntityType<?>> buildingTypes = new Array<>();
 
         Array<DefenseBuildingType> defenseBuildingTypes = EntityType.loadEntityTypes(DefenseBuildingType.class);
         Array<OffenseBuildingType> offenseBuildingTypes = EntityType.loadEntityTypes(OffenseBuildingType.class);

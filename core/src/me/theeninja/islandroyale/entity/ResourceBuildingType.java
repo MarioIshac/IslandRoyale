@@ -39,12 +39,12 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
     }
 
     @Override
-    public void initialize(Entity<ResourceBuildingType> entity) {
+    public void initialize(Entity<BuildingEntityType<ResourceBuildingType>> entity) {
 
     }
 
     @Override
-    public void check(Entity<ResourceBuildingType> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<BuildingEntityType<ResourceBuildingType>> entity, float delta, Player player, MatchMap matchMap) {
         float amountOfResource = delta * getBaseRate();
         float multiplier = getResourceProductionMultiplier(entity.getLevel());
 
@@ -54,7 +54,7 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
     }
 
     @Override
-    public void present(Entity<ResourceBuildingType> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<BuildingEntityType<ResourceBuildingType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
         // TODO update textures to visualize resource prouction
     }
 

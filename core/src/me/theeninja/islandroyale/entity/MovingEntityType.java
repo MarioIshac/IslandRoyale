@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 
-public abstract class MovingEntityType<T extends MovingEntityType<T>> extends EntityType<T> {
+public abstract class MovingEntityType<T extends MovingEntityType<T>> extends EntityType<MovingEntityType<T>> {
     public static final String MOVING_DIRECTORY = "moving/";
 
     public static final float MOVEMENT_SPEED_MULTIPLIER = 1.1f;
@@ -21,13 +21,13 @@ public abstract class MovingEntityType<T extends MovingEntityType<T>> extends En
     private static final String ANGLE_LABEL = "angle";
 
     @Override
-    public void initialize(Entity<T> entity) {
+    public void initialize(Entity<MovingEntityType<T>> entity) {
         entity.getProperties().put(X_LABEL, -1f);
         entity.getProperties().put(Y_LABEL, -1f);
         entity.getProperties().put(ANGLE_LABEL, -1f);
     }
 
-    public void move(Entity<T> entity, float delta) {
+    public void move(Entity<MovingEntityType<T>> entity, float delta) {
         float xPos = (float) entity.getProperties().get(X_LABEL);
         float yPos = (float) entity.getProperties().get(Y_LABEL);
         float angle = (float) entity.getProperties().get(ANGLE_LABEL);

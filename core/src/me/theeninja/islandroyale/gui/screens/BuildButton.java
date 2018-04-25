@@ -5,14 +5,15 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.entity.BuildingEntityType;
 import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.MovingEntityType;
 
 public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
 
-    private final BuildingEntityType buildingEntityType;
+    private final BuildingEntityType<T> buildingEntityType;
 
     private Vector2 buildPosition;
 
-    BuildButton(BuildingEntityType buildingEntityType) {
+    BuildButton(BuildingEntityType<T> buildingEntityType) {
         super(buildingEntityType.getName(), MatchScreen.FLAT_EARTH_SKIN);
 
         this.buildingEntityType = buildingEntityType;
@@ -23,11 +24,11 @@ public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
         this.addListener(buildButtonListener);
     }
 
-    public Entity<T> newBuilding() {
-        return new Entity<T>(getBuildingType());
+    public Entity<BuildingEntityType<T>> newBuilding() {
+        return new Entity<>(getBuildingType());
     }
 
-    public BuildingEntityType getBuildingType() {
+    public BuildingEntityType<T> getBuildingType() {
         return buildingEntityType;
     }
 

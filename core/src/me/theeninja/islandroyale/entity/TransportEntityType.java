@@ -10,24 +10,24 @@ public class TransportEntityType extends MovingEntityType<TransportEntityType> {
     private static final String CARRIED_ENTITIES_LABEL = "carriedEntities";
 
     @Override
-    public void initialize(Entity<TransportEntityType> entity) {
+    public void initialize(Entity<MovingEntityType<TransportEntityType>> entity) {
         super.initialize(entity);
 
-        entity.getProperties().put(CARRIED_ENTITIES_LABEL, new Array<Entity<PersonEntityType>>());
+        entity.getProperties().put(CARRIED_ENTITIES_LABEL, new Array<Entity<MovingEntityType<PersonEntityType>>>());
     }
 
     @Override
-    public void check(Entity<TransportEntityType> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<MovingEntityType<TransportEntityType>> entity, float delta, Player player, MatchMap matchMap) {
         move(entity, delta);
 
-        Array<Entity<PersonEntityType>> carried = getProperty(entity, CARRIED_ENTITIES_LABEL);
+        Array<Entity<MovingEntityType<PersonEntityType>>> carried = getProperty(entity, CARRIED_ENTITIES_LABEL);
 
-        for (Entity<PersonEntityType> person : carried)
+        for (Entity<MovingEntityType<PersonEntityType>> person : carried)
             setProperty(person, PersonEntityType.IS_CARRIED_LABEL, true);
     }
 
     @Override
-    public void present(Entity<TransportEntityType> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<MovingEntityType<TransportEntityType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
 
     }
 }
