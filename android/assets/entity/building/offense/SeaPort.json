@@ -1,5 +1,9 @@
 {
   "name": "Sea Port",
+  "id": 2000,
+  "entityIDsProduced": [
+    1000
+  ],
   "baseHealth": 100,
   "maxLevel": 10,
   "tileWidth": 2,

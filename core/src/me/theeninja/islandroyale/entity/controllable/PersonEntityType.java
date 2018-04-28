@@ -1,15 +1,13 @@
-package me.theeninja.islandroyale.entity;
+package me.theeninja.islandroyale.entity.controllable;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.Offensive;
 
-import java.util.Map;
-
-public class PersonEntityType extends MovingEntityType<PersonEntityType> implements Offensive<MovingEntityType<PersonEntityType>> {
+public class PersonEntityType extends ControllableEntityType<PersonEntityType> implements Offensive<PersonEntityType> {
     public static final String PERSON_DIRECTORY = "person/";
 
     private float baseDamage;
@@ -20,29 +18,29 @@ public class PersonEntityType extends MovingEntityType<PersonEntityType> impleme
     private final static String TIME_LEFT_LABEL = "timeLeft";
 
     @Override
-    public void initialize(Entity<MovingEntityType<PersonEntityType>> entity) {
+    public void initialize(Entity<PersonEntityType> entity) {
         entity.getProperties().put(TIME_LEFT_LABEL, 1 / getBaseFireRate());
     }
 
     @Override
-    public void check(Entity<MovingEntityType<PersonEntityType>> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<PersonEntityType> entity, float delta, Player player, MatchMap matchMap) {
         boolean isCarried = getProperty(entity, IS_CARRIED_LABEL);
 
         // If this person is being carried by transporation, let the transporter
         // take care of moving this entity
         if (!isCarried)
-            move(entity, delta);
+            updateMoveAttributes(entity, delta);
 
         Entity<? extends EntityType> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
         // If the current target entity has expired, i.e a new target entity is required
         if (currentTargetEntity == null || currentTargetEntity.getHealth() <= 0)
-            setProperty(entity,ATTACKING_TARGET_LABEL, getNewTargetEntity(entity, matchMap));
+            setProperty(entity,ATTACKING_TARGET_LABEL, getNewTargetEntity(entity, matchMap, getBaseDamage()));
 
         performDamageCheck(entity, delta);
     }
 
-    private void performDamageCheck(Entity<MovingEntityType<PersonEntityType>> entity, float delta) {
+    private void performDamageCheck(Entity<PersonEntityType> entity, float delta) {
         float timeLeft = getProperty(entity, TIME_LEFT_LABEL);
         timeLeft -= delta;
 
@@ -56,7 +54,7 @@ public class PersonEntityType extends MovingEntityType<PersonEntityType> impleme
     }
 
     @Override
-    public void present(Entity<MovingEntityType<PersonEntityType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<PersonEntityType> entity, Batch batch, float centerPixelX, float centerPixelY) {
 
     }
 

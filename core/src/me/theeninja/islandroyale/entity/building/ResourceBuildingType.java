@@ -1,10 +1,11 @@
-package me.theeninja.islandroyale.entity;
+package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import me.theeninja.islandroyale.IslandRoyaleGame;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.Resource;
+import me.theeninja.islandroyale.entity.Entity;
 
 public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingType> {
     private static final float RESOURCE_MULTIPLIER_PER_LEVEL = 1.1f;
@@ -39,12 +40,12 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
     }
 
     @Override
-    public void initialize(Entity<BuildingEntityType<ResourceBuildingType>> entity) {
+    public void initialize(Entity<ResourceBuildingType> entity) {
 
     }
 
     @Override
-    public void check(Entity<BuildingEntityType<ResourceBuildingType>> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<ResourceBuildingType> entity, float delta, Player player, MatchMap matchMap) {
         float amountOfResource = delta * getBaseRate();
         float multiplier = getResourceProductionMultiplier(entity.getLevel());
 
@@ -54,7 +55,7 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
     }
 
     @Override
-    public void present(Entity<BuildingEntityType<ResourceBuildingType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<ResourceBuildingType> entity, Batch batch, float centerPixelX, float centerPixelY) {
         // TODO update textures to visualize resource prouction
     }
 

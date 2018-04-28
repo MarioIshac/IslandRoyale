@@ -18,25 +18,33 @@ public interface Offensive<T extends EntityType<T>> {
      *
      * @return another entity that is closest to {@code entity}
      */
-    default Entity<? extends EntityType> getNewTargetEntity(Entity<T> entity, MatchMap matchMap) {
+    default Entity<? extends EntityType<?>> getNewTargetEntity(Entity<T> entity, MatchMap matchMap, float tileRange) {
         // We keep the minimum distance SQUARED in order to improve performance
         float minDistanceSquared = Float.MAX_VALUE;
         Entity<? extends EntityType> closestEntity = null;
 
         Vector2 entityLocation = matchMap.getEntities().get(entity);
 
-        for (Map.Entry<Entity<? extends EntityType>, Vector2> entry : matchMap.getEntities().entrySet()) {
+        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : matchMap.getEntities().entrySet()) {
             Entity<? extends EntityType> otherEntity = entry.getKey();
             Vector2 otherLocation = entry.getValue();
 
             // Do not let the entity target itself...
-            if (otherEntity == entity)
+            if (entity == otherEntity)
+                continue;
+
+            // Do not let entitty target entities of same player...
+            if (entity.getOwner() == otherEntity.getOwner())
                 continue;
 
             float xDiff = entityLocation.x - otherLocation.x;
             float yDiff = entityLocation.y - otherLocation.y;
 
             float distanceSquared = xDiff * xDiff + yDiff * yDiff;
+
+            // Do not let entity target entities outside of range
+            if (distanceSquared > tileRange * tileRange)
+                continue;
 
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;

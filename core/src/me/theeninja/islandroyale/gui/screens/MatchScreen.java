@@ -18,12 +18,22 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import me.theeninja.islandroyale.*;
 import me.theeninja.islandroyale.entity.*;
+import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.building.*;
+import me.theeninja.islandroyale.entity.building.BuildingEntityType;
+import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
+import me.theeninja.islandroyale.entity.building.ResourceBuildingType;
+import me.theeninja.islandroyale.entity.controllable.PersonEntityType;
+import me.theeninja.islandroyale.entity.controllable.ProjectileEntityType;
+import me.theeninja.islandroyale.entity.controllable.TransportEntityType;
 
 import java.util.*;
 
 public class MatchScreen implements Screen {
 
     public final static Skin FLAT_EARTH_SKIN;
+
+    private final Array<BuildButton<?>> buildButtons = new Array<>();
 
     static {
         FileHandle flatEarthSkinFileHandler = new FileHandle("flat-earth/skin/flat-earth-ui.json");
@@ -40,7 +50,7 @@ public class MatchScreen implements Screen {
     private final Map<IslandTileType, Texture> islandTextures = new HashMap<>();
     private final Map<Resource, Texture> treasureTextures = new HashMap<>();
     private final Map<Resource, Texture> resourceTextures = new HashMap<>();
-    private final Map<Island, GridPoint2> visibleIslands = new HashMap<>();
+    private final Map<Island, Vector2> visibleIslands = new HashMap<>();
 
     private final Texture checkmark;
     private final Texture x;
@@ -52,16 +62,36 @@ public class MatchScreen implements Screen {
     private final VerticalGroup buildMenu = new VerticalGroup();
     private final VerticalGroup resourceMenu = new VerticalGroup();
 
-    Array<TransportEntityType> transportEntityTypes;
+    private <T extends EntityType<T>> Array<T> getEntityTypes(String directory, Class<T> classType) {
+        return new EntityTypeFactory<>(directory, classType).getEntityTypes();
+    }
+
+    private final Array<EntityType<?>> entityTypes = new Array<>();
+
+    public <T extends BuildingEntityType<T>> Array<T> getAndAddBuildingEntityTypes(String directory, Class<T> classType) {
+        EntityTypeFactory<T> entityTypeFactory = new EntityTypeFactory<>(directory, classType);
+
+        for (T buildingEntityType : entityTypeFactory.getEntityTypes()) {
+            getBuildButtons().add(new BuildButton<>(buildingEntityType, player));
+        }
+
+        return entityTypeFactory.getEntityTypes();
+    }
+
 
     public MatchScreen(Game game) {
-        this.transportEntityTypes = EntityType.loadEntityTypes(TransportEntityType.class);
+        entityTypes.addAll(getEntityTypes(EntityType.PERSON_DIRECTORY, PersonEntityType.class));
+        entityTypes.addAll(getEntityTypes(EntityType.PROJECTILE_DIRECTORY, ProjectileEntityType.class));
+        entityTypes.addAll(getEntityTypes(EntityType.TRANSPORT_DIRECTORY, TransportEntityType.class));
+        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.DEFENSE_DIRECTORY, DefenseBuildingType.class));
+        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.RESOURCE_DIRECTORY, ResourceBuildingType.class));
+        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.OFFENSE_DIRECTORY, PersonGeneratorBuildingType.class));
+        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.OFFENSE_DIRECTORY, TransportGeneratorBuildingType.class));
+        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.OFFENSE_DIRECTORY, ProjectileGeneratorBuildingType.class));
 
         this.batch = new SpriteBatch();
 
         this.game = game;
-
-        ResourceBuildingType resourceBuildingType = new ResourceBuildingType();
 
         this.matchMap = new MatchMap(1000, 1000);
         this.stage = new Stage(new ScreenViewport(), getBatch());
@@ -96,7 +126,8 @@ public class MatchScreen implements Screen {
 
         this.player = new Player(chosenIsland);
 
-        GridPoint2 bottomLeftFocusPos = this.getMatchMap().getIslands().get(chosenIsland).cpy();
+        Vector2 bottomLeftFocusPos = this.getMatchMap().getIslands().get(chosenIsland).cpy();
+
         bottomLeftFocusPos.sub(20, 20);
 
         getMatchMap().getFocusOrigin().set(bottomLeftFocusPos);
@@ -104,15 +135,8 @@ public class MatchScreen implements Screen {
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
 
-        Array<BuildingEntityType<?>> buildingTypes = BuildingEntityType.loadBuildingEntityTypes();
-
-        for (BuildingEntityType<?> buildingEntityType : buildingTypes) {
-            BuildButton<?> buildButton = new BuildButton<>(buildingEntityType);
+        for (BuildButton<?> buildButton : getBuildButtons()) {
             getBuildMenu().addActor(buildButton);
-        }
-
-        for (BuildingEntityType<?> buildingType : buildingTypes) {
-
         }
 
         for (Resource resource : Resource.values()) {
@@ -122,7 +146,6 @@ public class MatchScreen implements Screen {
 
             ResourceLabel resourceLabel = new ResourceLabel(resource, getResourceTextures().get(resource), getPlayer());
             getResourceMenu().addActor(resourceLabel);
-
         }
 
         getBuildMenu().setPosition(Gdx.graphics.getWidth() - 100, Gdx.graphics.getHeight() - 20);
@@ -132,6 +155,16 @@ public class MatchScreen implements Screen {
         getStage().addActor(getResourceMenu());
 
         getPlayer().getInventory().put(Resource.WOOD, 1000);
+    }
+
+    private boolean isOutOfFocus(Vector2 relativeTileLocation) {
+        float screenTileWidth = Gdx.graphics.getWidth() / 16f;
+        float screenTileHeight = Gdx.graphics.getHeight() / 16f;
+
+        boolean xInBounds = 0 < relativeTileLocation.x && relativeTileLocation.x < screenTileHeight;
+        boolean yInBounds = 0 < relativeTileLocation.y && relativeTileLocation.y < screenTileHeight;
+
+        return !xInBounds || !yInBounds;
     }
 
     private static boolean isBuildButtonInDragState(BuildButton buildButton) {
@@ -159,7 +192,7 @@ public class MatchScreen implements Screen {
     }
     private void drawIsland(Island island) {
         // Refers to position of island relative to bottom left of focus rectangle
-        GridPoint2 islandCoordsRelativeToFocus = getMatchMap().getIslands().get(island)
+        Vector2 islandCoordsRelativeToFocus = getMatchMap().getIslands().get(island)
                 // Must be copied since we do not want to modify position, it should be immutable
                 .cpy();
 
@@ -172,8 +205,8 @@ public class MatchScreen implements Screen {
             for (int islandTileY = 0; islandTileY < island.getMaxHeight(); islandTileY++) {
                 // These refer to the position that each tile of the island has
                 // relative to the bottom left of the focused part of the map.
-                int relativeXToFocusPoint = islandCoordsRelativeToFocus.x + islandTileX;
-                int relativeYToFocusPoint = islandCoordsRelativeToFocus.y + islandTileY;
+                float relativeXToFocusPoint = islandCoordsRelativeToFocus.x + islandTileX;
+                float relativeYToFocusPoint = islandCoordsRelativeToFocus.y + islandTileY;
 
                 // Though we have verified that some part of the island is within the
                 // focused part of the map, it is is still possible that SOME of the island's tiles
@@ -187,8 +220,8 @@ public class MatchScreen implements Screen {
 
                 IslandTileType islandTileType = island.getRepr()[islandTileX][islandTileY];
 
-                int relativeCoordXToFocusPoint = relativeXToFocusPoint * 16;
-                int relativeCoordYToFocusPoint = relativeYToFocusPoint * 16;
+                float relativeCoordXToFocusPoint = relativeXToFocusPoint * 16;
+                float relativeCoordYToFocusPoint = relativeYToFocusPoint * 16;
 
                 // Do not go into statement if island tile type is water i.e null
                 if (islandTileType != null) {
@@ -219,16 +252,9 @@ public class MatchScreen implements Screen {
         // This method has side effects of updating visible islands
         drawIslands(focusedMapRectangle);
 
-        drawBuildings();
-
         getMatchMap().flushDeadEntities();
-
-        for (TransportEntityType transportEntityType : transportEntityTypes) {
-            Entity<MovingEntityType<TransportEntityType>> entity = new Entity<>(transportEntityType);
-            getBatch().draw(entity.getType().getTexture(), 500, 500);
-            getMatchMap().getEntities().clear();
-            getMatchMap().getEntities().put(entity, new Vector2(500, 500));
-        }
+        updateEntities(delta);
+        drawEntities();
 
         for (int i = 0; i < getBuildMenu().getChildren().size; i++) {
             Actor actor = getBuildMenu().getChildren().get(i);
@@ -255,54 +281,57 @@ public class MatchScreen implements Screen {
 
 
         getBatch().end();
-
-        updateBuildings(delta);
-
+        presentEntities();
         getStage().draw();
     }
 
-    private void drawBuildings() {
-        getVisibleIslands().forEach((island, relativeToFocusPoint) -> {
-            island.getBuildings().forEach((building, buildingOffset) -> {
-                int newX = relativeToFocusPoint.x + buildingOffset.x;
-                int newY = relativeToFocusPoint.y + buildingOffset.y;
+    private void drawEntities() {
+        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : getMatchMap().getEntities().entrySet()) {
+            Entity<? extends EntityType<?>> entity = entry.getKey();
+            Vector2 entityLocation = entry.getValue();
 
-                // Change from tiles to pixels
-                newX *= 16;
-                newY *= 16;
+            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entityLocation);
 
-                getBatch().draw(building.getType().getTexture(), newX, newY);
-            });
-        });
+            if (isOutOfFocus(relativeEntityLocation))
+                continue;
+
+            int relativePixelX = (int) (relativeEntityLocation.x * 16);
+            int relativePixelY = (int) (relativeEntityLocation.y * 16);
+
+            getBatch().draw(entity.getType().getTexture(), relativePixelX, relativePixelY);
+        }
     }
 
-    private void updateBuildings(float delta) {
-        for (Map.Entry<Island, GridPoint2> islandEntry : getVisibleIslands().entrySet()) {
-            Island island = islandEntry.getKey();
-            GridPoint2 islandLoc = islandEntry.getValue();
+    private void presentEntities() {
+        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : getMatchMap().getEntities().entrySet()) {
+            Entity<? extends EntityType<?>> entity = entry.getKey();
+            Vector2 entityLocation = entry.getValue();
 
-            for (Map.Entry<Entity<? extends BuildingEntityType<?>>, GridPoint2> buildEntry : island.getBuildings().entrySet()) {
-                Entity<BuildingEntityType<?>> a;
+            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entityLocation);
 
-                GridPoint2 buildingLocation = buildEntry.getValue();
+            if (isOutOfFocus(relativeEntityLocation))
+                continue;
 
-                float relativeToFocusX = islandLoc.x + buildingLocation.x;
-                float relativeToFocusY = islandLoc.y + buildingLocation.y;
-
-                relativeToFocusX += entity.getType().getTileWidth() / 2f;
-                relativeToFocusY += entity.getType().getTileHeight() / 2f;
-
-                // To pixels
-                relativeToFocusX *= 16;
-                relativeToFocusY *= 16;
-
-                int centerX = Math.round(relativeToFocusX);
-                int centerY = Math.round(relativeToFocusY);
-
-                entity.getType().check(entity, delta, getPlayer(), getMatchMap());
-                entity.getType().present(entity, getBatch(), centerX, centerY);
-            }
+            entity.present(getBatch(), relativeEntityLocation.x, relativeEntityLocation.y);
         }
+    }
+
+    private void updateEntities(float delta) {
+        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : getMatchMap().getEntities().entrySet()) {
+            Entity<? extends EntityType<?>> entity = entry.getKey();
+            Vector2 entityLocation = entry.getValue();
+            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entityLocation);
+
+            entity.check(delta, getPlayer(), getMatchMap());
+        }
+    }
+
+    public  <T extends EntityType<T>> void check(Entity<T> entity, float delta, Player player, MatchMap matchMap) {
+        entity.getType().check(entity, delta, player, matchMap);
+    }
+
+    public  <T extends EntityType<T>> void present(Entity<T> entity, Batch batch, float tileX, float tileY) {
+        entity.getType().present(entity, batch, tileX, tileY);
     }
 
     private <T extends BuildingEntityType<T>> void handleBuildButton(BuildButton<T> buildButton, Rectangle focusedMapRectangle) {
@@ -318,27 +347,32 @@ public class MatchScreen implements Screen {
 
         getBatch().draw(associatedTexture, adjustedAbsoluteX, adjustedAbsoluteY);
 
-        int xTilePosition = Math.round(focusedMapRectangle.getX() + adjustedAbsoluteX / 16);
-        int yTilePosition = Math.round(focusedMapRectangle.getY() + adjustedAbsoluteY / 16);
-
-        xTilePosition -= getMatchMap().getIslands().get(getPlayer().getMainIsland()).x;
-        yTilePosition -= getMatchMap().getIslands().get(getPlayer().getMainIsland()).y;
+        int absoluteXBuildPos = Math.round(focusedMapRectangle.getX() + adjustedAbsoluteX / 16);
+        int absoluteYBuildPos = Math.round(focusedMapRectangle.getY() + adjustedAbsoluteY / 16);
 
         boolean canBuild = false;
 
-        for (Island island : getVisibleIslands().keySet())
-            if (island.canBuild(buildButton.getBuildingType(), xTilePosition, yTilePosition))
+        for (Island island : getVisibleIslands().keySet()) {
+            Vector2 islandLocation = getMatchMap().getIslands().get(island);
+
+            int relativeToIslandX = (int) (absoluteXBuildPos - islandLocation.x);
+            int relativeToIslandY = (int) (absoluteYBuildPos - islandLocation.y);
+
+            if (island.canBuild(buildButton.getBuildingType(), relativeToIslandX, relativeToIslandY, getMatchMap()))
                 canBuild = true;
+        }
 
-        if (!buildButton.getBuildingType().canCharge(getPlayer().getInventory()))
-            canBuild = false;
-
-        System.out.println("reached");
+        //if (!buildButton.getBuildingType().canCharge(getPlayer().getInventory()))
+        //    canBuild = false;
 
         getBatch().draw(canBuild ? checkmark : x, adjustedAbsoluteX, adjustedAbsoluteY + associatedTexture.getHeight());
 
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
-            getPlayer().getMainIsland().build(buildButton.newBuilding(), xTilePosition, yTilePosition);
+            Entity<?> building = buildButton.newBuilding(new Vector2(adjustedAbsoluteX, adjustedAbsoluteY));
+
+            Vector2 absoluteBuildPos = new Vector2(absoluteXBuildPos, absoluteYBuildPos);
+
+            getMatchMap().getEntities().put(building, absoluteBuildPos);
 
             buildButton.setBuildPosition(null);
             buildButton.getBuildingType().charge(getPlayer().getInventory());
@@ -406,7 +440,7 @@ public class MatchScreen implements Screen {
         return buildMenu;
     }
 
-    public Map<Island, GridPoint2> getVisibleIslands() {
+    public Map<Island, Vector2> getVisibleIslands() {
         return visibleIslands;
     }
 
@@ -420,5 +454,9 @@ public class MatchScreen implements Screen {
 
     public Map<Resource, Texture> getResourceTextures() {
         return resourceTextures;
+    }
+
+    public Array<BuildButton<?>> getBuildButtons() {
+        return buildButtons;
     }
 }

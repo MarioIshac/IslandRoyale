@@ -1,0 +1,8 @@
+Each island within a map is given an integral X coordinate and integral Y coordinate.
+
+There are two options for implementing a map, with the second option having two functionally equivalent suboptions
+ (with different views):
+
+1) Have the map be 2D with borders
+2a) Have the map be 3D shown as a sphere.
+2b) Have the map be 3D shown as a 2D map with wrap-around.

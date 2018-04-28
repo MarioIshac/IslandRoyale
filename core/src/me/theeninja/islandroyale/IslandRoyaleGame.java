@@ -8,14 +8,12 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 import me.theeninja.islandroyale.entity.InventorySerializer;
-import me.theeninja.islandroyale.entity.ResourceBuildingType;
+import me.theeninja.islandroyale.entity.building.OffenseBuildingType;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public class IslandRoyaleGame extends Game {
     @Override
     public void create() {
-        ResourceBuildingType.a();
-
         Screen matchScreen = new MatchScreen(this);
 
         setScreen(matchScreen);

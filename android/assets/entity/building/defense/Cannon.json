@@ -1,5 +1,6 @@
 {
   "name": "Cannon",
+  "id": 1001,
   "baseHealth": 100,
   "maxLevel": 10,
   "tileWidth": 2,

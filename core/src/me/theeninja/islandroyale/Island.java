@@ -1,12 +1,11 @@
 package me.theeninja.islandroyale;
 
-import com.badlogic.gdx.math.GridPoint2;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.MathUtils;
 
 import java.util.*;
 
-import me.theeninja.islandroyale.entity.BuildingEntityType;
-import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.building.BuildingEntityType;
 
 public class Island {
     private IslandTileType[][] repr;
@@ -14,8 +13,6 @@ public class Island {
     public static final int BLOCK_MULTIPLIER = 2;
     private static final float NON_SCALED_CENTER_BLOCKS = (float) Math.sqrt(2);
     private static final int SURROUNDING_BLOCKS_REQUIRED = 2;
-
-    private final Map<Entity<? extends BuildingEntityType<?>>, GridPoint2> buildings = new HashMap<>();
 
     private final int maxWidth;
     private final int maxHeight;
@@ -143,13 +140,9 @@ public class Island {
         }
     }
 
-    public void build(Entity<? extends BuildingEntityType> entity, int xTile, int yTile) {
-        GridPoint2 gridPoint = new GridPoint2(xTile, yTile);
+    public boolean canBuild(BuildingEntityType buildingEntityType, int xTile, int yTile, MatchMap matchMap) {
+        Vector2 thisLocation = matchMap.getIslands().get(this);
 
-        getBuildings().put(entity, gridPoint);
-    }
-
-    public boolean canBuild(BuildingEntityType buildingEntityType, int xTile, int yTile) {
         int groundTilesNum = 0;
 
         for (int xOffset = 0; xOffset < buildingEntityType.getTileWidth(); xOffset++) {
@@ -197,9 +190,5 @@ public class Island {
     @Override
     public String toString() {
         return Island.class.getSimpleName() + "[" + getMaxWidth() + ", " + getMaxHeight() + "]";
-    }
-
-    public Map<Entity<? extends BuildingEntityType<?>>, GridPoint2> getBuildings() {
-        return buildings;
     }
 }

@@ -1,0 +1,16 @@
+{
+  "name": "Head Quarters",
+  "id": 1000,
+  "baseHealth": 2000,
+  "maxLevel": 1,
+  "tileWidth": 3,
+  "tileHeight": 3,
+  "minGroundFiles": 9,
+  "baseFireRate": 0.25,
+  "baseDamage": 150,
+  "baseRange": 15,
+  "inventoryCost": {
+    "resourceEntries": []
+  },
+  "texturePath": "HeadQuarters.png"
+}

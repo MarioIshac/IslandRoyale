@@ -1,4 +1,4 @@
-package me.theeninja.islandroyale.entity;
+package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -6,10 +6,11 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.Offensive;
 
-import java.util.List;
-
-public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<BuildingEntityType<DefenseBuildingType>> {
+public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<DefenseBuildingType> {
     private float baseDamage;
 
     /**
@@ -36,12 +37,12 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
     private static final String SECONDS_ELAPSED_SINCE_LAST_SHOT = "secondsElapsed";
 
     @Override
-    public void initialize(Entity<BuildingEntityType<DefenseBuildingType>> entity) {
+    public void initialize(Entity<DefenseBuildingType> entity) {
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
     }
 
     @Override
-    public void check(Entity<BuildingEntityType<DefenseBuildingType>> entity, float delta, Player player, MatchMap matchMap) {
+    public void check(Entity<DefenseBuildingType> entity, float delta, Player player, MatchMap matchMap) {
         // Does 2 things:
         // 1) Ensures that there is always the requested field within map (obvious)
         // 2) Ensures that upon entity construction, a shot is not fired IMMEDIATELY. Rather, it is fired
@@ -55,10 +56,18 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         Entity<? extends EntityType> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
         // If the current target entity has expired, i.e a new target entity is required
-        if (currentTargetEntity == null || currentTargetEntity.getHealth() <= 0)
-            setProperty(entity, ATTACKING_TARGET_LABEL, getNewTargetEntity(entity, matchMap));
+        if (currentTargetEntity == null || currentTargetEntity.getHealth() <= 0) {
+            currentTargetEntity = getNewTargetEntity(entity, matchMap, getBaseRange());
 
-        currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
+            setProperty(entity, ATTACKING_TARGET_LABEL, currentTargetEntity);
+
+            // If the NEW target entity is also null, that indicates that no entities are within range
+            if (currentTargetEntity == null)
+                return;
+        }
+
+        System.out.println("dealt " + getBaseDamage() + " base damage");
+
         currentTargetEntity.dealDamage(getBaseDamage());
 
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
@@ -71,7 +80,7 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
      * (in tiles) of said entity.
      */
     @Override
-    public void present(Entity<BuildingEntityType<DefenseBuildingType>> entity, Batch batch, int centerPixelX, int centerPixelY) {
+    public void present(Entity<DefenseBuildingType> entity, Batch batch, float tileX, float tileY) {
         float tileRange = getRangeMultiplier(entity.getLevel());
 
         int tilePixels = Math.round(tileRange * 16);
@@ -84,7 +93,15 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(150/255f, 150/255f, 150/255f, 0.5f);
-        shapeRenderer.circle(centerPixelX, centerPixelY, tilePixels);
+
+        tileX += getTileWidth() / 2f;
+        tileY += getTileHeight() / 2f;
+
+        int pixelX = (int) (tileX * 16);
+        int pixelY = (int) (tileY * 16);
+
+        shapeRenderer.circle(pixelX, pixelY, tileRange * 16);
+
         shapeRenderer.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);

@@ -3,20 +3,22 @@ package me.theeninja.islandroyale.gui.screens;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import me.theeninja.islandroyale.entity.BuildingEntityType;
+import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.entity.building.BuildingEntityType;
 import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.MovingEntityType;
 
 public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
 
-    private final BuildingEntityType<T> buildingEntityType;
+    private final T buildingEntityType;
+    private final Player player;
 
     private Vector2 buildPosition;
 
-    BuildButton(BuildingEntityType<T> buildingEntityType) {
+    public BuildButton(T buildingEntityType, Player player) {
         super(buildingEntityType.getName(), MatchScreen.FLAT_EARTH_SKIN);
 
         this.buildingEntityType = buildingEntityType;
+        this.player = player;
 
         setBounds(0, 0, getWidth(), getHeight());
 
@@ -24,11 +26,11 @@ public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
         this.addListener(buildButtonListener);
     }
 
-    public Entity<BuildingEntityType<T>> newBuilding() {
-        return new Entity<>(getBuildingType());
+    public Entity<T> newBuilding(Vector2 position) {
+        return new Entity<T>(getBuildingType(), getPlayer(), position);
     }
 
-    public BuildingEntityType<T> getBuildingType() {
+    public T getBuildingType() {
         return buildingEntityType;
     }
 
@@ -38,5 +40,9 @@ public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
 
     public void setBuildPosition(Vector2 buildPosition) {
         this.buildPosition = buildPosition;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 }
