@@ -6,7 +6,7 @@ import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.InteractableEntityType;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 
 import java.util.LinkedList;
@@ -25,12 +25,17 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
 
     @Override
     public void initialize(Entity<T> entity) {
+        super.initialize(entity);
         setProperty(entity, ENTITY_IDS_IN_QUEUE, new LinkedList<Integer>());
     }
+
+    private static int i = 1;
 
     @Override
     public void check(Entity<T> entity, float delta, Player player, MatchMap matchMap) {
         LinkedList<Integer> entityIDs = getProperty(entity, ENTITY_IDS_IN_QUEUE);
+
+
 
         // No entities left to process
         if (entityIDs.isEmpty())
@@ -45,9 +50,9 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
         }
 
         int entityTypeID = entityIDs.pollFirst();
-        P producedEntityType = EntityType.getEntityType(entityTypeID);
+        P producedEntityType = InteractableEntityType.getEntityType(entityTypeID);
 
-        Entity<? extends EntityType<?>> newEntity = getEntityRequested(producedEntityType, player, entity.getPos(), matchMap);
+        Entity<? extends InteractableEntityType<?>> newEntity = produceEntity(producedEntityType, player, entity.getPos(), matchMap);
 
         // No more entities left to process
         if (entityIDs.isEmpty())
@@ -59,7 +64,7 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
         setProperty(entity, TIMER_LABEL, requiredTime);
     }
 
-    public abstract Entity<P> getEntityRequested(P entityType, Player player, Vector2 buildingPos, MatchMap matchMap);
+    public abstract Entity<P> produceEntity(P entityType, Player player, Vector2 buildingPos, MatchMap matchMap);
 
     @Override
     public void present(Entity<T> entity, Batch batch, float centerPixelX, float centerPixelY) {

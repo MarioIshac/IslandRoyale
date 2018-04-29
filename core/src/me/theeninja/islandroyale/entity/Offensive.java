@@ -5,8 +5,8 @@ import me.theeninja.islandroyale.MatchMap;
 
 import java.util.Map;
 
-public interface Offensive<T extends EntityType<T>> {
-    static final String ATTACKING_TARGET_LABEL = "attackingTarget";
+public interface Offensive<T extends InteractableEntityType<T>> {
+    String ATTACKING_TARGET_LABEL = "attackingTarget";
 
     /**
      * This should only be called when a new target to attack is required. The way attacking works,
@@ -18,27 +18,28 @@ public interface Offensive<T extends EntityType<T>> {
      *
      * @return another entity that is closest to {@code entity}
      */
-    default Entity<? extends EntityType<?>> getNewTargetEntity(Entity<T> entity, MatchMap matchMap, float tileRange) {
+    default Entity<? extends InteractableEntityType<?>> getNewTargetEntity(Entity<T> entity, MatchMap matchMap, float tileRange) {
         // We keep the minimum distance SQUARED in order to improve performance
         float minDistanceSquared = Float.MAX_VALUE;
-        Entity<? extends EntityType> closestEntity = null;
+        Entity<? extends InteractableEntityType<?>> closestEntity = null;
 
-        Vector2 entityLocation = matchMap.getEntities().get(entity);
+        for (Entity<? extends EntityType<?>> otherEntity : matchMap.getEntities()) {
+            if (!(otherEntity.getType() instanceof InteractableEntityType))
+                continue;
 
-        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : matchMap.getEntities().entrySet()) {
-            Entity<? extends EntityType> otherEntity = entry.getKey();
-            Vector2 otherLocation = entry.getValue();
+            Entity<? extends InteractableEntityType<?>> interactableOtherEntity =
+                    (Entity<? extends InteractableEntityType<?>>) otherEntity;
 
             // Do not let the entity target itself...
             if (entity == otherEntity)
                 continue;
 
             // Do not let entitty target entities of same player...
-            if (entity.getOwner() == otherEntity.getOwner())
-                continue;
+            //if (entity.getOwner() == otherEntity.getOwner())
+            //    continue;
 
-            float xDiff = entityLocation.x - otherLocation.x;
-            float yDiff = entityLocation.y - otherLocation.y;
+            float xDiff = entity.getPos().x - otherEntity.getPos().x;
+            float yDiff = entity.getPos().y - otherEntity.getPos().y;
 
             float distanceSquared = xDiff * xDiff + yDiff * yDiff;
 
@@ -48,10 +49,23 @@ public interface Offensive<T extends EntityType<T>> {
 
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;
-                closestEntity = otherEntity;
+                closestEntity = interactableOtherEntity;
             }
         }
 
         return closestEntity;
+    }
+
+    default boolean isNewTargetEntityRequired(Entity<? extends InteractableEntityType<?>> currentTargetEntity) {
+        if (currentTargetEntity == null)
+            return true;
+
+        float currentTargetsHealth = EntityType.getProperty(currentTargetEntity, InteractableEntityType.HEALTH_LABEL);
+
+        return currentTargetsHealth <= 0;
+    }
+
+    default float damageHealth(float health, float damage) {
+        return health - damage;
     }
 }

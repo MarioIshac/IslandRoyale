@@ -2,21 +2,32 @@ package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import me.theeninja.islandroyale.*;
+import com.badlogic.gdx.math.Vector2;
+import me.theeninja.islandroyale.MatchMap;
+import me.theeninja.islandroyale.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class EntityType<T extends EntityType<T>> {
+    private transient Texture texture;
+    private String texturePath;
+
     public static final Map<Integer, EntityType<? extends EntityType<?>>> IDS = new HashMap<>();
 
-    public static <T extends EntityType<T>> T getEntityType(int id) {
-        return (T) IDS.get(id);
+    public static <MT extends EntityType<MT>> MT getEntityType(int id) {
+        return (MT) IDS.get(id);
     }
 
-    private static final String BUILDING_DIRECTORY = "building/";
-    private static final String MOVING_DIRECTORY = "moving/";
-    public static final String PROJECTILE_DIRECTORY = "projectile/";
+    public static final String ENTITY_DIRECTORY = "entity/";
+
+    public static final String INTERACTABLE_DIRECTORY = ENTITY_DIRECTORY + "interactable/";
+
+    private static final String BUILDING_DIRECTORY = INTERACTABLE_DIRECTORY + "building/";
+    private static final String MOVING_DIRECTORY = INTERACTABLE_DIRECTORY + "moving/";
+    public static final String INTERACTABLE_PROJECTILE_DIRECTORY = MOVING_DIRECTORY + "projectile/";
+    public static final String STATIC_PROJECTILE_DIRECTORY = ENTITY_DIRECTORY + "projectile/";
 
     public static final String RESOURCE_DIRECTORY = BUILDING_DIRECTORY + "resource/";
     public static final String DEFENSE_DIRECTORY = BUILDING_DIRECTORY + "defense/";
@@ -24,39 +35,15 @@ public abstract class EntityType<T extends EntityType<T>> {
     public static final String PERSON_DIRECTORY = MOVING_DIRECTORY + "person/";
     public static final String TRANSPORT_DIRECTORY = MOVING_DIRECTORY + "transport/";
 
+    public static final String TRANSPORT_GENERATOR_DIRECTORY = OFFENSE_DIRECTORY + "transport_generator/";
+
     private int id;
 
     private String name;
-    private float baseHealth;
-    private int maxLevel;
-    private Inventory inventoryCost;
-
-    public static final String ENTITY_DIRECTORY = "entity/";
-
-    private transient Texture texture;
-    private String texturePath;
-
-    public String getName() {
-        return name;
-    }
-
-    public float getBaseHealth() {
-        return baseHealth;
-    }
-
-    public int getMaxLevel() {
-        return maxLevel;
-    }
-
-    public boolean canCharge(Inventory inventory) {
-        return inventory.has(getInventoryCost());
-    }
-
-    public void charge(Inventory inventory) {
-        inventory.remove(getInventoryCost());
-    }
 
     public abstract void initialize(Entity<T> entity);
+
+    public abstract boolean shouldRemove(Entity<T> entity);
 
     /**
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
@@ -68,45 +55,39 @@ public abstract class EntityType<T extends EntityType<T>> {
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
      * Should perform any VISUAL updates. This should follow {@link #check(Entity, float, Player, MatchMap)}
      */
-    public abstract void present(Entity<T> entity, Batch batch, float centerPixelX, float centerPixelY);
+    public abstract void present(Entity<T> entity, Batch batch, float tileX, float tileY);
+
+    public static <T> T getProperty(Entity<? extends EntityType<?>> entity, String label) {
+        return (T) entity.getProperties().get(label);
+    }
+
+    public static <T> void setProperty(Entity<? extends EntityType<?>> entity, String label, T value) {
+        entity.getProperties().put(label, value);
+    }
+
+    public static <T> void changeProperty(Entity<? extends EntityType<?>> entity, String label, Function<T, T> changer) {
+        T propertyValue = getProperty(entity, label);
+        propertyValue = changer.apply(propertyValue);
+        setProperty(entity, label, propertyValue);
+    }
 
     public Texture getTexture() {
         return texture;
-    }
-
-    public String getTexturePath() {
-        return texturePath;
     }
 
     public void setTexture(Texture texture) {
         this.texture = texture;
     }
 
-    public static float applyMultiplier(int level, float base, float multiplier) {
-        while (level-- > 0)
-            base *= multiplier;
-        return base;
+    public String getTexturePath() {
+        return texturePath;
     }
 
-    public static final float HEALTH_MULTIPLIER = 1.2f;
-
-    public float applyHealthMultiplier(int level) {
-        return applyMultiplier(level, getBaseHealth(), HEALTH_MULTIPLIER);
-    }
-
-    public static <T> T getProperty(Entity<? extends EntityType> entity, String label) {
-        return (T) entity.getProperties().get(label);
-    }
-
-    public static <T> void setProperty(Entity<? extends EntityType> entity, String label, T value) {
-        entity.getProperties().put(label, value);
-    }
-
-    public Inventory getInventoryCost() {
-        return inventoryCost;
-    }
-
-    public int getID() {
+    public int getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 }

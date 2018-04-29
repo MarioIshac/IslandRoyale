@@ -1,12 +1,15 @@
 package me.theeninja.islandroyale;
 
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.treasure.ResourceTreasure;
 import me.theeninja.islandroyale.treasure.Treasure;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MatchMap {
@@ -18,11 +21,30 @@ public class MatchMap {
     private final Map<Island, Vector2> islands = new HashMap<>();
     private final Map<Treasure, Vector2> treasures = new HashMap<>();
 
-    private final Map<Entity<? extends EntityType<?>>, Vector2> entities = new HashMap<>();
+    public Island getIsland(Vector2 absolutePosition) {
+        for (Map.Entry<Island, Vector2> entry : islands.entrySet()) {
+            Island island = entry.getKey();
+            Vector2 islandLocation = entry.getValue();
+
+            Rectangle rectangleBounds = new Rectangle(
+                    islandLocation.x,
+                    islandLocation.y,
+                    island.getMaxWidth(),
+                    island.getMaxHeight()
+            );
+
+            if (rectangleBounds.contains(absolutePosition))
+                return island;
+        }
+
+        return null;
+    }
+
+    private final List<Entity<? extends EntityType<?>>> entities = new ArrayList<>();
     private final boolean[][] exploredTiles;
 
     public void flushDeadEntities() {
-        entities.entrySet().removeIf(Entity::isEntityDead);
+        entities.removeIf(Entity::shouldRemove);
     }
 
     private final Vector2 focusOrigin;
@@ -98,7 +120,7 @@ public class MatchMap {
         return treasures;
     }
 
-    public Map<Entity<? extends EntityType<?>>, Vector2> getEntities() {
+    public List<Entity<? extends EntityType<?>>> getEntities() {
         return entities;
     }
 

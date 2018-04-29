@@ -4,11 +4,13 @@
   "entityIDsProduced": [
     1000
   ],
+  "inventoryCost": {
+    "resourceEntries": []
+  },
   "baseHealth": 100,
   "maxLevel": 10,
   "tileWidth": 2,
   "tileHeight": 2,
   "minGroundFiles": 4,
-  "cost": 50,
   "texturePath": "SeaPort.png"
 }

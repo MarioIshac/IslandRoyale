@@ -11,29 +11,17 @@ import java.util.Map;
 
 public class TransportGeneratorBuildingType extends OffenseBuildingType<TransportGeneratorBuildingType, TransportEntityType> {
     @Override
-    public Entity<TransportEntityType> getEntityRequested(TransportEntityType entityType, Player player, Vector2 buildingPos, MatchMap matchMap) {
-        Island associatedIsland = null;
-        Vector2 islandLoc = null;
+    public Entity<TransportEntityType> produceEntity(TransportEntityType entityType, Player player, Vector2 buildingPos, MatchMap matchMap) {
+        Island associatedIsland = matchMap.getIsland(buildingPos);
+        Vector2 islandPos = matchMap.getIslands().get(associatedIsland);
+        Vector2 relativeToIslandPos = buildingPos.cpy().sub(islandPos);
 
-        for (Map.Entry<Island, Vector2> entry : matchMap.getIslands().entrySet()) {
-            Island island = entry.getKey();
-            Vector2 location = entry.getValue();
+        int x = (int) relativeToIslandPos.x;
+        int y = (int) relativeToIslandPos.y;
 
-            boolean inXBounds = location.x <= buildingPos.x && buildingPos.x <= (location.x + island.getMaxWidth());
-            boolean inYBounds = location.y <= buildingPos.y && buildingPos.y <= (location.y + island.getMaxHeight());
+        while (associatedIsland.getRepr()[x][y] != null)
+            x++;
 
-            if (inXBounds && inYBounds) {
-                associatedIsland = island;
-                islandLoc = location;
-                break;
-            }
-        }
-
-        if (associatedIsland == null)
-            throw new UnsupportedOperationException("building not added to map yet");
-
-        Vector2 locationRelativeToIsland = buildingPos.cpy().sub(islandLoc);
-
-        return new Entity<>(entityType, player, locationRelativeToIsland);
+        return new Entity<>(entityType, player, new Vector2(x, y));
     }
 }

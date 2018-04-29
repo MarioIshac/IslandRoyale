@@ -3,9 +3,9 @@ package me.theeninja.islandroyale.entity.controllable;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.InteractableEntityType;
 
-public abstract class ControllableEntityType<T extends ControllableEntityType<T>> extends EntityType<T> {
+public abstract class ControllableEntityType<T extends ControllableEntityType<T>> extends InteractableEntityType<T> {
     public static final String MOVING_DIRECTORY = "moving/";
 
     public static final float MOVEMENT_SPEED_MULTIPLIER = 1.1f;
@@ -30,6 +30,6 @@ public abstract class ControllableEntityType<T extends ControllableEntityType<T>
     }
 
     private float applyMovementSpeedMultiplier(int level) {
-        return EntityType.applyMultiplier(level, baseMovementSpeed, MOVEMENT_SPEED_MULTIPLIER);
+        return InteractableEntityType.applyMultiplier(level, baseMovementSpeed, MOVEMENT_SPEED_MULTIPLIER);
     }
 }

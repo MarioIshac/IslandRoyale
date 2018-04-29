@@ -4,4 +4,5 @@
 ##Offensive Buildings [2000 - 2999]
 ##Moving People [3000 - 3999]
 ##Moving Transport [4000-4999]
-##Moving Attacker [5000-5999]
+##Interactable Projectiles [5000-5999]
+##Static Projectiles [6000-6999]

@@ -6,9 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
-import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
-import me.theeninja.islandroyale.entity.Offensive;
+import me.theeninja.islandroyale.entity.*;
 
 public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<DefenseBuildingType> {
     private float baseDamage;
@@ -26,6 +24,12 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
      */
     private float baseRange;
 
+    /**
+     * Represents the ID of the static projectile that this defense building fires (such as a cannon ball,
+     * arrow, bullet, etc).
+     */
+    private int staticProjectileID;
+
     public float getBaseRange() {
         return baseRange;
     }
@@ -38,8 +42,11 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
 
     @Override
     public void initialize(Entity<DefenseBuildingType> entity) {
+        super.initialize(entity);
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
     }
+
+    boolean dealingDamage;
 
     @Override
     public void check(Entity<DefenseBuildingType> entity, float delta, Player player, MatchMap matchMap) {
@@ -53,10 +60,10 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         if (secondsElapsedSinceLastShot > 0)
             return;
 
-        Entity<? extends EntityType> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
+        Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
         // If the current target entity has expired, i.e a new target entity is required
-        if (currentTargetEntity == null || currentTargetEntity.getHealth() <= 0) {
+        if (isNewTargetEntityRequired(currentTargetEntity)) {
             currentTargetEntity = getNewTargetEntity(entity, matchMap, getBaseRange());
 
             setProperty(entity, ATTACKING_TARGET_LABEL, currentTargetEntity);
@@ -66,9 +73,13 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
                 return;
         }
 
-        System.out.println("dealt " + getBaseDamage() + " base damage");
+        StaticProjectileEntityType projectileType = EntityType.getEntityType(getStaticProjectileID());
+        Entity<StaticProjectileEntityType> projectile = new Entity<>(projectileType, entity.getOwner(), entity.getPos().cpy());
+        projectile.getVelocityPerSecond().set(10, (float) Math.toRadians(45));
 
-        currentTargetEntity.dealDamage(getBaseDamage());
+        projectileType.externalInitialize(projectile, entity, currentTargetEntity);
+
+        matchMap.getEntities().add(projectile);
 
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
     }
@@ -81,9 +92,8 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
      */
     @Override
     public void present(Entity<DefenseBuildingType> entity, Batch batch, float tileX, float tileY) {
-        float tileRange = getRangeMultiplier(entity.getLevel());
-
-        int tilePixels = Math.round(tileRange * 16);
+        int currentLevel = getProperty(entity, LEVEL_LABEL);
+        float tileRange = getRangeMultiplier(currentLevel);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
 
@@ -97,10 +107,7 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         tileX += getTileWidth() / 2f;
         tileY += getTileHeight() / 2f;
 
-        int pixelX = (int) (tileX * 16);
-        int pixelY = (int) (tileY * 16);
-
-        shapeRenderer.circle(pixelX, pixelY, tileRange * 16);
+        shapeRenderer.circle(tileX * 16, tileY * 16, tileRange * 16);
 
         shapeRenderer.end();
 
@@ -118,5 +125,13 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
 
     public float getBaseDamage() {
         return baseDamage;
+    }
+
+    private float attack(float health) {
+        return damageHealth(health, getBaseDamage());
+    }
+
+    public int getStaticProjectileID() {
+        return staticProjectileID;
     }
 }

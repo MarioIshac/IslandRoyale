@@ -14,17 +14,15 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import me.theeninja.islandroyale.*;
 import me.theeninja.islandroyale.entity.*;
-import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.building.*;
 import me.theeninja.islandroyale.entity.building.BuildingEntityType;
 import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
 import me.theeninja.islandroyale.entity.building.ResourceBuildingType;
 import me.theeninja.islandroyale.entity.controllable.PersonEntityType;
-import me.theeninja.islandroyale.entity.controllable.ProjectileEntityType;
+import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntityType;
 import me.theeninja.islandroyale.entity.controllable.TransportEntityType;
 
 import java.util.*;
@@ -33,7 +31,7 @@ public class MatchScreen implements Screen {
 
     public final static Skin FLAT_EARTH_SKIN;
 
-    private final Array<BuildButton<?>> buildButtons = new Array<>();
+    private final List<BuildButton<?>> buildButtons = new ArrayList<>();
 
     static {
         FileHandle flatEarthSkinFileHandler = new FileHandle("flat-earth/skin/flat-earth-ui.json");
@@ -62,13 +60,13 @@ public class MatchScreen implements Screen {
     private final VerticalGroup buildMenu = new VerticalGroup();
     private final VerticalGroup resourceMenu = new VerticalGroup();
 
-    private <T extends EntityType<T>> Array<T> getEntityTypes(String directory, Class<T> classType) {
+    private <T extends EntityType<T>> List<T> getEntityTypes(String directory, Class<T> classType) {
         return new EntityTypeFactory<>(directory, classType).getEntityTypes();
     }
 
-    private final Array<EntityType<?>> entityTypes = new Array<>();
+    private final List<EntityType<?>> entityTypes = new ArrayList<>();
 
-    public <T extends BuildingEntityType<T>> Array<T> getAndAddBuildingEntityTypes(String directory, Class<T> classType) {
+    public <T extends BuildingEntityType<T>> List<T> getAndAddBuildingEntityTypes(String directory, Class<T> classType) {
         EntityTypeFactory<T> entityTypeFactory = new EntityTypeFactory<>(directory, classType);
 
         for (T buildingEntityType : entityTypeFactory.getEntityTypes()) {
@@ -81,13 +79,12 @@ public class MatchScreen implements Screen {
 
     public MatchScreen(Game game) {
         entityTypes.addAll(getEntityTypes(EntityType.PERSON_DIRECTORY, PersonEntityType.class));
-        entityTypes.addAll(getEntityTypes(EntityType.PROJECTILE_DIRECTORY, ProjectileEntityType.class));
+        entityTypes.addAll(getEntityTypes(EntityType.INTERACTABLE_PROJECTILE_DIRECTORY, InteractableProjectileEntityType.class));
+        entityTypes.addAll(getEntityTypes(EntityType.STATIC_PROJECTILE_DIRECTORY, StaticProjectileEntityType.class));
         entityTypes.addAll(getEntityTypes(EntityType.TRANSPORT_DIRECTORY, TransportEntityType.class));
         entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.DEFENSE_DIRECTORY, DefenseBuildingType.class));
         entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.RESOURCE_DIRECTORY, ResourceBuildingType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.OFFENSE_DIRECTORY, PersonGeneratorBuildingType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.OFFENSE_DIRECTORY, TransportGeneratorBuildingType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.OFFENSE_DIRECTORY, ProjectileGeneratorBuildingType.class));
+        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.TRANSPORT_GENERATOR_DIRECTORY, TransportGeneratorBuildingType.class));
 
         this.batch = new SpriteBatch();
 
@@ -161,7 +158,7 @@ public class MatchScreen implements Screen {
         float screenTileWidth = Gdx.graphics.getWidth() / 16f;
         float screenTileHeight = Gdx.graphics.getHeight() / 16f;
 
-        boolean xInBounds = 0 < relativeTileLocation.x && relativeTileLocation.x < screenTileHeight;
+        boolean xInBounds = 0 < relativeTileLocation.x && relativeTileLocation.x < screenTileWidth;
         boolean yInBounds = 0 < relativeTileLocation.y && relativeTileLocation.y < screenTileHeight;
 
         return !xInBounds || !yInBounds;
@@ -254,6 +251,7 @@ public class MatchScreen implements Screen {
 
         getMatchMap().flushDeadEntities();
         updateEntities(delta);
+        moveEntities(delta);
         drawEntities();
 
         for (int i = 0; i < getBuildMenu().getChildren().size; i++) {
@@ -285,12 +283,18 @@ public class MatchScreen implements Screen {
         getStage().draw();
     }
 
-    private void drawEntities() {
-        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : getMatchMap().getEntities().entrySet()) {
-            Entity<? extends EntityType<?>> entity = entry.getKey();
-            Vector2 entityLocation = entry.getValue();
+    private void moveEntities(float delta) {
+        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
+            float yDistance = (float) (Math.sin(entity.getVelocityPerSecond().y) * entity.getVelocityPerSecond().x);
+            float xDistance = (float) (Math.cos(entity.getVelocityPerSecond().y) * entity.getVelocityPerSecond().x);
 
-            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entityLocation);
+            entity.getPos().add(xDistance * delta, yDistance * delta);
+        }
+    }
+
+    private void drawEntities() {
+        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
+            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entity.getPos());
 
             if (isOutOfFocus(relativeEntityLocation))
                 continue;
@@ -303,11 +307,8 @@ public class MatchScreen implements Screen {
     }
 
     private void presentEntities() {
-        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : getMatchMap().getEntities().entrySet()) {
-            Entity<? extends EntityType<?>> entity = entry.getKey();
-            Vector2 entityLocation = entry.getValue();
-
-            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entityLocation);
+        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
+            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entity.getPos());
 
             if (isOutOfFocus(relativeEntityLocation))
                 continue;
@@ -317,11 +318,13 @@ public class MatchScreen implements Screen {
     }
 
     private void updateEntities(float delta) {
-        for (Map.Entry<Entity<? extends EntityType<?>>, Vector2> entry : getMatchMap().getEntities().entrySet()) {
-            Entity<? extends EntityType<?>> entity = entry.getKey();
-            Vector2 entityLocation = entry.getValue();
-            Vector2 relativeEntityLocation = getMatchMap().absoluteToRelativeTile(entityLocation);
+        List<Entity<? extends EntityType<?>>> entities = getMatchMap().getEntities();
 
+        // I use an indexed for-loop here instead of a for-each loop because the entity check method might add
+        // a new entity to the list (people shooting projectiles for instance). This allows me to avoid
+        // concurrent modification exception.
+        for (int i = 0; i < entities.size(); i++) {
+            Entity<? extends EntityType<?>> entity = entities.get(i);
             entity.check(delta, getPlayer(), getMatchMap());
         }
     }
@@ -368,11 +371,9 @@ public class MatchScreen implements Screen {
         getBatch().draw(canBuild ? checkmark : x, adjustedAbsoluteX, adjustedAbsoluteY + associatedTexture.getHeight());
 
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
-            Entity<?> building = buildButton.newBuilding(new Vector2(adjustedAbsoluteX, adjustedAbsoluteY));
+            Entity<? extends BuildingEntityType<?>> building = buildButton.newBuilding(new Vector2(absoluteXBuildPos, absoluteYBuildPos));
 
-            Vector2 absoluteBuildPos = new Vector2(absoluteXBuildPos, absoluteYBuildPos);
-
-            getMatchMap().getEntities().put(building, absoluteBuildPos);
+            getMatchMap().getEntities().add(building);
 
             buildButton.setBuildPosition(null);
             buildButton.getBuildingType().charge(getPlayer().getInventory());
@@ -456,7 +457,7 @@ public class MatchScreen implements Screen {
         return resourceTextures;
     }
 
-    public Array<BuildButton<?>> getBuildButtons() {
+    public List<BuildButton<?>> getBuildButtons() {
         return buildButtons;
     }
 }

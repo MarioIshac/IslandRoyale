@@ -41,13 +41,15 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
 
     @Override
     public void initialize(Entity<ResourceBuildingType> entity) {
-
+        super.initialize(entity);
     }
 
     @Override
     public void check(Entity<ResourceBuildingType> entity, float delta, Player player, MatchMap matchMap) {
         float amountOfResource = delta * getBaseRate();
-        float multiplier = getResourceProductionMultiplier(entity.getLevel());
+        int currentLevel = getProperty(entity, LEVEL_LABEL);
+
+        float multiplier = getResourceProductionMultiplier(currentLevel);
 
         amountOfResource *= multiplier;
 

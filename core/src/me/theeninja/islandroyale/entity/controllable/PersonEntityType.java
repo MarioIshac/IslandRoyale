@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.InteractableEntityType;
 import me.theeninja.islandroyale.entity.Offensive;
 
 public class PersonEntityType extends ControllableEntityType<PersonEntityType> implements Offensive<PersonEntityType> {
@@ -31,10 +31,10 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
         if (!isCarried)
             updateMoveAttributes(entity, delta);
 
-        Entity<? extends EntityType> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
+        Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
         // If the current target entity has expired, i.e a new target entity is required
-        if (currentTargetEntity == null || currentTargetEntity.getHealth() <= 0)
+        if (isNewTargetEntityRequired(currentTargetEntity))
             setProperty(entity,ATTACKING_TARGET_LABEL, getNewTargetEntity(entity, matchMap, getBaseDamage()));
 
         performDamageCheck(entity, delta);
@@ -46,11 +46,12 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
 
         if (timeLeft <= 0) {
             setProperty(entity, TIME_LEFT_LABEL, 1 / getBaseFireRate());
-            Entity<? extends EntityType> targetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
-            targetEntity.dealDamage(getBaseDamage());
+            Entity<? extends InteractableEntityType<?>> targetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
+
+            changeProperty(targetEntity, HEALTH_LABEL, this::attack);
         }
         else
-            setProperty(entity, TIME_LEFT_LABEL, 1 / getBaseFireRate());
+            setProperty(entity, TIME_LEFT_LABEL, timeLeft);
     }
 
     @Override
@@ -64,5 +65,9 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
 
     public float getBaseFireRate() {
         return baseFireRate;
+    }
+
+    private float attack(float health) {
+        return damageHealth(health, getBaseDamage());
     }
 }

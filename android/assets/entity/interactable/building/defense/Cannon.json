@@ -1,5 +1,6 @@
 {
   "name": "Cannon",
+  "staticProjectileID": 6000,
   "id": 1001,
   "baseHealth": 100,
   "maxLevel": 10,
