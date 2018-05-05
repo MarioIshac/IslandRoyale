@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 import me.theeninja.islandroyale.entity.InventorySerializer;
 import me.theeninja.islandroyale.entity.building.OffenseBuildingType;
+import me.theeninja.islandroyale.gui.screens.HomeScreen;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public class IslandRoyaleGame extends Game {

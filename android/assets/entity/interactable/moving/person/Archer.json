@@ -1,0 +1,10 @@
+{
+  "name": "Native Ranger",
+  "id": 3001,
+  "maxLevel": 10,
+  "tileWidth": 1,
+  "tileHeight": 2,
+  "baseHealth": 100,
+  "baseMovementSpeed": 2,
+  "texturePath": "Archer.png"
+}

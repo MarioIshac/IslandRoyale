@@ -7,10 +7,7 @@ import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.treasure.ResourceTreasure;
 import me.theeninja.islandroyale.treasure.Treasure;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MatchMap {
     private final int tileLength;
@@ -18,13 +15,17 @@ public class MatchMap {
 
     private static final int ISLAND_GAP = 110;
 
-    private final Map<Island, Vector2> islands = new HashMap<>();
+    private final List<Island> islands = new ArrayList<>();
     private final Map<Treasure, Vector2> treasures = new HashMap<>();
+    private final BitSet exploredTiles;
+
+    private int getCorrelatingBit(int x, int y) {
+        return x * getTileHeight() + y;
+    }
 
     public Island getIsland(Vector2 absolutePosition) {
-        for (Map.Entry<Island, Vector2> entry : islands.entrySet()) {
-            Island island = entry.getKey();
-            Vector2 islandLocation = entry.getValue();
+        for (Island island : islands) {
+            Vector2 islandLocation = island.getPositionOnMap();
 
             Rectangle rectangleBounds = new Rectangle(
                     islandLocation.x,
@@ -41,16 +42,9 @@ public class MatchMap {
     }
 
     private final List<Entity<? extends EntityType<?>>> entities = new ArrayList<>();
-    private final boolean[][] exploredTiles;
 
     public void flushDeadEntities() {
         entities.removeIf(Entity::shouldRemove);
-    }
-
-    private final Vector2 focusOrigin;
-
-    public Vector2 absoluteToRelativeTile(Vector2 absolute) {
-        return absolute.cpy().sub(getFocusOrigin());
     }
 
     public MatchMap(int tileLength, int tileWidth) {
@@ -60,39 +54,25 @@ public class MatchMap {
         generateIslands();
         generateTreasures();
 
-        this.focusOrigin = new Vector2(0, 0);
-
-        this.exploredTiles = new boolean[tileLength][tileWidth];
-    }
-
-    private void exploreCenterTiles(int tilesEachDir) {
-        int xTileStart = (int) (getFocusOrigin().x - tilesEachDir);
-        int yTileStart = (int) (getFocusOrigin().y - tilesEachDir);
-
-        int xTileEnd = (int) (getFocusOrigin().x + tilesEachDir);
-        int yTileEnd = (int) (getFocusOrigin().y + tilesEachDir);
-
-        for (int xTile = xTileStart; xTile <= xTileEnd; xTile++)
-            for (int yTile = yTileStart; yTile <= yTileEnd; yTile++)
-                getExploredTiles()[xTile][yTile] = true;
+        this.exploredTiles = new BitSet(getTileHeight() * getTileHeight());
     }
 
     private void generateIslands() {
         for (int xTile = 0; xTile < getTileWidth(); xTile += ISLAND_GAP) {
-            for (int yTile = 0; yTile < getTileLength(); yTile += ISLAND_GAP) {
-                Island island = new Island(11, 11);
+            for (int yTile = 0; yTile < getTileHeight(); yTile += ISLAND_GAP) {
                 Vector2 point = new Vector2(xTile, yTile);
+                Island island = new Island(11, 11, point);
 
-                getIslands().put(island, point);
+                getIslands().add(island);
             }
         }
     }
 
     private void generateTreasures() {
         for (int xTile = 0; xTile < getTileWidth(); xTile++) {
-            for (int yTile = 0; yTile < getTileLength(); yTile++) {
+            for (int yTile = 0; yTile < getTileHeight(); yTile++) {
                 if (xTile % 2 == 0 && yTile % 2 == 0) {
-                    ResourceTreasure resourceTreasure = new ResourceTreasure(Resource.WOOD, 5);
+                    Treasure resourceTreasure = new ResourceTreasure(Resource.WOOD, 5);
 
                     getTreasures().put(resourceTreasure, new Vector2(xTile, yTile));
                 }
@@ -100,7 +80,7 @@ public class MatchMap {
         }
     }
 
-    public int getTileLength() {
+    public int getTileHeight() {
         return tileLength;
     }
 
@@ -108,12 +88,8 @@ public class MatchMap {
         return tileWidth;
     }
 
-    public Map<Island, Vector2> getIslands() {
+    public List<Island> getIslands() {
         return islands;
-    }
-
-    public Vector2 getFocusOrigin() {
-        return focusOrigin;
     }
 
     public Map<Treasure, Vector2> getTreasures() {
@@ -124,7 +100,15 @@ public class MatchMap {
         return entities;
     }
 
-    public boolean[][] getExploredTiles() {
+    public boolean isExplored(int x, int y) {
+        return getExploredTiles().get(getCorrelatingBit(x, y));
+    }
+
+    public void explore(int x, int y) {
+        getExploredTiles().set(getCorrelatingBit(x, y));
+    }
+
+    public BitSet getExploredTiles() {
         return exploredTiles;
     }
 }

@@ -13,7 +13,7 @@ public class TransportGeneratorBuildingType extends OffenseBuildingType<Transpor
     @Override
     public Entity<TransportEntityType> produceEntity(TransportEntityType entityType, Player player, Vector2 buildingPos, MatchMap matchMap) {
         Island associatedIsland = matchMap.getIsland(buildingPos);
-        Vector2 islandPos = matchMap.getIslands().get(associatedIsland);
+        Vector2 islandPos = associatedIsland.getPositionOnMap();
         Vector2 relativeToIslandPos = buildingPos.cpy().sub(islandPos);
 
         int x = (int) relativeToIslandPos.x;

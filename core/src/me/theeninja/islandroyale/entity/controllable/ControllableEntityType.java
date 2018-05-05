@@ -1,5 +1,6 @@
 package me.theeninja.islandroyale.entity.controllable;
 
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
@@ -10,26 +11,28 @@ public abstract class ControllableEntityType<T extends ControllableEntityType<T>
 
     public static final float MOVEMENT_SPEED_MULTIPLIER = 1.1f;
 
+    @Override
+    public void configureEditor(Entity<T> entity, VerticalGroup verticalGroup) {
+
+    }
+
     /**
      * Represents the amount of tiles per second this entity moves at level 1.
      */
     private float baseMovementSpeed;
 
-    @Override
-    public void initialize(Entity<T> entity) {
+    public void setDefaultSpeed(Entity<T> entity) {
+        int level = getProperty(entity, LEVEL_LABEL);
+        float movementSpeedPerSec = applyMovementSpeedMultiplier(level);
 
-    }
-
-    @Override
-    public void check(Entity<T> entity, float delta, Player player, MatchMap matchMap) {
-        updateMoveAttributes(entity, delta);
-    }
-
-    public void updateMoveAttributes(Entity<T> entity, float delta) {
-
+        entity.setSpeed(movementSpeedPerSec);
     }
 
     private float applyMovementSpeedMultiplier(int level) {
-        return InteractableEntityType.applyMultiplier(level, baseMovementSpeed, MOVEMENT_SPEED_MULTIPLIER);
+        return InteractableEntityType.applyMultiplier(level, getBaseMovementSpeed(), MOVEMENT_SPEED_MULTIPLIER);
+    }
+
+    public float getBaseMovementSpeed() {
+        return baseMovementSpeed;
     }
 }

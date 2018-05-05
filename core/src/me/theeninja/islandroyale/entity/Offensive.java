@@ -38,8 +38,8 @@ public interface Offensive<T extends InteractableEntityType<T>> {
             //if (entity.getOwner() == otherEntity.getOwner())
             //    continue;
 
-            float xDiff = entity.getPos().x - otherEntity.getPos().x;
-            float yDiff = entity.getPos().y - otherEntity.getPos().y;
+            float xDiff = entity.getSprite().getX() - otherEntity.getSprite().getX();
+            float yDiff = entity.getSprite().getY() - otherEntity.getSprite().getY();
 
             float distanceSquared = xDiff * xDiff + yDiff * yDiff;
 

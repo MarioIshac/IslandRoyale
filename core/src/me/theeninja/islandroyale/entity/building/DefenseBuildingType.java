@@ -1,14 +1,22 @@
 package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.*;
 
 public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<DefenseBuildingType> {
+
+    private Sprite rangeSprite;
+
     private float baseDamage;
 
     /**
@@ -19,20 +27,10 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
     private float baseFireRate;
 
     /**
-     * Represents the range of the defense building in terms of tiles on the map. This serves as the
-     * radius of the circle that is the zone of which the defence building can shoot in.
-     */
-    private float baseRange;
-
-    /**
      * Represents the ID of the static projectile that this defense building fires (such as a cannon ball,
      * arrow, bullet, etc).
      */
     private int staticProjectileID;
-
-    public float getBaseRange() {
-        return baseRange;
-    }
 
     public float getBaseFireRate() {
         return baseFireRate;
@@ -41,9 +39,20 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
     private static final String SECONDS_ELAPSED_SINCE_LAST_SHOT = "secondsElapsed";
 
     @Override
-    public void initialize(Entity<DefenseBuildingType> entity) {
-        super.initialize(entity);
+    public void configureEditor(Entity<DefenseBuildingType> entity, VerticalGroup verticalGroup) {
+
+    }
+
+    @Override
+    public void setUp(Entity<DefenseBuildingType> entity) {
+        super.setUp(entity);
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
+
+        FileHandle rangeFileHandle = Gdx.files.internal("Range.png");
+        Texture rangeTexture = new Texture(rangeFileHandle);
+        this.rangeSprite = new Sprite(rangeTexture);
+
+        getRangeSprite().setSize(1, 1);
     }
 
     boolean dealingDamage;
@@ -74,8 +83,15 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         }
 
         StaticProjectileEntityType projectileType = EntityType.getEntityType(getStaticProjectileID());
-        Entity<StaticProjectileEntityType> projectile = new Entity<>(projectileType, entity.getOwner(), entity.getPos().cpy());
-        projectile.getVelocityPerSecond().set(10, (float) Math.toRadians(45));
+
+        Vector2 pos = new Vector2(
+                entity.getSprite().getX(),
+                entity.getSprite().getY()
+        );
+
+        Entity<StaticProjectileEntityType> projectile = new Entity<>(projectileType, entity.getOwner(), pos);
+
+        projectile.setSpeed(10);
 
         projectileType.externalInitialize(projectile, entity, currentTargetEntity);
 
@@ -91,31 +107,25 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
      * (in tiles) of said entity.
      */
     @Override
-    public void present(Entity<DefenseBuildingType> entity, Batch batch, float tileX, float tileY) {
+    public void present(Entity<DefenseBuildingType> entity, Stage stage) {
+        super.present(entity, stage);
+
+        getRangeSprite().setPosition(entity.getSprite().getX(), entity.getSprite().getY());
+        getRangeSprite().setOriginCenter();
+        getRangeSprite().setScale(getBaseRange());
+
         int currentLevel = getProperty(entity, LEVEL_LABEL);
         float tileRange = getRangeMultiplier(currentLevel);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
 
-        ShapeRenderer shapeRenderer = new ShapeRenderer();
-        shapeRenderer.setProjectionMatrix(batch.getProjectionMatrix());
-        shapeRenderer.setTransformMatrix(batch.getTransformMatrix());
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(150/255f, 150/255f, 150/255f, 0.5f);
-
-        tileX += getTileWidth() / 2f;
-        tileY += getTileHeight() / 2f;
-
-        shapeRenderer.circle(tileX * 16, tileY * 16, tileRange * 16);
-
-        shapeRenderer.end();
+        getRangeSprite().draw(stage.getBatch());
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     private float getRangeMultiplier(int level) {
-        float result = baseRange;
+        float result = getBaseRange();
 
         while (level-- > 1)
             result *= 1.1;
@@ -133,5 +143,9 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
 
     public int getStaticProjectileID() {
         return staticProjectileID;
+    }
+
+    public Sprite getRangeSprite() {
+        return rangeSprite;
     }
 }

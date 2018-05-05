@@ -1,6 +1,6 @@
 package me.theeninja.islandroyale.entity.controllable;
 
-import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
@@ -18,18 +18,26 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
     private final static String TIME_LEFT_LABEL = "timeLeft";
 
     @Override
-    public void initialize(Entity<PersonEntityType> entity) {
+    public void setUp(Entity<PersonEntityType> entity) {
+        super.setUp(entity);
+
+        setProperty(entity, IS_CARRIED_LABEL, false);
         entity.getProperties().put(TIME_LEFT_LABEL, 1 / getBaseFireRate());
     }
 
     @Override
     public void check(Entity<PersonEntityType> entity, float delta, Player player, MatchMap matchMap) {
+        // DO NOT CALL SUPER, MOVEMENT IS HANDLED MANUALLY FOR PERSON DUE TO POSSIBILITY OF BEING CARRIED
+        // BY TRANSPORT
+
         boolean isCarried = getProperty(entity, IS_CARRIED_LABEL);
 
         // If this person is being carried by transporation, let the transporter
         // take care of moving this entity
-        if (!isCarried)
-            updateMoveAttributes(entity, delta);
+        if (isCarried)
+            entity.setSpeed(0);
+        else
+            setDefaultSpeed(entity);
 
         Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
@@ -55,7 +63,7 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
     }
 
     @Override
-    public void present(Entity<PersonEntityType> entity, Batch batch, float centerPixelX, float centerPixelY) {
+    public void present(Entity<PersonEntityType> entity, Stage stage) {
 
     }
 

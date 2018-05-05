@@ -1,8 +1,8 @@
 {
-  "name": "Sea Port",
+  "name": "Barracks",
   "id": 2000,
   "entityIDsProduced": [
-    4000
+    3001
   ],
   "inventoryCost": {
     "resourceEntries": []
@@ -11,6 +11,6 @@
   "maxLevel": 10,
   "tileWidth": 4,
   "tileHeight": 4,
-  "minGroundFiles": 8,
+  "minGroundFiles": 16,
   "texturePath": "SeaPort.png"
 }

@@ -14,14 +14,16 @@ public class Island {
     private static final float NON_SCALED_CENTER_BLOCKS = (float) Math.sqrt(2);
     private static final int SURROUNDING_BLOCKS_REQUIRED = 2;
 
+    private final Vector2 positionOnMap;
+
     private final int maxWidth;
     private final int maxHeight;
 
-    Island(int unScaledMaxSideLength) {
-        this(unScaledMaxSideLength, unScaledMaxSideLength);
+    Island(int unScaledMaxSideLength, Vector2 positionOnMap) {
+        this(unScaledMaxSideLength, unScaledMaxSideLength, positionOnMap);
     }
 
-    Island(int unScaledMaxWidth, int unscaledMaxHeight) {
+    Island(int unScaledMaxWidth, int unscaledMaxHeight, Vector2 positionOnMap) {
         this.maxHeight = unScaledMaxWidth * BLOCK_MULTIPLIER;
         this.maxWidth = unscaledMaxHeight * BLOCK_MULTIPLIER;
 
@@ -30,6 +32,8 @@ public class Island {
         populateIsland();
         smoothIsland();
         scaleIsland();
+
+        this.positionOnMap = positionOnMap;
     }
 
     public void smoothIsland() {
@@ -141,8 +145,6 @@ public class Island {
     }
 
     public boolean canBuild(BuildingEntityType buildingEntityType, int xTile, int yTile, MatchMap matchMap) {
-        Vector2 thisLocation = matchMap.getIslands().get(this);
-
         int groundTilesNum = 0;
 
         for (int xOffset = 0; xOffset < buildingEntityType.getTileWidth(); xOffset++) {
@@ -190,5 +192,9 @@ public class Island {
     @Override
     public String toString() {
         return Island.class.getSimpleName() + "[" + getMaxWidth() + ", " + getMaxHeight() + "]";
+    }
+
+    public Vector2 getPositionOnMap() {
+        return positionOnMap;
     }
 }

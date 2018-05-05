@@ -3,6 +3,7 @@ package me.theeninja.islandroyale.entity;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
@@ -21,7 +22,7 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
     }
 
     @Override
-    public void initialize(Entity<StaticProjectileEntityType> entity) {
+    public void setUp(Entity<StaticProjectileEntityType> entity) {
         setProperty(entity, HAS_COLLIDED_LABEL, false);
     }
 
@@ -36,14 +37,14 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
         Entity<? extends InteractableEntityType<?>> otherEntity = getProperty(entity, TARGET_LABEL);
 
         // The collision check is done with respect to pixels
-        int otherLowerAbsolutePixelX = (int) (otherEntity.getPos().x * 16);
-        int otherLowerAbsolutePixelY = (int) (otherEntity.getPos().y * 16);
+        float otherLowerAbsolutePixelX = (otherEntity.getSprite().getX());
+        float otherLowerAbsolutePixelY = (otherEntity.getSprite().getY());
 
-        int thisLowerAbsolutePixelX = (int) (entity.getPos().x * 16);
-        int thisLowerAbsolutePixelY = (int) (entity.getPos().y * 16);
+        float thisLowerAbsolutePixelX = (entity.getSprite().getX());
+        float thisLowerAbsolutePixelY = (entity.getSprite().getY());
 
-        Rectangle otherRect = new Rectangle(otherLowerAbsolutePixelX, otherLowerAbsolutePixelY, otherEntity.getType().getTexture().getWidth(), otherEntity.getType().getTexture().getHeight());
-        Rectangle thisRect = new Rectangle(thisLowerAbsolutePixelX, thisLowerAbsolutePixelY, entity.getType().getTexture().getWidth(), entity.getType().getTexture().getHeight());
+        Rectangle otherRect = new Rectangle(otherLowerAbsolutePixelX, otherLowerAbsolutePixelY, otherEntity.getType().getTexture().getWidth() / 16f, otherEntity.getType().getTexture().getHeight() / 16f);
+        Rectangle thisRect = new Rectangle(thisLowerAbsolutePixelX, thisLowerAbsolutePixelY, entity.getType().getTexture().getWidth() / 16f, entity.getType().getTexture().getHeight() / 16f);
 
         System.out.println("Has it hit?");
         if (otherRect.contains(thisRect)) {
@@ -71,11 +72,12 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
 
         float currentSpeed = entity.getVelocityPerSecond().x;
 
-        entity.getVelocityPerSecond().set(currentSpeed, resultingAngle);
+        entity.getVelocityPerSecond().set(currentSpeed, (float) (resultingAngle));
+        entity.getSprite().setRotation((float) Math.toDegrees(resultingAngle) - 45);
     }
 
     @Override
-    public void present(Entity<StaticProjectileEntityType> entity, Batch batch, float centerPixelX, float centerPixelY) {
+    public void present(Entity<StaticProjectileEntityType> entity, Stage stage) {
 
     }
 }

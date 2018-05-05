@@ -3,6 +3,7 @@ package me.theeninja.islandroyale.entity;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 
@@ -13,6 +14,9 @@ import java.util.function.Function;
 public abstract class EntityType<T extends EntityType<T>> {
     private transient Texture texture;
     private String texturePath;
+
+    private int tileWidth;
+    private int tileHeight;
 
     public static final Map<Integer, EntityType<? extends EntityType<?>>> IDS = new HashMap<>();
 
@@ -36,18 +40,23 @@ public abstract class EntityType<T extends EntityType<T>> {
     public static final String TRANSPORT_DIRECTORY = MOVING_DIRECTORY + "transport/";
 
     public static final String TRANSPORT_GENERATOR_DIRECTORY = OFFENSE_DIRECTORY + "transport_generator/";
+    public static final String PERSON_GENERATOR_DIRECTORY = OFFENSE_DIRECTORY + "person_generator/";
+
 
     private int id;
 
     private String name;
 
-    public abstract void initialize(Entity<T> entity);
+    public void initialize() {
+
+    }
+    public abstract void setUp(Entity<T> entity);
 
     public abstract boolean shouldRemove(Entity<T> entity);
 
     /**
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
-     * Should perform any NON-VISUAL updates. This should be followed up by {@link #present(Entity, Batch, float, float)}
+     * Should perform any NON-VISUAL updates. This should be followed up by {@link #present(Entity, Stage)}
      */
     public abstract void check(Entity<T> entity, float delta, Player player, MatchMap matchMap);
 
@@ -55,7 +64,7 @@ public abstract class EntityType<T extends EntityType<T>> {
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
      * Should perform any VISUAL updates. This should follow {@link #check(Entity, float, Player, MatchMap)}
      */
-    public abstract void present(Entity<T> entity, Batch batch, float tileX, float tileY);
+    public abstract void present(Entity<T> entity, Stage stage);
 
     public static <T> T getProperty(Entity<? extends EntityType<?>> entity, String label) {
         return (T) entity.getProperties().get(label);
@@ -89,5 +98,13 @@ public abstract class EntityType<T extends EntityType<T>> {
 
     public String getName() {
         return name;
+    }
+
+    public int getTileHeight() {
+        return tileHeight;
+    }
+
+    public int getTileWidth() {
+        return tileWidth;
     }
 }
