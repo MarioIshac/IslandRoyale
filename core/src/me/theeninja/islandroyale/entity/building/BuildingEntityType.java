@@ -1,5 +1,6 @@
 package me.theeninja.islandroyale.entity.building;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Event;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
@@ -22,13 +23,13 @@ public abstract class BuildingEntityType<T extends BuildingEntityType<T>> extend
     }
 
     @Override
-    public void present(Entity<T> entity, Stage stage) {
-        super.present(entity, stage);
+    public void present(Entity<T> entity, Camera projector, Stage stage) {
+        super.present(entity, projector, stage);
+    }
+
+    @Override
+    public void configureEditor(Entity<T> entity, Table table) {
+        TextButton sellButton = new TextButton("Sell", MatchScreen.FLAT_EARTH_SKIN);
+        table.add(sellButton).row();
     }
 }
-
-/**
- * f(x) = output of mind x
- * f(f(x)) = x
- *
- */

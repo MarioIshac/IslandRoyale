@@ -1,9 +1,7 @@
 package me.theeninja.islandroyale.gui.screens;
 
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
@@ -59,6 +57,7 @@ public class MatchScreen implements Screen {
     private final Texture x;
 
     private final Batch batch;
+    private final InputProcessor inputProcessor;
 
     private boolean isTouchDown;
 
@@ -83,8 +82,9 @@ public class MatchScreen implements Screen {
     }
 
     private final Camera mapCamera;
+    private final Camera hudCamera;
     private final Viewport mapViewport;
-    private final Viewport screenViewport;
+    private final Viewport hudViewport;
 
     private Viewport getMapViewport() {
         return mapViewport;
@@ -106,15 +106,17 @@ public class MatchScreen implements Screen {
 
         this.game = game;
 
-        this.mapCamera = new OrthographicCamera(160 / 2, 90 / 2);
-        this.mapViewport = new StretchViewport(1000, 1000);
+        this.mapCamera = new OrthographicCamera();
+        this.mapViewport = new StretchViewport(160 / 2, 90 / 2, getMapCamera());
 
-        this.screenViewport = new ScreenViewport();
+        this.hudCamera = new OrthographicCamera();
+        this.hudViewport = new ScreenViewport(getHudCamera());
 
-        getMapCamera().position.set(getMapCamera().viewportWidth / 2, getMapCamera().viewportHeight / 2, 0);
+        getMapCamera().position.set(getMapViewport().getWorldWidth() / 2, getMapViewport().getWorldHeight() / 2, 0);
+        getHudCamera().position.set(getHudViewport().getWorldWidth() / 2, getHudViewport().getWorldHeight() / 2, 0);
 
-        this.hudStage = new Stage(getScreenViewport(), getBatch());
         this.mapStage = new Stage(getMapViewport(), getBatch());
+        this.hudStage = new Stage(getHudViewport(), getBatch());
 
         this.matchMap = new MatchMap(1000, 1000);
         this.mapOverlay = new MapOverlay(getMatchMap(), this);
@@ -160,13 +162,19 @@ public class MatchScreen implements Screen {
             getResourceMenu().addActor(resourceLabel);
         }
 
-        getBuildMenu().setPosition(Gdx.graphics.getWidth() - 100, Gdx.graphics.getHeight() - 20);
-        getResourceMenu().setPosition(100, Gdx.graphics.getHeight() - 20);
+        getBuildMenu().setPosition(getHudViewport().getWorldWidth() - 100, getHudViewport().getWorldHeight() - 20);
+        getResourceMenu().setPosition(100, getHudViewport().getWorldHeight() - 20);
 
         getHUDStage().addActor(getBuildMenu());
         getHUDStage().addActor(getResourceMenu());
 
         getPlayer().getInventory().put(Resource.WOOD, 1000);
+
+        this.inputProcessor = new InputMultiplexer(
+                getInputListener(),
+                getHUDStage(),
+                getMapStage()
+        );
     }
 
     private static boolean isBuildButtonInDragState(BuildButton buildButton) {
@@ -175,7 +183,7 @@ public class MatchScreen implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(getHUDStage());
+        Gdx.input.setInputProcessor(inputProcessor);
     }
 
     private void drawIslands() {
@@ -206,24 +214,12 @@ public class MatchScreen implements Screen {
         }
     }
 
-    @Override
-    public void render(float delta) {
+    private void handleMapRendering() {
         getMapCamera().update();
         getBatch().setProjectionMatrix(getMapCamera().combined);
 
-        Gdx.gl.glClearColor(0.5f, 0.5f, 1, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        getBatch().begin();
-
-        getVisibleIslands().clear();
-
         drawIslands();
-
-        getMatchMap().flushDeadEntities();
-        updateEntities(delta);
-        moveEntities(delta);
-        drawEntities();
+        presentEntities();
 
         for (int i = 0; i < getBuildMenu().getChildren().size; i++) {
             Actor actor = getBuildMenu().getChildren().get(i);
@@ -238,17 +234,41 @@ public class MatchScreen implements Screen {
 
             handleBuildButton(buildButton);
         }
+    }
+
+    private void handleHUDRendering(float delta) {
+        getHudCamera().update();
+        getBatch().setProjectionMatrix(getHudCamera().combined);
+
+        drawLabelsAndUpdateResources(delta);
+    }
+
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(0.5f, 0.5f, 1, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        getMatchMap().flushDeadEntities();
+        getMapStage().clear();
+        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities())
+            getMapStage().addActor(entity);
+
+        getBatch().begin();
+
+        updateEntities(delta);
+        moveEntities(delta);
+
+        handleMapRendering();
+        handleHUDRendering(delta);
 
         if (getInputListener().isMapShown())
             getMapOverlay().draw();
 
-        drawLabelsAndUpdateResources(delta);
-
-        presentEntities();
-
         getBatch().end();
-        getHUDStage().draw();
+        getMapStage().act(delta);
         getMapStage().draw();
+        getHUDStage().act(delta);
+        getHUDStage().draw();
     }
 
     private void drawLabelsAndUpdateResources(float delta) {
@@ -271,16 +291,9 @@ public class MatchScreen implements Screen {
         }
     }
 
-    private void drawEntities() {
-        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
-            System.out.println("Drawing entity of type " + entity.getType().getName() + " at " + entity.getSprite().getX() + " " + entity.getSprite().getY());
-            entity.getSprite().draw(getBatch());
-        }
-    }
-
     private void presentEntities() {
         for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
-            entity.present(getHUDStage());
+            entity.present(getMapCamera(), getHUDStage());
         }
     }
 
@@ -359,7 +372,7 @@ public class MatchScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+        getHudViewport().update(width, height);
     }
 
     @Override
@@ -454,7 +467,11 @@ public class MatchScreen implements Screen {
         return inputListener;
     }
 
-    public Viewport getScreenViewport() {
-        return screenViewport;
+    public Viewport getHudViewport() {
+        return hudViewport;
+    }
+
+    public Camera getHudCamera() {
+        return hudCamera;
     }
 }

@@ -1,7 +1,9 @@
 package me.theeninja.islandroyale.entity.building;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.IslandRoyaleGame;
 import me.theeninja.islandroyale.MatchMap;
@@ -42,7 +44,7 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
     }
 
     @Override
-    public void configureEditor(Entity<ResourceBuildingType> entity, VerticalGroup verticalGroup) {
+    public void configureEditor(Entity<ResourceBuildingType> entity, Table verticalGroup) {
 
     }
 
@@ -64,7 +66,7 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
     }
 
     @Override
-    public void present(Entity<ResourceBuildingType> entity, Stage stage) {
+    public void present(Entity<ResourceBuildingType> entity, Camera projector, Stage stage) {
         // TODO update textures to visualize resource prouction
     }
 

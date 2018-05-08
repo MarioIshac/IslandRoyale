@@ -2,6 +2,7 @@ package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.math.Vector2;
 import me.theeninja.islandroyale.Island;
+import me.theeninja.islandroyale.IslandTileType;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
@@ -14,12 +15,29 @@ public class PersonGeneratorBuildingType extends OffenseBuildingType<PersonGener
         Vector2 islandPos = associatedIsland.getPositionOnMap();
         Vector2 relativeToIslandPos = buildingPos.cpy().sub(islandPos);
 
-        int x = (int) relativeToIslandPos.x;
-        int y = (int) relativeToIslandPos.y;
+        for (int offsetX = -1; offsetX <= getTileWidth(); offsetX ++) {
+            for (int offsetY = -1; offsetY <= getTileHeight(); offsetY++) {
+                boolean xInBuilding = 0 <= offsetX && offsetX < getTileWidth();
+                boolean yInBuilding = 0 <= offsetY && offsetY < getTileHeight();
 
-        while (associatedIsland.getRepr()[x][y] != null)
-            x++;
+                if (xInBuilding && yInBuilding)
+                    continue;
 
-        return new Entity<>(entityType, player, new Vector2(x, y));
+                int x = (int) (relativeToIslandPos.x + offsetX);
+                int y = (int) (relativeToIslandPos.y + offsetY);
+
+                if (!(0 < x && x < associatedIsland.getMaxWidth()))
+                    continue;
+                if (!(0 < y && y < associatedIsland.getMaxHeight()))
+                    continue;
+
+                IslandTileType islandTileType = associatedIsland.getRepr()[x][y];
+
+                if (islandTileType != null)
+                    return new Entity<>(entityType, player, new Vector2(x, y));
+            }
+        }
+
+        return null;
     }
 }

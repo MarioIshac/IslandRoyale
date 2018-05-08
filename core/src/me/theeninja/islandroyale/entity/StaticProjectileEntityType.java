@@ -1,5 +1,6 @@
 package me.theeninja.islandroyale.entity;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -77,7 +78,7 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
     }
 
     @Override
-    public void present(Entity<StaticProjectileEntityType> entity, Stage stage) {
+    public void present(Entity<StaticProjectileEntityType> entity, Camera projector, Stage stage) {
 
     }
 }

@@ -1,11 +1,17 @@
 package me.theeninja.islandroyale.entity.controllable;
 
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
 import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
 import me.theeninja.islandroyale.entity.Offensive;
+import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public class PersonEntityType extends ControllableEntityType<PersonEntityType> implements Offensive<PersonEntityType> {
     public static final String PERSON_DIRECTORY = "person/";
@@ -17,6 +23,8 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
 
     private final static String TIME_LEFT_LABEL = "timeLeft";
 
+    private final static String LOAD_TO_TRANSPORT_LISTENER_LABEL = "loadToTransportLabel";
+
     @Override
     public void setUp(Entity<PersonEntityType> entity) {
         super.setUp(entity);
@@ -26,9 +34,36 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
     }
 
     @Override
+    public void configureEditor(Entity<PersonEntityType> entity, Table table) {
+        super.configureEditor(entity, table);
+
+        TextButton transportButton = new TextButton("Transport", MatchScreen.FLAT_EARTH_SKIN);
+        TransportInitiatorListener transportInitiatorListener = new TransportInitiatorListener(entity);
+
+        table.add(transportButton).row();
+
+        transportButton.addListener(transportInitiatorListener);
+
+        setProperty(entity, LOAD_TO_TRANSPORT_LISTENER_LABEL, transportInitiatorListener);
+    }
+
+    @Override
     public void check(Entity<PersonEntityType> entity, float delta, Player player, MatchMap matchMap) {
-        // DO NOT CALL SUPER, MOVEMENT IS HANDLED MANUALLY FOR PERSON DUE TO POSSIBILITY OF BEING CARRIED
-        // BY TRANSPORT
+        super.check(entity, delta, player, matchMap);
+
+        // Update all transporters within the load to transport listener.
+        TransportInitiatorListener transportInitiatorListener = getProperty(entity, LOAD_TO_TRANSPORT_LISTENER_LABEL);
+        transportInitiatorListener.getTransporters().clear();
+
+        for (Entity<? extends EntityType<?>> matchMapEntity : matchMap.getEntities()) {
+            if (!(matchMapEntity.getType() instanceof TransportEntityType))
+                continue;
+
+            Entity<TransportEntityType> transportEntityTypeEntity = (Entity<TransportEntityType>) matchMapEntity;
+
+            transportInitiatorListener.getTransporters().add(transportEntityTypeEntity);
+        }
+        //
 
         boolean isCarried = getProperty(entity, IS_CARRIED_LABEL);
 
@@ -36,8 +71,26 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
         // take care of moving this entity
         if (isCarried)
             entity.setSpeed(0);
-        else
-            setDefaultSpeed(entity);
+        else {
+            Vector3 targetCoords = getProperty(entity, TARGET_COORDS_LABEL);
+
+            // If no target, no need to move
+            if (targetCoords == null)
+                entity.setSpeed(0);
+            else {
+                float currentX = entity.getSprite().getX();
+                float currentY = entity.getSprite().getY();
+
+                setDefaultSpeed(entity);
+
+                float angle = (float) Math.atan(currentY / currentX);
+
+                if (currentX < 0)
+                    angle += Math.PI / 2;
+
+                entity.setDirection(angle);
+            }
+        }
 
         Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
@@ -63,8 +116,8 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
     }
 
     @Override
-    public void present(Entity<PersonEntityType> entity, Stage stage) {
-
+    public void present(Entity<PersonEntityType> entity, Camera projector, Stage stage) {
+        super.present(entity, projector, stage);
     }
 
     public float getBaseDamage() {

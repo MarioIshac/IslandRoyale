@@ -1,5 +1,6 @@
 package me.theeninja.islandroyale.entity;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
@@ -64,7 +65,7 @@ public abstract class EntityType<T extends EntityType<T>> {
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
      * Should perform any VISUAL updates. This should follow {@link #check(Entity, float, Player, MatchMap)}
      */
-    public abstract void present(Entity<T> entity, Stage stage);
+    public abstract void present(Entity<T> entity, Camera projector, Stage stage);
 
     public static <T> T getProperty(Entity<? extends EntityType<?>> entity, String label) {
         return (T) entity.getProperties().get(label);

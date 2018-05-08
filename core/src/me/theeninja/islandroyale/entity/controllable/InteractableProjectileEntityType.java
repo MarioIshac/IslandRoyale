@@ -1,7 +1,9 @@
 package me.theeninja.islandroyale.entity.controllable;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
@@ -14,8 +16,8 @@ public class InteractableProjectileEntityType extends ControllableEntityType<Int
     }
 
     @Override
-    public void configureEditor(Entity<InteractableProjectileEntityType> entity, VerticalGroup verticalGroup) {
-        super.configureEditor(entity, verticalGroup);
+    public void configureEditor(Entity<InteractableProjectileEntityType> entity, Table table) {
+        super.configureEditor(entity, table);
     }
 
     @Override
@@ -29,7 +31,7 @@ public class InteractableProjectileEntityType extends ControllableEntityType<Int
     }
 
     @Override
-    public void present(Entity<InteractableProjectileEntityType> entity, Stage stage) {
-        super.present(entity, stage);
+    public void present(Entity<InteractableProjectileEntityType> entity, Camera projector, Stage stage) {
+        super.present(entity, projector, stage);
     }
 }

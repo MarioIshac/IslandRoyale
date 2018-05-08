@@ -1,16 +1,15 @@
 package me.theeninja.islandroyale.entity;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.*;
-
-import java.util.HashMap;
-import java.util.Map;
+import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public abstract class InteractableEntityType<T extends InteractableEntityType<T>> extends EntityType<T> {
     private float baseHealth;
@@ -29,11 +28,11 @@ public abstract class InteractableEntityType<T extends InteractableEntityType<T>
     public static final String HEALTH_LABEL = "health";
     protected static final String LEVEL_LABEL = "level";
     public static final String DESCRIPTOR_SHOWN_LABEL = "descriptorShown";
-    private static final String VERTICAL_GROUP_LABEL = "verticalGroup";
+    public static final String TABLE_LABEL = "verticalGroup";
 
     private static final int FIRST_LEVEL = 1;
 
-    public abstract void configureEditor(Entity<T> entity, VerticalGroup verticalGroup);
+    public abstract void configureEditor(Entity<T> entity, Table table);
 
     @Override
     public final boolean shouldRemove(Entity<T> entity) {
@@ -47,27 +46,27 @@ public abstract class InteractableEntityType<T extends InteractableEntityType<T>
         setProperty(entity, HEALTH_LABEL, applyHealthMultiplier(FIRST_LEVEL));
         setProperty(entity, DESCRIPTOR_SHOWN_LABEL, true);
 
-        VerticalGroup verticalGroup = new VerticalGroup();
+        Table table = new Table();
+        table.setDebug(true);
 
-        configureEditor(entity, verticalGroup);
+        configureEditor(entity, table);
 
-        setProperty(entity, VERTICAL_GROUP_LABEL, verticalGroup);
+        setProperty(entity, TABLE_LABEL, table);
     }
 
     @Override
-    public void present(Entity<T> entity, Stage stage) {
-        Actor displayActor = getProperty(entity, VERTICAL_GROUP_LABEL);
+    public void present(Entity<T> entity, Camera projectorCamera, Stage targetStage) {
+        Actor displayActor = getProperty(entity, TABLE_LABEL);
 
         boolean isDescriptorShown = getProperty(entity, DESCRIPTOR_SHOWN_LABEL);
 
         if (isDescriptorShown) {
-            Vector3 screenCoords = new Vector3(entity.getSprite().getX(), entity.getSprite().getY(), 0);
+            Vector3 coords = new Vector3(entity.getSprite().getX(), entity.getSprite().getY(), 0);
+            projectorCamera.project(coords);
 
-            stage.getCamera().project(screenCoords);
+            displayActor.setPosition(coords.x, coords.y);
 
-            displayActor.setPosition(screenCoords.x * 16, screenCoords.y * 16);
-
-            stage.addActor(displayActor);
+            targetStage.addActor(displayActor);
         }
 
         else

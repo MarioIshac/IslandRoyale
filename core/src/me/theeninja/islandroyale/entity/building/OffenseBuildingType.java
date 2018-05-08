@@ -1,8 +1,11 @@
 package me.theeninja.islandroyale.entity.building;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.MatchMap;
@@ -37,17 +40,21 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
     }
 
     @Override
-    public void configureEditor(Entity<T> entity, VerticalGroup verticalGroup) {
+    public void configureEditor(Entity<T> entity, Table table) {
+        super.configureEditor(entity, table);
+
         List<QueueButtonListener> queueButtonListeners = new ArrayList<>();
+        Label queueLabel = new Label("Queue", MatchScreen.FLAT_EARTH_SKIN);
+        table.add(queueLabel).row();
 
         for (int entityID : getEntityIDsProduced()) {
-            TextButton queueButton = new TextButton("Queue " + entityID, MatchScreen.FLAT_EARTH_SKIN);
+            TextButton queueButton = new TextButton(EntityType.getEntityType(entityID).getName(), MatchScreen.FLAT_EARTH_SKIN);
             queueButton.setBounds(0, 0, queueButton.getWidth(), queueButton.getHeight());
 
             QueueButtonListener queueButtonListener = new QueueButtonListener(entityID);
             queueButton.addListener(queueButtonListener);
 
-            verticalGroup.addActor(queueButton);
+            table.add(queueButton).row();
 
             queueButtonListeners.add(queueButtonListener);
         }
@@ -115,18 +122,11 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
         setProperty(entity, TIMER_LABEL, requiredTime);
     }
 
-    public Entity<P> produceEntity(int entityIndex, Player player, Vector2 buildingPos, MatchMap matchMap) {
-        int entityId = getEntityIDsProduced().get(entityIndex);
-        P entityType = EntityType.getEntityType(entityId);
-
-        return produceEntity(entityType, player, buildingPos, matchMap);
-    }
-
     abstract Entity<P> produceEntity(P entityType, Player player, Vector2 buildingPos, MatchMap matchMap);
 
     @Override
-    public void present(Entity<T> entity, Stage stage) {
-        super.present(entity, stage);
+    public void present(Entity<T> entity, Camera projector, Stage stage) {
+        super.present(entity, projector, stage);
     }
 
     public List<Integer> getEntityIDsProduced() {

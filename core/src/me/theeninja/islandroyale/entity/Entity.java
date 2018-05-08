@@ -1,9 +1,11 @@
 package me.theeninja.islandroyale.entity;
 
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.Player;
@@ -11,7 +13,7 @@ import me.theeninja.islandroyale.Player;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Entity<T extends EntityType<T>> {
+public class Entity<T extends EntityType<T>> extends Actor {
     private final Sprite sprite;
 
     /**
@@ -30,11 +32,10 @@ public class Entity<T extends EntityType<T>> {
         this.entityType = entityType;
         this.owner = owner;
         this.sprite = new Sprite(getType().getTexture());
+
         getSprite().setSize(getType().getTexture().getWidth() / 16, getType().getTexture().getHeight() / 16);
         getSprite().setPosition(position.x, position.y);
         getSprite().setOriginCenter();
-
-        System.out.println("Pos " + getSprite().getX() + " " + getSprite().getY());
 
         getType().setUp(this);
     }
@@ -51,8 +52,8 @@ public class Entity<T extends EntityType<T>> {
         getType().check(this, delta, player, matchMap);
     }
 
-    public void present(Stage stage) {
-        getType().present(this, stage);
+    public void present(Camera projector, Stage stage) {
+        getType().present(this, projector, stage);
     }
 
     public boolean shouldRemove() {
@@ -77,5 +78,24 @@ public class Entity<T extends EntityType<T>> {
 
     public void setDirection(float angle) {
         getVelocityPerSecond().y = angle;
+    }
+
+    @Override
+    public void act(float delta) {
+        super.act(delta);
+
+        System.out.println("are we acting");
+
+        setBounds(
+                getSprite().getX(),
+                getSprite().getY(),
+                getSprite().getWidth(),
+                getSprite().getHeight()
+        );
+    }
+
+    @Override
+    public void draw(Batch batch, float parentAlpha) {
+        getSprite().draw(batch);
     }
 }
