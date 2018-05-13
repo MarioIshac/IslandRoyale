@@ -26,22 +26,40 @@ public class TransportAcceptorListener extends InputListener {
         if (personRequesting == null)
             return false; // Return false, indicating that other lick events such as show descriptor can be processed
 
-        EntityType.setProperty(personRequesting, PersonEntityType.IS_CARRIED_LABEL, true);
-
         List<Entity<PersonEntityType>> personsCarried = EntityType.getProperty(
                 getEntity(),
                 TransportEntityType.CARRIED_ENTITIES_LABEL
         );
 
+        Entity<TransportEntityType> currentTransporter = EntityType.getProperty(personRequesting, PersonEntityType.CARRIER_LABEL);
+
+        // Indicates that the user's intent is to transfer the person from one transproter to ANOTHER transproter
+        // which we handle by first removing person from original handler
+        if (currentTransporter != null) {
+            List<Entity<PersonEntityType>> transportedPersons = EntityType.getProperty(currentTransporter, TransportEntityType.CARRIED_ENTITIES_LABEL);
+
+            transportedPersons.remove(personRequesting);
+        }
+
+        // Now, old transporter (if any) is irrelevant, and simply add person to new transport
+        EntityType.setProperty(personRequesting, PersonEntityType.CARRIER_LABEL, getEntity());
         personsCarried.add(personRequesting);
         int numberOfEntitiesCarried = EntityType.getProperty(getEntity(), TransportEntityType.NUMBER_OF_ENTITIES_CARRIED_LABEL);
         EntityType.setProperty(getEntity(), TransportEntityType.NUMBER_OF_ENTITIES_CARRIED_LABEL, numberOfEntitiesCarried);
-        System.out.println("Person has been added");
+
+        // Tell other transporters that person has been added, therefore other transporters
+        // need not listen for person boarding it anymore.
+        for (Entity<TransportEntityType> transporter : getTransporters())
+            EntityType.setProperty(transporter, TransportEntityType.TRANSPORT_REQUEST_LABEL, null);
 
         return true;
     }
 
     public Entity<TransportEntityType> getEntity() {
         return entity;
+    }
+
+    public List<Entity<TransportEntityType>> getTransporters() {
+        return transporters;
     }
 }

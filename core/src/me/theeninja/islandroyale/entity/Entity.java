@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +32,8 @@ public class Entity<T extends EntityType<T>> extends Actor {
         this.entityType = entityType;
         this.owner = owner;
         this.sprite = new Sprite(getType().getTexture());
+
+        setZIndex(getType().getDrawingPriority());
 
         getSprite().setSize(getType().getTexture().getWidth() / 16, getType().getTexture().getHeight() / 16);
         getSprite().setPosition(position.x, position.y);
@@ -83,15 +85,6 @@ public class Entity<T extends EntityType<T>> extends Actor {
     @Override
     public void act(float delta) {
         super.act(delta);
-
-        System.out.println("are we acting");
-
-        setBounds(
-                getSprite().getX(),
-                getSprite().getY(),
-                getSprite().getWidth(),
-                getSprite().getHeight()
-        );
     }
 
     @Override

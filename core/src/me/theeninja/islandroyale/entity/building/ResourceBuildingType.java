@@ -1,13 +1,11 @@
 package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.IslandRoyaleGame;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.Resource;
 import me.theeninja.islandroyale.entity.Entity;
 

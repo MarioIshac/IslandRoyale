@@ -10,8 +10,8 @@ import me.theeninja.islandroyale.treasure.Treasure;
 import java.util.*;
 
 public class MatchMap {
-    private final int tileLength;
     private final int tileWidth;
+    private final int tileHeight;
 
     private static final int ISLAND_GAP = 110;
 
@@ -47,9 +47,9 @@ public class MatchMap {
         entities.removeIf(Entity::shouldRemove);
     }
 
-    public MatchMap(int tileLength, int tileWidth) {
-        this.tileLength = tileLength;
+    public MatchMap(int tileWidth, int tileHeight) {
         this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
 
         generateIslands();
         generateTreasures();
@@ -58,7 +58,7 @@ public class MatchMap {
     }
 
     private void generateIslands() {
-        for (int xTile = 0; xTile < getTileWidth(); xTile += ISLAND_GAP) {
+        for (int xTile = 0; xTile < getTileHeight(); xTile += ISLAND_GAP) {
             for (int yTile = 0; yTile < getTileHeight(); yTile += ISLAND_GAP) {
                 Vector2 point = new Vector2(xTile, yTile);
                 Island island = new Island(11, 11, point);
@@ -69,7 +69,7 @@ public class MatchMap {
     }
 
     private void generateTreasures() {
-        for (int xTile = 0; xTile < getTileWidth(); xTile++) {
+        for (int xTile = 0; xTile < getTileHeight(); xTile++) {
             for (int yTile = 0; yTile < getTileHeight(); yTile++) {
                 if (xTile % 2 == 0 && yTile % 2 == 0) {
                     Treasure resourceTreasure = new ResourceTreasure(Resource.WOOD, 5);
@@ -81,11 +81,7 @@ public class MatchMap {
     }
 
     public int getTileHeight() {
-        return tileLength;
-    }
-
-    public int getTileWidth() {
-        return tileWidth;
+        return tileHeight;
     }
 
     public List<Island> getIslands() {
@@ -110,5 +106,9 @@ public class MatchMap {
 
     public BitSet getExploredTiles() {
         return exploredTiles;
+    }
+
+    public int getTileWidth() {
+        return tileWidth;
     }
 }

@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import me.theeninja.islandroyale.Island;
 import me.theeninja.islandroyale.IslandTileType;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.controllable.PersonEntityType;
 

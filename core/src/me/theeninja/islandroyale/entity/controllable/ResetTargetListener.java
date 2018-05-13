@@ -14,7 +14,7 @@ public class ResetTargetListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        EntityType.setProperty(getEntity(), ControllableEntityType.TARGET_COORDS_LABEL, null);
+        EntityType.setProperty(getEntity(), ControllableEntityType.TARGET_COORDS_PATH_LABEL, null);
         return true;
     }
 

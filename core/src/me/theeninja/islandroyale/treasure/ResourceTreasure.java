@@ -1,6 +1,6 @@
 package me.theeninja.islandroyale.treasure;
 
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.Resource;
 
 public class ResourceTreasure extends Treasure {

@@ -12,6 +12,8 @@ import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
 import me.theeninja.islandroyale.entity.controllable.TransportEntityType;
 
+import static me.theeninja.islandroyale.gui.screens.MatchScreen.*;
+
 public class MatchScreenInputListener implements InputProcessor {
 
     private final MatchScreen matchScreen;
@@ -68,9 +70,15 @@ public class MatchScreenInputListener implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Vector3 worldCoords = new Vector3(screenX, screenY, 0);
+        Vector3 checkEntityCoords = new Vector3(screenX, screenY, 0);
+        Vector3 checkDescriptorCoords = checkEntityCoords.cpy();
 
-        getMatchScreen().getMapCamera().unproject(worldCoords);
+        getMatchScreen().getMapCamera().unproject(checkEntityCoords);
+        getMatchScreen().getHudCamera().unproject(checkDescriptorCoords);
+
+        System.out.println("Checking entity coordinate positions " + checkEntityCoords);
+        System.out.println("Checking descriptor coordinate positions " + checkDescriptorCoords);
+        System.out.println("Checking screen coordinate positions " + screenX + " " + screenY);
 
         boolean touchedEntity = false;
 
@@ -85,7 +93,7 @@ public class MatchScreenInputListener implements InputProcessor {
                 if (EntityType.getProperty(entity, TransportEntityType.TRANSPORT_REQUEST_LABEL) != null)
                     continue;
 
-            boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(worldCoords.x, worldCoords.y);
+            boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(checkEntityCoords.x, checkEntityCoords.y);
             boolean touchInDescriptorBounds;
 
             boolean descriptorShown = EntityType.getProperty(entity, InteractableEntityType.DESCRIPTOR_SHOWN_LABEL);
@@ -97,8 +105,11 @@ public class MatchScreenInputListener implements InputProcessor {
             else {
                 Actor descriptor = EntityType.getProperty(entity, InteractableEntityType.TABLE_LABEL);
 
-                boolean xInBounds = descriptor.getX() < worldCoords.x && worldCoords.x < descriptor.getX() + descriptor.getWidth();
-                boolean yInBounds = descriptor.getY() < worldCoords.y && worldCoords.y < descriptor.getY() + descriptor.getHeight();
+                boolean xInBounds = descriptor.getX() < checkDescriptorCoords.x && checkDescriptorCoords.x < descriptor.getX() + descriptor.getWidth();
+                boolean yInBounds = descriptor.getY() < checkDescriptorCoords.y && checkDescriptorCoords.y < descriptor.getY() + descriptor.getHeight();
+
+                System.out.println("Descriptor start " + descriptor.getX());
+                System.out.println("Descriptor end " + (descriptor.getX() + descriptor.getWidth()));
 
                 touchInDescriptorBounds = xInBounds && yInBounds;
             }

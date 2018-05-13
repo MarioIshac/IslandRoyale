@@ -2,11 +2,10 @@ package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +14,10 @@ import java.util.function.Function;
 public abstract class EntityType<T extends EntityType<T>> {
     private transient Texture texture;
     private String texturePath;
+
+    public final static ShapeRenderer SHAPE_RENDERER_PRESENTER = new ShapeRenderer();
+
+    public abstract int getDrawingPriority();
 
     private int tileWidth;
     private int tileHeight;
@@ -51,6 +54,7 @@ public abstract class EntityType<T extends EntityType<T>> {
     public void initialize() {
 
     }
+
     public abstract void setUp(Entity<T> entity);
 
     public abstract boolean shouldRemove(Entity<T> entity);

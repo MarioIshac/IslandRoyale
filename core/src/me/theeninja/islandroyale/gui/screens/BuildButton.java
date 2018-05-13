@@ -3,7 +3,7 @@ package me.theeninja.islandroyale.gui.screens;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.building.BuildingEntityType;
 import me.theeninja.islandroyale.entity.Entity;
 
@@ -19,8 +19,6 @@ public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
 
         this.buildingEntityType = buildingEntityType;
         this.player = player;
-
-        setBounds(0, 0, getWidth(), getHeight());
 
         InputListener buildButtonListener = new BuildButtonListener(this);
         this.addListener(buildButtonListener);

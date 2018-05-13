@@ -2,14 +2,12 @@ package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
@@ -49,7 +47,6 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
 
         for (int entityID : getEntityIDsProduced()) {
             TextButton queueButton = new TextButton(EntityType.getEntityType(entityID).getName(), MatchScreen.FLAT_EARTH_SKIN);
-            queueButton.setBounds(0, 0, queueButton.getWidth(), queueButton.getHeight());
 
             QueueButtonListener queueButtonListener = new QueueButtonListener(entityID);
             queueButton.addListener(queueButtonListener);
@@ -66,7 +63,6 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
         List<QueueButtonListener> queueButtonListeners = getProperty(entity, QUEUE_BUTTON_LISTENER_LABEL);
         List<Integer> entityIdsInQueue = getProperty(entity, ENTITY_IDS_IN_QUEUE);
 
-        System.out.println("Number of queue checks " + queueButtonListeners.size());
 
         for (QueueButtonListener queueButtonListener : queueButtonListeners) {
             if (queueButtonListener.shouldQueryEntity()) {
@@ -89,8 +85,6 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
         checkQueues(entity);
 
         LinkedList<Integer> entityIdsInQueue = getProperty(entity, ENTITY_IDS_IN_QUEUE);
-
-        System.out.println("Number of entities in queue " + entityIdsInQueue.size());
 
         // No entities left to process
         if (entityIdsInQueue.isEmpty())

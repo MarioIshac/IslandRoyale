@@ -5,6 +5,7 @@
   "baseHealth": 100,
   "baseMovementSpeed": 2,
   "tileWidth": 2,
-  "tileHeight": 2,
-  "texturePath": "RefugeeBoat.png"
+  "tileHeight": 1,
+  "texturePath": "RefugeeBoat.png",
+  "pixelMargin": 4
 }

@@ -2,10 +2,8 @@ package me.theeninja.islandroyale.gui.screens;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.Resource;
-
-import java.util.Locale;
 
 public class ResourceLabel extends HorizontalGroup {
     private final Resource resource;

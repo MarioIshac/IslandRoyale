@@ -3,11 +3,11 @@ package me.theeninja.islandroyale.entity;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import me.theeninja.islandroyale.*;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
@@ -56,7 +56,7 @@ public abstract class InteractableEntityType<T extends InteractableEntityType<T>
 
     @Override
     public void present(Entity<T> entity, Camera projectorCamera, Stage targetStage) {
-        Actor displayActor = getProperty(entity, TABLE_LABEL);
+        Table displayActor = getProperty(entity, TABLE_LABEL);
 
         boolean isDescriptorShown = getProperty(entity, DESCRIPTOR_SHOWN_LABEL);
 
@@ -64,7 +64,10 @@ public abstract class InteractableEntityType<T extends InteractableEntityType<T>
             Vector3 coords = new Vector3(entity.getSprite().getX(), entity.getSprite().getY(), 0);
             projectorCamera.project(coords);
 
-            displayActor.setPosition(coords.x, coords.y);
+            //displayActor.pack();
+
+            // Show this table directly under entity, not over it
+            displayActor.setPosition(coords.x, coords.y - displayActor.getHeight());
 
             targetStage.addActor(displayActor);
         }
@@ -80,6 +83,7 @@ public abstract class InteractableEntityType<T extends InteractableEntityType<T>
     public void charge(Inventory inventory) {
         inventory.remove(getInventoryCost());
     }
+
     public static float applyMultiplier(int level, float base, float multiplier) {
         while (level-- > 0)
             base *= multiplier;

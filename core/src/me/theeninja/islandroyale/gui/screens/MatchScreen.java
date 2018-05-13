@@ -11,11 +11,15 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.*;
 import me.theeninja.islandroyale.*;
+import me.theeninja.islandroyale.ai.HumanPlayer;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
 import me.theeninja.islandroyale.entity.building.*;
 import me.theeninja.islandroyale.entity.building.BuildingEntityType;
@@ -29,6 +33,12 @@ import java.util.*;
 
 public class MatchScreen implements Screen {
 
+    public final static int WHOLE_WORLD_TILE_WIDTH = 1000;
+    public final static int WHOLE_WORLD_TILE_HEIGHT = 1000;
+
+    public final static int VISIBLE_WORLD_TILE_WIDTH = 80;
+    public final static int VISIBLE_WORLD_TILE_HEIGHT = 45;
+
     public final static Skin FLAT_EARTH_SKIN;
 
     private final List<BuildButton<?>> buildButtons = new ArrayList<>();
@@ -41,9 +51,7 @@ public class MatchScreen implements Screen {
     private final Game game;
 
     private final MatchMap matchMap;
-    private final Player player;
-
-    private final MapOverlay mapOverlay;
+    private final me.theeninja.islandroyale.ai.Player player;
 
     private final Stage hudStage;
     private final Stage mapStage;
@@ -57,7 +65,7 @@ public class MatchScreen implements Screen {
     private final Texture x;
 
     private final Batch batch;
-    private final InputProcessor inputProcessor;
+    public final InputProcessor inputProcessor;
 
     private boolean isTouchDown;
 
@@ -86,7 +94,7 @@ public class MatchScreen implements Screen {
     private final Viewport mapViewport;
     private final Viewport hudViewport;
 
-    private Viewport getMapViewport() {
+    public Viewport getMapViewport() {
         return mapViewport;
     }
 
@@ -107,19 +115,15 @@ public class MatchScreen implements Screen {
         this.game = game;
 
         this.mapCamera = new OrthographicCamera();
-        this.mapViewport = new StretchViewport(160 / 2, 90 / 2, getMapCamera());
+        this.mapViewport = new StretchViewport(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT, getMapCamera());
 
         this.hudCamera = new OrthographicCamera();
         this.hudViewport = new ScreenViewport(getHudCamera());
 
-        getMapCamera().position.set(getMapViewport().getWorldWidth() / 2, getMapViewport().getWorldHeight() / 2, 0);
-        getHudCamera().position.set(getHudViewport().getWorldWidth() / 2, getHudViewport().getWorldHeight() / 2, 0);
-
         this.mapStage = new Stage(getMapViewport(), getBatch());
         this.hudStage = new Stage(getHudViewport(), getBatch());
 
-        this.matchMap = new MatchMap(1000, 1000);
-        this.mapOverlay = new MapOverlay(getMatchMap(), this);
+        this.matchMap = new MatchMap(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
 
         FileHandle checkmarkFileHandle = Gdx.files.internal("CheckMark.png");
         FileHandle xFileHandle = Gdx.files.internal("X.png");
@@ -144,7 +148,7 @@ public class MatchScreen implements Screen {
 
         Island chosenIsland = getMatchMap().getIslands().get(randomIslandNumber);
 
-        this.player = new Player(chosenIsland);
+        this.player = new HumanPlayer(chosenIsland);
 
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
@@ -184,6 +188,7 @@ public class MatchScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(inputProcessor);
+
     }
 
     private void drawIslands() {
@@ -248,8 +253,16 @@ public class MatchScreen implements Screen {
         Gdx.gl.glClearColor(0.5f, 0.5f, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        //if (getInputListener().isMapShown())
+        //    getMapViewport().setWorldSize(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
+        //else
+        //    getMapViewport().setWorldSize(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT);
+
+        getMapViewport().apply(true);
+
         getMatchMap().flushDeadEntities();
-        getMapStage().clear();
+        getMapStage().getRoot().clearChildren();
+
         for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities())
             getMapStage().addActor(entity);
 
@@ -258,17 +271,13 @@ public class MatchScreen implements Screen {
         updateEntities(delta);
         moveEntities(delta);
 
-        handleMapRendering();
         handleHUDRendering(delta);
-
-        if (getInputListener().isMapShown())
-            getMapOverlay().draw();
-
+        handleMapRendering();
         getBatch().end();
-        getMapStage().act(delta);
-        getMapStage().draw();
         getHUDStage().act(delta);
         getHUDStage().draw();
+        getMapStage().act(delta);
+        getMapStage().draw();
     }
 
     private void drawLabelsAndUpdateResources(float delta) {
@@ -309,13 +318,11 @@ public class MatchScreen implements Screen {
         }
     }
 
-    public  <T extends EntityType<T>> void check(Entity<T> entity, float delta, Player player, MatchMap matchMap) {
+    public  <T extends EntityType<T>> void check(Entity<T> entity, float delta, me.theeninja.islandroyale.ai.Player player, MatchMap matchMap) {
         entity.getType().check(entity, delta, player, matchMap);
     }
 
     private <T extends BuildingEntityType<T>> void handleBuildButton(BuildButton<T> buildButton) {
-        System.out.println("Handled");
-
         Texture associatedTexture = buildButton.getBuildingType().getTexture();
 
         Vector3 worldCoordsOfMosue = new Vector3(
@@ -372,7 +379,7 @@ public class MatchScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        getHudViewport().update(width, height);
+        getHudViewport().update(width, height, true);
     }
 
     @Override
@@ -457,10 +464,6 @@ public class MatchScreen implements Screen {
 
     public Camera getMapCamera() {
         return mapCamera;
-    }
-
-    public MapOverlay getMapOverlay() {
-        return mapOverlay;
     }
 
     public MatchScreenInputListener getInputListener() {

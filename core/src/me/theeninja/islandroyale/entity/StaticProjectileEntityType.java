@@ -1,12 +1,11 @@
 package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
 
 public class StaticProjectileEntityType extends EntityType<StaticProjectileEntityType> {
@@ -20,6 +19,11 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
                                    Entity<? extends InteractableEntityType<?>> target) {
         setProperty(proj, INITIATOR_LABEL, shooter);
         setProperty(proj, TARGET_LABEL, target);
+    }
+
+    @Override
+    public int getDrawingPriority() {
+        return 4;
     }
 
     @Override

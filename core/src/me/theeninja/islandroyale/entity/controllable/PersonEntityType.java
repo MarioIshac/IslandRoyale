@@ -1,12 +1,15 @@
 package me.theeninja.islandroyale.entity.controllable;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.Player;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
@@ -19,18 +22,22 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
     private float baseDamage;
     private float baseFireRate;
 
-    public static final String IS_CARRIED_LABEL = "isCarried";
+    public static final String CARRIER_LABEL = "carrier";
 
     private final static String TIME_LEFT_LABEL = "timeLeft";
 
     private final static String LOAD_TO_TRANSPORT_LISTENER_LABEL = "loadToTransportLabel";
 
     @Override
+    public int getDrawingPriority() {
+        return 2;
+    }
+
+    @Override
     public void setUp(Entity<PersonEntityType> entity) {
         super.setUp(entity);
 
-        setProperty(entity, IS_CARRIED_LABEL, false);
-        entity.getProperties().put(TIME_LEFT_LABEL, 1 / getBaseFireRate());
+        setProperty(entity, TIME_LEFT_LABEL, 1 / getBaseFireRate());
     }
 
     @Override
@@ -63,34 +70,15 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
 
             transportInitiatorListener.getTransporters().add(transportEntityTypeEntity);
         }
-        //
 
-        boolean isCarried = getProperty(entity, IS_CARRIED_LABEL);
+        Entity<TransportEntityType> carrier = getProperty(entity, CARRIER_LABEL);
 
         // If this person is being carried by transporation, let the transporter
         // take care of moving this entity
-        if (isCarried)
+        if (carrier != null)
             entity.setSpeed(0);
-        else {
-            Vector3 targetCoords = getProperty(entity, TARGET_COORDS_LABEL);
-
-            // If no target, no need to move
-            if (targetCoords == null)
-                entity.setSpeed(0);
-            else {
-                float currentX = entity.getSprite().getX();
-                float currentY = entity.getSprite().getY();
-
-                setDefaultSpeed(entity);
-
-                float angle = (float) Math.atan(currentY / currentX);
-
-                if (currentX < 0)
-                    angle += Math.PI / 2;
-
-                entity.setDirection(angle);
-            }
-        }
+        else
+            updateMoveAttributes(entity);
 
         Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
@@ -116,8 +104,8 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
     }
 
     @Override
-    public void present(Entity<PersonEntityType> entity, Camera projector, Stage stage) {
-        super.present(entity, projector, stage);
+    public void present(Entity<PersonEntityType> entity, Camera mapCamera, Stage hudStage) {
+        super.present(entity, mapCamera, hudStage);
     }
 
     public float getBaseDamage() {
