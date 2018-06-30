@@ -9,7 +9,7 @@
   "minGroundFiles": 3,
   "baseFireRate": 1,
   "baseDamage": 20,
-  "baseRange": 15,
+  "baseRange": 10,
   "inventoryCost": {
     "resourceEntries": [
       {

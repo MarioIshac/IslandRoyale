@@ -15,7 +15,7 @@ public abstract class EntityType<T extends EntityType<T>> {
     private transient Texture texture;
     private String texturePath;
 
-    public final static ShapeRenderer SHAPE_RENDERER_PRESENTER = new ShapeRenderer();
+    public final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     public abstract int getDrawingPriority();
 
@@ -51,10 +51,6 @@ public abstract class EntityType<T extends EntityType<T>> {
 
     private String name;
 
-    public void initialize() {
-
-    }
-
     public abstract void setUp(Entity<T> entity);
 
     public abstract boolean shouldRemove(Entity<T> entity);
@@ -72,8 +68,12 @@ public abstract class EntityType<T extends EntityType<T>> {
     public abstract void present(Entity<T> entity, Camera projector, Stage stage);
 
     public static <T> T getProperty(Entity<? extends EntityType<?>> entity, String label) {
-        return (T) entity.getProperties().get(label);
+        T propertyValue = (T) entity.getProperties().get(label);
+
+        return propertyValue;
     }
+
+    public void initialize() {}
 
     public static <T> void setProperty(Entity<? extends EntityType<?>> entity, String label, T value) {
         entity.getProperties().put(label, value);

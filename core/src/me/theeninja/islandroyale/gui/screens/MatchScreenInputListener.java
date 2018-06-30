@@ -4,15 +4,10 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
 import me.theeninja.islandroyale.entity.controllable.TransportEntityType;
-
-import static me.theeninja.islandroyale.gui.screens.MatchScreen.*;
 
 public class MatchScreenInputListener implements InputProcessor {
 
@@ -29,7 +24,7 @@ public class MatchScreenInputListener implements InputProcessor {
     public boolean keyDown( int keyCode) {
         switch (keyCode) {
             case SHOW_MAP_KEY: {
-                System.out.println("Showing map");
+
                 setMapShown(true);
                 return true;
             }
@@ -42,7 +37,7 @@ public class MatchScreenInputListener implements InputProcessor {
     public boolean keyUp(int keyCode) {
         switch (keyCode) {
             case SHOW_MAP_KEY: {
-                System.out.println("Hiding map");
+
                 setMapShown(false);
                 return true;
             }
@@ -76,9 +71,9 @@ public class MatchScreenInputListener implements InputProcessor {
         getMatchScreen().getMapCamera().unproject(checkEntityCoords);
         getMatchScreen().getHudCamera().unproject(checkDescriptorCoords);
 
-        System.out.println("Checking entity coordinate positions " + checkEntityCoords);
-        System.out.println("Checking descriptor coordinate positions " + checkDescriptorCoords);
-        System.out.println("Checking screen coordinate positions " + screenX + " " + screenY);
+
+
+
 
         boolean touchedEntity = false;
 
@@ -108,15 +103,22 @@ public class MatchScreenInputListener implements InputProcessor {
                 boolean xInBounds = descriptor.getX() < checkDescriptorCoords.x && checkDescriptorCoords.x < descriptor.getX() + descriptor.getWidth();
                 boolean yInBounds = descriptor.getY() < checkDescriptorCoords.y && checkDescriptorCoords.y < descriptor.getY() + descriptor.getHeight();
 
-                System.out.println("Descriptor start " + descriptor.getX());
-                System.out.println("Descriptor end " + (descriptor.getX() + descriptor.getWidth()));
+
+
 
                 touchInDescriptorBounds = xInBounds && yInBounds;
             }
 
-            EntityType.setProperty(entity, InteractableEntityType.DESCRIPTOR_SHOWN_LABEL, touchInEntityBounds || touchInDescriptorBounds);
+            boolean touchHandledByEntity = touchInEntityBounds || touchInDescriptorBounds;
 
-            if (touchInEntityBounds || touchInDescriptorBounds)
+            // If we have already touched an entity, do not register a second touch upon an entity
+            // that is below the entity that firstly handled the touch.
+            // In other words, guarantee that only one entity is touched.
+            touchHandledByEntity &= !touchedEntity;
+
+            EntityType.setProperty(entity, InteractableEntityType.DESCRIPTOR_SHOWN_LABEL, touchHandledByEntity);
+
+            if (touchHandledByEntity)
                 touchedEntity = true;
         }
 

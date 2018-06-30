@@ -18,12 +18,12 @@ public class TransportInitiatorListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        System.out.println("Number of transporters " + getTransporters().size());
+
 
         for (Entity<TransportEntityType> entity : getTransporters())
             EntityType.setProperty(entity, TransportEntityType.TRANSPORT_REQUEST_LABEL, getEntity());
 
-        System.out.println("Transport has been requested");
+
 
         return true;
     }

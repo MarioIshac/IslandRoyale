@@ -10,13 +10,15 @@ import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
 
 public class StaticProjectileEntityType extends EntityType<StaticProjectileEntityType> {
 
+    private int movementSpeed;
+
     public static final String INITIATOR_LABEL = "initiator";
     public static final String TARGET_LABEL = "target";
     public static final String HAS_COLLIDED_LABEL = "hasCollided";
 
-    public void externalInitialize(Entity<StaticProjectileEntityType> proj,
-                                   Entity<DefenseBuildingType> shooter,
-                                   Entity<? extends InteractableEntityType<?>> target) {
+    public void provide(Entity<StaticProjectileEntityType> proj,
+                        Entity<? extends EntityType<?>> shooter,
+                        Entity<? extends InteractableEntityType<?>> target) {
         setProperty(proj, INITIATOR_LABEL, shooter);
         setProperty(proj, TARGET_LABEL, target);
     }
@@ -41,6 +43,10 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
         Entity<DefenseBuildingType> shooter = getProperty(entity, INITIATOR_LABEL);
         Entity<? extends InteractableEntityType<?>> otherEntity = getProperty(entity, TARGET_LABEL);
 
+
+
+
+
         // The collision check is done with respect to pixels
         float otherLowerAbsolutePixelX = (otherEntity.getSprite().getX());
         float otherLowerAbsolutePixelY = (otherEntity.getSprite().getY());
@@ -51,9 +57,7 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
         Rectangle otherRect = new Rectangle(otherLowerAbsolutePixelX, otherLowerAbsolutePixelY, otherEntity.getType().getTexture().getWidth() / 16f, otherEntity.getType().getTexture().getHeight() / 16f);
         Rectangle thisRect = new Rectangle(thisLowerAbsolutePixelX, thisLowerAbsolutePixelY, entity.getType().getTexture().getWidth() / 16f, entity.getType().getTexture().getHeight() / 16f);
 
-        System.out.println("Has it hit?");
         if (otherRect.contains(thisRect)) {
-            System.out.println("It has hit");
 
             setProperty(entity, HAS_COLLIDED_LABEL, true);
             changeProperty(otherEntity, InteractableEntityType.HEALTH_LABEL, (Float health) -> health -= shooter.getType().getBaseDamage());
@@ -75,14 +79,16 @@ public class StaticProjectileEntityType extends EntityType<StaticProjectileEntit
         if (xDistance < 0)
             resultingAngle += Math.PI;
 
-        float currentSpeed = entity.getVelocityPerSecond().x;
-
-        entity.getVelocityPerSecond().set(currentSpeed, (float) (resultingAngle));
+        entity.setDirection(resultingAngle);
         entity.getSprite().setRotation((float) Math.toDegrees(resultingAngle) - 45);
     }
 
     @Override
     public void present(Entity<StaticProjectileEntityType> entity, Camera projector, Stage stage) {
 
+    }
+
+    public int getMovementSpeed() {
+        return movementSpeed;
     }
 }

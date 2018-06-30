@@ -18,7 +18,7 @@ public class TransportAcceptorListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        System.out.println("Transport added");
+
 
         Entity<PersonEntityType> personRequesting = EntityType.getProperty(getEntity(), TransportEntityType.TRANSPORT_REQUEST_LABEL);
 

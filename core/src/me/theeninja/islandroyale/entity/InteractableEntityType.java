@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import me.theeninja.islandroyale.*;
+import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public abstract class InteractableEntityType<T extends InteractableEntityType<T>> extends EntityType<T> {
@@ -33,6 +34,12 @@ public abstract class InteractableEntityType<T extends InteractableEntityType<T>
     private static final int FIRST_LEVEL = 1;
 
     public abstract void configureEditor(Entity<T> entity, Table table);
+
+    @Override
+    public void check(Entity<T> entity, float delta, Player player, MatchMap matchMap) {
+        if (shouldRemove(entity))
+            setProperty(entity, DESCRIPTOR_SHOWN_LABEL, false);
+    }
 
     @Override
     public final boolean shouldRemove(Entity<T> entity) {

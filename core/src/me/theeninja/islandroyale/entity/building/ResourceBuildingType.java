@@ -19,7 +19,7 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
         resourceBuildingType.resource = Resource.WOOD;
         resourceBuildingType.getInventoryCost().put(Resource.WOOD, 20f);
 
-        System.out.println(IslandRoyaleGame.JSON.toJson(resourceBuildingType, ResourceBuildingType.class));
+
     }
 
     /**
@@ -53,6 +53,8 @@ public class ResourceBuildingType extends BuildingEntityType<ResourceBuildingTyp
 
     @Override
     public void check(Entity<ResourceBuildingType> entity, float delta, Player player, MatchMap matchMap) {
+        super.check(entity, delta, player, matchMap);
+
         float amountOfResource = delta * getBaseRate();
         int currentLevel = getProperty(entity, LEVEL_LABEL);
 

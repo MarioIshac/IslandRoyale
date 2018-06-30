@@ -58,6 +58,8 @@ public class TransportEntityType extends ControllableEntityType<TransportEntityT
 
             transportAcceptorListener.getTransporters().add(transportEntityTypeEntity);
         }
+
+
         //
 
         updateMoveAttributes(transporter);

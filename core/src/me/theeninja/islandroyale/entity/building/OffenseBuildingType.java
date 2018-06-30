@@ -82,6 +82,8 @@ public abstract class OffenseBuildingType<T extends OffenseBuildingType<T, P>, P
 
     @Override
     public void check(Entity<T> entity, float delta, Player player, MatchMap matchMap) {
+        super.check(entity, delta, player, matchMap);
+
         checkQueues(entity);
 
         LinkedList<Integer> entityIdsInQueue = getProperty(entity, ENTITY_IDS_IN_QUEUE);

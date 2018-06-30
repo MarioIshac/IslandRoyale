@@ -13,7 +13,7 @@ import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
 
-public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Offensive<DefenseBuildingType> {
+public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Attacker<DefenseBuildingType> {
 
     private Sprite rangeSprite;
 
@@ -55,10 +55,10 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         getRangeSprite().setSize(1, 1);
     }
 
-    boolean dealingDamage;
-
     @Override
     public void check(Entity<DefenseBuildingType> entity, float delta, Player player, MatchMap matchMap) {
+        super.check(entity, delta, player, matchMap);
+
         // Does 2 things:
         // 1) Ensures that there is always the requested field within map (obvious)
         // 2) Ensures that upon entity construction, a shot is not fired IMMEDIATELY. Rather, it is fired
@@ -72,7 +72,7 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
         // If the current target entity has expired, i.e a new target entity is required
-        if (isNewTargetEntityRequired(currentTargetEntity)) {
+        if (isNewTargetEntityRequired(entity, currentTargetEntity)) {
             currentTargetEntity = getNewTargetEntity(entity, matchMap, getBaseRange());
 
             setProperty(entity, ATTACKING_TARGET_LABEL, currentTargetEntity);
@@ -82,19 +82,7 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
                 return;
         }
 
-        StaticProjectileEntityType projectileType = EntityType.getEntityType(getStaticProjectileID());
-
-        Vector2 pos = new Vector2(
-                entity.getSprite().getX(),
-                entity.getSprite().getY()
-        );
-
-        Entity<StaticProjectileEntityType> projectile = new Entity<>(projectileType, entity.getOwner(), pos);
-
-        projectile.setSpeed(10);
-
-        projectileType.externalInitialize(projectile, entity, currentTargetEntity);
-
+        Entity<StaticProjectileEntityType> projectile = newProjectile(entity, currentTargetEntity);
         matchMap.getEntities().add(projectile);
 
         setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
@@ -112,10 +100,9 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
 
         getRangeSprite().setPosition(entity.getSprite().getX(), entity.getSprite().getY());
         getRangeSprite().setOriginCenter();
-        getRangeSprite().setScale(getBaseRange());
 
-        int currentLevel = getProperty(entity, LEVEL_LABEL);
-        float tileRange = getRangeMultiplier(currentLevel);
+        // Scaling wll scale the width by the argument, so we must supply diameter
+        getRangeSprite().setScale(getBaseRange() * 2);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
 
@@ -133,16 +120,12 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
         return result;
     }
 
-    public float getBaseDamage() {
-        return baseDamage;
-    }
-
-    private float attack(float health) {
-        return damageHealth(health, getBaseDamage());
-    }
-
     public int getStaticProjectileID() {
         return staticProjectileID;
+    }
+
+    public float getBaseDamage() {
+        return baseDamage;
     }
 
     public Sprite getRangeSprite() {

@@ -1,5 +1,6 @@
 {
   "id": 6001,
   "name": "Cannon Ball",
-  "texturePath": "CannonBall.png"
+  "texturePath": "CannonBall.png",
+  "movementSpeed": 10
 }

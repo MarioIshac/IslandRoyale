@@ -1,6 +1,9 @@
 package me.theeninja.islandroyale.gui.screens;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
@@ -15,6 +18,8 @@ public class PathSelectionInputListener extends InputListener {
     private boolean inRight;
     private boolean inUp;
     private boolean inDown;
+
+    private Vector3 pathComponentToAdd;
 
     /**
      * Set to true upon new construction of this listener.
@@ -42,15 +47,16 @@ public class PathSelectionInputListener extends InputListener {
                 return true;
             }
             case ENTER: {
-                System.out.println("Path size " + getPath().size);
-                EntityType.setProperty(getEntity(), ControllableEntityType.TARGET_COORDS_PATH_LABEL, getPath());
-
                 // No longer in process of selecting a path, so update respective property
                 EntityType.setProperty(getEntity(), ControllableEntityType.PATH_SELECTOR_LISTENER_TABLE, null);
 
                 revertToPlayerMap();
 
                 CURRENTLY_SHOWN_ENTITY = null;
+
+                System.out.println("Size of path " + getPath());
+                EntityType.setProperty(getEntity(), ControllableEntityType.TARGET_COORDS_PATH_LABEL, getPath());
+
                 return true;
             }
             default: return false;
@@ -81,25 +87,66 @@ public class PathSelectionInputListener extends InputListener {
         }
     }
 
+    @Override
+    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+        Camera matchCamera = entity.getStage().getCamera();
+        pathComponentToAdd = new Vector3(x, y, 0);
+        matchCamera.unproject(pathComponentToAdd);
+
+        return true;
+    }
+
+    @Override
+    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+        pathComponentToAdd = null;
+    }
+
+    @Override
+    public void touchDragged(InputEvent event, float x, float y, int pointer) {
+        Camera matchCamera = entity.getStage().getCamera();
+        pathComponentToAdd = new Vector3(x, Gdx.graphics.getHeight() - y, 0);
+        matchCamera.unproject(pathComponentToAdd);
+    }
+
     public void update() {
+        // Indicates whether the user is relying on drawing the path through touch (not null) or keys (null)
+        if (pathComponentToAdd == null) {
+            // Handles case where user is drawing path with keys. We initialize the pre-translation vector
+            // to path end
+            if (inLeft || inRight || inUp || inDown)
+                pathComponentToAdd = new Vector3(getPathEnd(), 0);
+
+            // In this case, no path component has been set through the toucher and no keyboard modification
+            // of the path is present, meaning that the user has attempted to make no modifications to the path.
+            // No updates are required.
+            else
+                return;
+        }
+
+        // Handles key drawing of path, while touch drawing of path is unaffected by this
         if (inLeft)
-            getPath().add(getPathEnd().cpy().add(LEFT_TRANSLATE));
+            pathComponentToAdd.x -= 1;
         if (inRight)
-            getPath().add(getPathEnd().cpy().add(RIGHT_TRANSLATE));
+            pathComponentToAdd.x += 1;
         if (inUp)
-            getPath().add(getPathEnd().cpy().add(UP_TRANSLATE));
+            pathComponentToAdd.y += 1;
         if (inDown)
-            getPath().add(getPathEnd().cpy().add(DOWN_TRANSLATE));
-        if (getPathEnd().x < 0 || getPathEnd().y < 0)
-            getPath().removeIndex(getPath().size - 1);
+            pathComponentToAdd.y -= 1;
+        //
+
+        // Checks whether the user attempted to draw the path out of bounds using the keys
+        boolean isPathComponentXInBounds = 0 <= pathComponentToAdd.x && pathComponentToAdd.x < MatchScreen.WHOLE_WORLD_TILE_WIDTH;
+        boolean isPathComponentYInBounds = 0 <= pathComponentToAdd.y && pathComponentToAdd.y < MatchScreen.WHOLE_WORLD_TILE_HEIGHT;
+
+        // Always true for touch drawing, true for key drawing if translations derived from keys pressed do not
+        // take path outside of match map bounds.
+        if (isPathComponentXInBounds && isPathComponentYInBounds)
+            // this means that the user did not extend the path out of bounds, hence we can add their intended
+            // extra path component
+            getPath().add(new Vector2(pathComponentToAdd.x, pathComponentToAdd.y));
     }
 
     private final Entity<? extends ControllableEntityType<?>> entity;
-
-    private static final Vector2 LEFT_TRANSLATE = new Vector2(-1, 0);
-    private static final Vector2 RIGHT_TRANSLATE = new Vector2(1, 0);
-    private static final Vector2 UP_TRANSLATE = new Vector2(0, 1);
-    private static final Vector2 DOWN_TRANSLATE = new Vector2(0, -1);
 
     private final Array<Vector2> path = new Array<>();
 
@@ -125,7 +172,6 @@ public class PathSelectionInputListener extends InputListener {
     }
 
     private void revertToPlayerMap() {
-
         getEntity().getStage().getViewport().setWorldSize(MatchScreen.VISIBLE_WORLD_TILE_WIDTH, MatchScreen.VISIBLE_WORLD_TILE_HEIGHT);
         getEntity().getStage().getViewport().apply(true);
     }

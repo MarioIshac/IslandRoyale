@@ -14,6 +14,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Entity<T extends EntityType<T>> extends Actor {
+    public static float rangeBetweenSquared(Entity<?> entityOne, Entity<?> entityTwo) {
+        float xDiff = entityOne.getSprite().getX() - entityTwo.getSprite().getY();
+        float yDiff = entityOne.getSprite().getY() - entityTwo.getSprite().getY();
+
+        return xDiff * xDiff + yDiff * yDiff;
+    }
+
+    public static float rangeBetween(Entity<?> entityOne, Entity<?> entityTwo) {
+        return (float) Math.sqrt(rangeBetweenSquared(entityOne, entityTwo));
+    }
+
     private final Sprite sprite;
 
     /**
@@ -80,6 +91,14 @@ public class Entity<T extends EntityType<T>> extends Actor {
 
     public void setDirection(float angle) {
         getVelocityPerSecond().y = angle;
+    }
+
+    public float getSpeed() {
+        return getVelocityPerSecond().x;
+    }
+
+    public float getDirection() {
+        return getVelocityPerSecond().y;
     }
 
     @Override

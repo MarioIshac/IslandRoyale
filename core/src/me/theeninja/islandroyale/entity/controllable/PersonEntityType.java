@@ -1,22 +1,18 @@
 package me.theeninja.islandroyale.entity.controllable;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
-import me.theeninja.islandroyale.entity.Offensive;
+import me.theeninja.islandroyale.entity.Attacker;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
-public class PersonEntityType extends ControllableEntityType<PersonEntityType> implements Offensive<PersonEntityType> {
+public class PersonEntityType extends ControllableEntityType<PersonEntityType> implements Attacker<PersonEntityType> {
     public static final String PERSON_DIRECTORY = "person/";
 
     private float baseDamage;
@@ -83,7 +79,7 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
         Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
 
         // If the current target entity has expired, i.e a new target entity is required
-        if (isNewTargetEntityRequired(currentTargetEntity))
+        if (isNewTargetEntityRequired(entity, currentTargetEntity))
             setProperty(entity,ATTACKING_TARGET_LABEL, getNewTargetEntity(entity, matchMap, getBaseDamage()));
 
         performDamageCheck(entity, delta);
@@ -118,5 +114,10 @@ public class PersonEntityType extends ControllableEntityType<PersonEntityType> i
 
     private float attack(float health) {
         return damageHealth(health, getBaseDamage());
+    }
+
+    @Override
+    public int getStaticProjectileID() {
+        return -1;
     }
 }

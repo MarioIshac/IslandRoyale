@@ -274,10 +274,10 @@ public class MatchScreen implements Screen {
         handleHUDRendering(delta);
         handleMapRendering();
         getBatch().end();
-        getHUDStage().act(delta);
-        getHUDStage().draw();
         getMapStage().act(delta);
         getMapStage().draw();
+        getHUDStage().act(delta);
+        getHUDStage().draw();
     }
 
     private void drawLabelsAndUpdateResources(float delta) {

@@ -22,7 +22,7 @@ public class NewTargetListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        System.out.println("New target requested");
+
 
         if (getPathSelectionInputListener() != null)
             getEntity().getStage().removeListener(getPathSelectionInputListener());
