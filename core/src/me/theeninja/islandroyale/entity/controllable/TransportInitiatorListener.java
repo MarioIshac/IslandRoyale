@@ -2,17 +2,13 @@ package me.theeninja.islandroyale.entity.controllable;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.badlogic.gdx.utils.Array;
 
 public class TransportInitiatorListener extends InputListener {
-    private final Entity<PersonEntityType> entity;
-    private final List<Entity<TransportEntityType>> transporters = new ArrayList<>();
+    private final Person entity;
+    private final Array<Transporter> transporters = new Array<>();
 
-    TransportInitiatorListener(Entity<PersonEntityType> entity) {
+    TransportInitiatorListener(Person entity) {
         this.entity = entity;
     }
 
@@ -20,19 +16,17 @@ public class TransportInitiatorListener extends InputListener {
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
 
-        for (Entity<TransportEntityType> entity : getTransporters())
-            EntityType.setProperty(entity, TransportEntityType.TRANSPORT_REQUEST_LABEL, getEntity());
-
-
+        for (Transporter entity : getTransporters())
+            entity.setRequester(getEntity());
 
         return true;
     }
 
-    public Entity<PersonEntityType> getEntity() {
+    public Person getEntity() {
         return entity;
     }
 
-    public List<Entity<TransportEntityType>> getTransporters() {
+    public Array<Transporter> getTransporters() {
         return transporters;
     }
 }

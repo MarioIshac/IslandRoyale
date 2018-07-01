@@ -1,0 +1,6 @@
+{
+  "id": 6000,
+  "name": "Arrow",
+  "texturePath": "Arrow.png",
+  "baseMovementSpeed": 10
+}

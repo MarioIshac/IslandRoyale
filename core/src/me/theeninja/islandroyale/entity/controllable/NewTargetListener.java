@@ -9,12 +9,10 @@ import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.gui.screens.PathSelectionInputListener;
 
-public class NewTargetListener extends InputListener {
-    private final Button button;
-    private final Entity<? extends ControllableEntityType<?>> entity;
+public class NewTargetListener<A extends ControllableEntity<A, B>, B extends ControllableEntityType<A, B>> extends InputListener {
+    private final A entity;
 
-    NewTargetListener(Button button, Entity<? extends ControllableEntityType<?>> entity) {
-        this.button = button;
+    NewTargetListener(A entity) {
         this.entity = entity;
     }
 
@@ -22,8 +20,6 @@ public class NewTargetListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-
         if (getPathSelectionInputListener() != null)
             getEntity().getStage().removeListener(getPathSelectionInputListener());
 
@@ -34,12 +30,8 @@ public class NewTargetListener extends InputListener {
 
 
 
-    public Entity<? extends ControllableEntityType<?>> getEntity() {
+    public A getEntity() {
         return entity;
-    }
-
-    public Button getButton() {
-        return button;
     }
 
     public PathSelectionInputListener getPathSelectionInputListener() {

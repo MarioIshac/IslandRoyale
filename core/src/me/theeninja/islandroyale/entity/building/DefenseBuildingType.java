@@ -2,18 +2,10 @@ package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.ai.Player;
-import me.theeninja.islandroyale.entity.*;
 
-public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType> implements Attacker<DefenseBuildingType> {
+public class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBuildingType> {
 
     private Sprite rangeSprite;
 
@@ -26,98 +18,17 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
      */
     private float baseFireRate;
 
+    private float baseRange;
+
     /**
-     * Represents the ID of the static projectile that this defense building fires (such as a cannon ball,
+     * Represents the ID of the static bullet that this defense building fires (such as a cannon ball,
      * arrow, bullet, etc).
      */
     private int staticProjectileID;
 
+
     public float getBaseFireRate() {
         return baseFireRate;
-    }
-
-    private static final String SECONDS_ELAPSED_SINCE_LAST_SHOT = "secondsElapsed";
-
-    @Override
-    public void configureEditor(Entity<DefenseBuildingType> entity, Table verticalGroup) {
-
-    }
-
-    @Override
-    public void setUp(Entity<DefenseBuildingType> entity) {
-        super.setUp(entity);
-        setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
-
-        FileHandle rangeFileHandle = Gdx.files.internal("Range.png");
-        Texture rangeTexture = new Texture(rangeFileHandle);
-        this.rangeSprite = new Sprite(rangeTexture);
-
-        getRangeSprite().setSize(1, 1);
-    }
-
-    @Override
-    public void check(Entity<DefenseBuildingType> entity, float delta, Player player, MatchMap matchMap) {
-        super.check(entity, delta, player, matchMap);
-
-        // Does 2 things:
-        // 1) Ensures that there is always the requested field within map (obvious)
-        // 2) Ensures that upon entity construction, a shot is not fired IMMEDIATELY. Rather, it is fired
-        // after a delay equivalent to the required elapsed seconds
-        float secondsElapsedSinceLastShot = getProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT);
-        setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, secondsElapsedSinceLastShot - delta);
-
-        if (secondsElapsedSinceLastShot > 0)
-            return;
-
-        Entity<? extends InteractableEntityType<?>> currentTargetEntity = getProperty(entity, ATTACKING_TARGET_LABEL);
-
-        // If the current target entity has expired, i.e a new target entity is required
-        if (isNewTargetEntityRequired(entity, currentTargetEntity)) {
-            currentTargetEntity = getNewTargetEntity(entity, matchMap, getBaseRange());
-
-            setProperty(entity, ATTACKING_TARGET_LABEL, currentTargetEntity);
-
-            // If the NEW target entity is also null, that indicates that no entities are within range
-            if (currentTargetEntity == null)
-                return;
-        }
-
-        Entity<StaticProjectileEntityType> projectile = newProjectile(entity, currentTargetEntity);
-        matchMap.getEntities().add(projectile);
-
-        setProperty(entity, SECONDS_ELAPSED_SINCE_LAST_SHOT, 1 / getBaseFireRate());
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * This implementation shows a circle around the entity used to signify the range
-     * (in tiles) of said entity.
-     */
-    @Override
-    public void present(Entity<DefenseBuildingType> entity, Camera projector, Stage stage) {
-        super.present(entity, projector, stage);
-
-        getRangeSprite().setPosition(entity.getSprite().getX(), entity.getSprite().getY());
-        getRangeSprite().setOriginCenter();
-
-        // Scaling wll scale the width by the argument, so we must supply diameter
-        getRangeSprite().setScale(getBaseRange() * 2);
-
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-
-        getRangeSprite().draw(stage.getBatch());
-
-        Gdx.gl.glDisable(GL20.GL_BLEND);
-    }
-
-    private float getRangeMultiplier(int level) {
-        float result = getBaseRange();
-
-        while (level-- > 1)
-            result *= 1.1;
-
-        return result;
     }
 
     public int getStaticProjectileID() {
@@ -130,5 +41,16 @@ public class DefenseBuildingType extends BuildingEntityType<DefenseBuildingType>
 
     public Sprite getRangeSprite() {
         return rangeSprite;
+    }
+
+    @Override
+    public void setUpEntityType(DefenseBuildingType entityType) {
+        super.setUpEntityType(entityType);
+
+        FileHandle rangeFileHandle = Gdx.files.internal("Range.png");
+        Texture rangeTexture = new Texture(rangeFileHandle);
+        this.rangeSprite = new Sprite(rangeTexture);
+
+        getRangeSprite().setSize(1, 1);
     }
 }

@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class HomeScreen implements Screen {
-
     private final Game game;
     private final Texture backgroundImage;
     private final Batch batch;
@@ -79,5 +78,9 @@ public class HomeScreen implements Screen {
 
     public Batch getBatch() {
         return batch;
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 }

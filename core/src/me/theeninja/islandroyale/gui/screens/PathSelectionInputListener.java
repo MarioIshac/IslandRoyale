@@ -9,11 +9,12 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
-public class PathSelectionInputListener extends InputListener {
+public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B extends ControllableEntityType<A, B>> extends InputListener {
     private boolean inLeft;
     private boolean inRight;
     private boolean inUp;
@@ -25,7 +26,7 @@ public class PathSelectionInputListener extends InputListener {
      * Set to true upon new construction of this listener.
      * Set to false upon path confirmed of that listener.
      */
-    public static Entity<? extends ControllableEntityType<?>> CURRENTLY_SHOWN_ENTITY = null;
+    public static ControllableEntity<?, ?> CURRENTLY_SHOWN_ENTITY = null;
 
     @Override
     public boolean keyDown(InputEvent event, int keyCode) {
@@ -48,14 +49,17 @@ public class PathSelectionInputListener extends InputListener {
             }
             case ENTER: {
                 // No longer in process of selecting a path, so update respective property
-                EntityType.setProperty(getEntity(), ControllableEntityType.PATH_SELECTOR_LISTENER_TABLE, null);
+                getEntity().setPathSelectionInputListener(null);
 
                 revertToPlayerMap();
 
                 CURRENTLY_SHOWN_ENTITY = null;
 
                 System.out.println("Size of path " + getPath());
-                EntityType.setProperty(getEntity(), ControllableEntityType.TARGET_COORDS_PATH_LABEL, getPath());
+
+                getEntity().getPath().clear();
+                getEntity().getPath().addAll(this.getPath());
+                getEntity().setPathIndex(0);
 
                 return true;
             }
@@ -146,7 +150,7 @@ public class PathSelectionInputListener extends InputListener {
             getPath().add(new Vector2(pathComponentToAdd.x, pathComponentToAdd.y));
     }
 
-    private final Entity<? extends ControllableEntityType<?>> entity;
+    private final A entity;
 
     private final Array<Vector2> path = new Array<>();
 
@@ -157,13 +161,13 @@ public class PathSelectionInputListener extends InputListener {
         return getPath().get(getPath().size - 1);
     }
 
-    public PathSelectionInputListener(Entity<? extends ControllableEntityType<?>> entity) {
+    public PathSelectionInputListener(A entity) {
         this.entity = entity;
         showFullMap();
 
         CURRENTLY_SHOWN_ENTITY = entity;
 
-        EntityType.setProperty(entity, ControllableEntityType.PATH_SELECTOR_LISTENER_TABLE, this);
+        //EntityType.setProperty(entity, ControllableEntityType.PATH_SELECTOR_LISTENER_TABLE, this);
     }
 
     private void showFullMap() {
@@ -176,7 +180,7 @@ public class PathSelectionInputListener extends InputListener {
         getEntity().getStage().getViewport().apply(true);
     }
 
-    public Entity<? extends ControllableEntityType<?>> getEntity() {
+    public A getEntity() {
         return entity;
     }
 

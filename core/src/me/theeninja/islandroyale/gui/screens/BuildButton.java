@@ -4,31 +4,34 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.ai.Player;
-import me.theeninja.islandroyale.entity.building.BuildingEntityType;
-import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.BuildingConstructor;
+import me.theeninja.islandroyale.entity.Skins;
+import me.theeninja.islandroyale.entity.building.Building;
+import me.theeninja.islandroyale.entity.building.BuildingType;
 
-public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
-
-    private final T buildingEntityType;
+public class BuildButton<A extends Building<A, B>, B extends BuildingType<A, B>> extends TextButton {
+    private final B buildingEntityType;
     private final Player player;
+    private final BuildingConstructor<A, B> buildingConstructor;
 
     private Vector2 buildPosition;
 
-    public BuildButton(T buildingEntityType, Player player) {
-        super(buildingEntityType.getName(), MatchScreen.FLAT_EARTH_SKIN);
+    public BuildButton(B buildingEntityType, Player player, BuildingConstructor<A, B> buildingConstructor) {
+        super(buildingEntityType.getName(), Skins.getInstance().getFlatEarthSkin());
 
         this.buildingEntityType = buildingEntityType;
         this.player = player;
+        this.buildingConstructor = buildingConstructor;
 
         InputListener buildButtonListener = new BuildButtonListener(this);
         this.addListener(buildButtonListener);
     }
 
-    public Entity<T> newBuilding(Vector2 position) {
-        return new Entity<T>(getBuildingType(), getPlayer(), position);
+    public A newBuilding(float x, float y) {
+        return getBuildingConstructor().construct(getBuildingType(), getPlayer(), x, y);
     }
 
-    public T getBuildingType() {
+    public B getBuildingType() {
         return buildingEntityType;
     }
 
@@ -42,5 +45,9 @@ public class BuildButton<T extends BuildingEntityType<T>> extends TextButton {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public BuildingConstructor<A, B> getBuildingConstructor() {
+        return buildingConstructor;
     }
 }

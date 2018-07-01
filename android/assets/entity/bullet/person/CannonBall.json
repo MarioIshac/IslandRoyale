@@ -2,5 +2,5 @@
   "id": 6001,
   "name": "Cannon Ball",
   "texturePath": "CannonBall.png",
-  "movementSpeed": 10
+  "baseMovementSpeed": 10
 }

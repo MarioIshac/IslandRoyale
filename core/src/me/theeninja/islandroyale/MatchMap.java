@@ -2,6 +2,7 @@ package me.theeninja.islandroyale;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.treasure.ResourceTreasure;
@@ -23,28 +24,24 @@ public class MatchMap {
         return x * getTileHeight() + y;
     }
 
-    public Island getIsland(Vector2 absolutePosition) {
-        for (Island island : islands) {
-            Vector2 islandLocation = island.getPositionOnMap();
+    public Island getIsland(float absoluteX, float absoluteY) {
+        for (Island island : getIslands()) {
+            boolean xInBounds = island.x <= absoluteX && absoluteX <= island.x + island.getMaxWidth();
+            boolean yInBounds = island.y <= absoluteY && absoluteY <= island.y + island.getMaxHeight();
 
-            Rectangle rectangleBounds = new Rectangle(
-                    islandLocation.x,
-                    islandLocation.y,
-                    island.getMaxWidth(),
-                    island.getMaxHeight()
-            );
-
-            if (rectangleBounds.contains(absolutePosition))
+            if (xInBounds && yInBounds)
                 return island;
         }
 
         return null;
     }
 
-    private final List<Entity<? extends EntityType<?>>> entities = new ArrayList<>();
+    private final Array<Entity<?, ?>> entities = new Array<>();
 
     public void flushDeadEntities() {
-        entities.removeIf(Entity::shouldRemove);
+
+
+       // entities.removeIf(Entity::shouldRemove);
     }
 
     public MatchMap(int tileWidth, int tileHeight) {
@@ -60,8 +57,7 @@ public class MatchMap {
     private void generateIslands() {
         for (int xTile = 0; xTile < getTileHeight(); xTile += ISLAND_GAP) {
             for (int yTile = 0; yTile < getTileHeight(); yTile += ISLAND_GAP) {
-                Vector2 point = new Vector2(xTile, yTile);
-                Island island = new Island(11, 11, point);
+                Island island = new Island(11, 11, xTile, yTile);
 
                 getIslands().add(island);
             }
@@ -92,7 +88,7 @@ public class MatchMap {
         return treasures;
     }
 
-    public List<Entity<? extends EntityType<?>>> getEntities() {
+    public Array<Entity<?, ?>> getEntities() {
         return entities;
     }
 

@@ -1,11 +1,10 @@
 package me.theeninja.islandroyale;
 
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.MathUtils;
 
 import java.util.*;
 
-import me.theeninja.islandroyale.entity.building.BuildingEntityType;
+import me.theeninja.islandroyale.entity.building.BuildingType;
 
 public class Island {
     private IslandTileType[][] repr;
@@ -14,16 +13,17 @@ public class Island {
     private static final float NON_SCALED_CENTER_BLOCKS = (float) Math.sqrt(2);
     private static final int SURROUNDING_BLOCKS_REQUIRED = 2;
 
-    private final Vector2 positionOnMap;
+    public float x;
+    public float y;
 
     private final int maxWidth;
     private final int maxHeight;
 
-    Island(int unScaledMaxSideLength, Vector2 positionOnMap) {
-        this(unScaledMaxSideLength, unScaledMaxSideLength, positionOnMap);
+    Island(int unScaledMaxSideLength, float x, float y) {
+        this(unScaledMaxSideLength, unScaledMaxSideLength, x, y);
     }
 
-    Island(int unScaledMaxWidth, int unscaledMaxHeight, Vector2 positionOnMap) {
+    Island(int unScaledMaxWidth, int unscaledMaxHeight, float x, float y) {
         this.maxHeight = unScaledMaxWidth * BLOCK_MULTIPLIER;
         this.maxWidth = unscaledMaxHeight * BLOCK_MULTIPLIER;
 
@@ -33,7 +33,8 @@ public class Island {
         smoothIsland();
         scaleIsland();
 
-        this.positionOnMap = positionOnMap;
+        this.x = x;
+        this.y = y;
     }
 
     public void smoothIsland() {
@@ -144,11 +145,11 @@ public class Island {
         }
     }
 
-    public boolean canBuild(BuildingEntityType buildingEntityType, int xTile, int yTile, MatchMap matchMap) {
+    public boolean canBuild(BuildingType buildingType, int xTile, int yTile, MatchMap matchMap) {
         int groundTilesNum = 0;
 
-        for (int xOffset = 0; xOffset < buildingEntityType.getTileWidth(); xOffset++) {
-            for (int yOffset = 0; yOffset < buildingEntityType.getTileHeight(); yOffset++) {
+        for (int xOffset = 0; xOffset < buildingType.getTileWidth(); xOffset++) {
+            for (int yOffset = 0; yOffset < buildingType.getTileHeight(); yOffset++) {
                 int newX = xTile + xOffset;
                 int newY = yTile + yOffset;
 
@@ -166,7 +167,7 @@ public class Island {
             }
         }
 
-        return groundTilesNum >= buildingEntityType.getMinGroundTiles();
+        return groundTilesNum >= buildingType.getMinGroundTiles();
     }
 
     public int getMaxWidth() {
@@ -192,9 +193,5 @@ public class Island {
     @Override
     public String toString() {
         return Island.class.getSimpleName() + "[" + getMaxWidth() + ", " + getMaxHeight() + "]";
-    }
-
-    public Vector2 getPositionOnMap() {
-        return positionOnMap;
     }
 }

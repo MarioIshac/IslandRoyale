@@ -1,11 +1,18 @@
 package me.theeninja.islandroyale.entity;
 
-import com.badlogic.gdx.math.Vector2;
 import me.theeninja.islandroyale.MatchMap;
+import me.theeninja.islandroyale.ai.Player;
+import me.theeninja.islandroyale.entity.bullet.BulletProjectile;
+import me.theeninja.islandroyale.entity.bullet.BulletProjectileType;
 
-public interface Attacker<T extends InteractableEntityType<T>> {
-    String ATTACKING_TARGET_LABEL = "attackingTarget";
-
+/**
+ *
+ * @param <A>
+ * @param <B>
+ * @param <C>
+ * @param <D>
+ */
+public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends BulletProjectileType<A, B, C, D>, C extends InteractableEntity<C, D> & Attacker, D extends InteractableEntityType<C, D>> {
     int getStaticProjectileID();
 
     /**
@@ -18,17 +25,16 @@ public interface Attacker<T extends InteractableEntityType<T>> {
      *
      * @return another entity that is closest to {@code entity}
      */
-    default Entity<? extends InteractableEntityType<?>> getNewTargetEntity(Entity<T> entity, MatchMap matchMap, float tileRange) {
+    default InteractableEntity<?, ?> getNewTargetEntity(C entity, MatchMap matchMap) {
         // We keep the minimum distance SQUARED in order to improve performance
         float minDistanceSquared = Float.MAX_VALUE;
-        Entity<? extends InteractableEntityType<?>> closestEntity = null;
+        InteractableEntity<?, ?> closestEntity = null;
 
-        for (Entity<? extends EntityType<?>> otherEntity : matchMap.getEntities()) {
-            if (!(otherEntity.getType() instanceof InteractableEntityType))
+        for (Entity<?, ?> otherEntity : matchMap.getEntities()) {
+            if (!(otherEntity.getEntityType() instanceof InteractableEntityType))
                 continue;
 
-            Entity<? extends InteractableEntityType<?>> interactableOtherEntity =
-                    (Entity<? extends InteractableEntityType<?>>) otherEntity;
+            InteractableEntity<?, ?> interactableOtherEntity = (InteractableEntity<?, ?>) otherEntity;
 
             // Do not let the entity target itself...
             if (entity == interactableOtherEntity)
@@ -44,7 +50,7 @@ public interface Attacker<T extends InteractableEntityType<T>> {
             float distanceSquared = xDiff * xDiff + yDiff * yDiff;
 
             // Do not let entity target entities outside of range
-            if (distanceSquared > tileRange * tileRange)
+            if (distanceSquared > getRange() * getRange())
                 continue;
 
             if (distanceSquared < minDistanceSquared) {
@@ -58,27 +64,23 @@ public interface Attacker<T extends InteractableEntityType<T>> {
 
     /**
      * @param attackerEntity The entitiy that is currently targeting attackedEntity.
-     * @param attackedEntity The entity that is currently being targeted by entity.
      * @return Whether the attacking entity has launched enough attacks at the attacked entity to guarantee that its
      *         health will be less than or equal to 0 without the need for more launches of attacks. Note that the
      *         health of the attacked entity need not be 0 at the time this method is called for it to return true,
      *         as projectiles that have been launched but have not yet landed are taken into consideration.
      */
-    default <AttackerType extends InteractableEntityType<AttackerType> & Attacker> boolean isNewTargetEntityRequired(
-            Entity<AttackerType> attackerEntity,
-            Entity<? extends EntityType<?>> attackedEntity) {
-        if (attackedEntity == null)
+    default boolean isNewTargetEntityRequired(C attackerEntity) {
+        if (getTargetEntity() == null)
             return true;
 
-        float currentTargetsHealth = EntityType.getProperty(attackedEntity, InteractableEntityType.HEALTH_LABEL);
-        boolean isCurrentTargetDead = currentTargetsHealth <= 0;
+        boolean isCurrentTargetDead = getTargetEntity().getHealth() <= 0;
 
-        float currentDistanceSquared = Entity.rangeBetweenSquared(attackerEntity, attackedEntity);
-        float baseRangeSquared = attackerEntity.getType().getBaseRange() * attackerEntity.getType().getBaseRange();
-        boolean isTargetOutOfRange = currentDistanceSquared > baseRangeSquared;
+        float currentDistanceSquared = Entity.rangeBetweenSquared(attackerEntity, getTargetEntity());
+        float rangeSquared = attackerEntity.getRange() * attackerEntity.getRange();
+        boolean isTargetOutOfRange = currentDistanceSquared > rangeSquared;
 
-        System.out.println("Current Targets Health " + currentTargetsHealth);
-        System.out.println("Current Range Squared " + baseRangeSquared);
+        System.out.println("Current Targets Health " + getTargetEntity().getHealth());
+        System.out.println("Current Range Squared " + rangeSquared);
         System.out.println("Current Target Distance " + currentDistanceSquared);
 
         return isCurrentTargetDead || isTargetOutOfRange;
@@ -88,21 +90,29 @@ public interface Attacker<T extends InteractableEntityType<T>> {
         return health - damage;
     }
 
-    default <AttackerType extends InteractableEntityType<AttackerType> & Attacker> Entity<StaticProjectileEntityType> newProjectile(
-            Entity<AttackerType> attackerEntity,
-            Entity<? extends InteractableEntityType<?>> attackedEntity) {
-        StaticProjectileEntityType projectileType = EntityType.getEntityType(getStaticProjectileID());
+    default A newProjectile(C attackerEntity) {
+        B projectileType = EntityType.getEntityType(getStaticProjectileID());
+        A projectile = newGenericProjectile(projectileType, attackerEntity.getOwner(), attackerEntity.getSprite().getX(), attackerEntity.getSprite().getY(), attackerEntity);
 
-        Vector2 pos = new Vector2(
-            attackerEntity.getSprite().getX(),
-            attackerEntity.getSprite().getY()
-        );
-
-        Entity<StaticProjectileEntityType> projectile = new Entity<>(projectileType, attackerEntity.getOwner(), pos);
-        projectileType.provide(projectile, attackerEntity, attackedEntity);
-
-        projectile.setSpeed(projectileType.getMovementSpeed());
+        projectile.setSpeed(projectileType.getBaseMovementSpeed());
 
         return projectile;
     }
+
+    A newGenericProjectile(B projectileType, Player player, float x, float y, C attackerEntity);
+
+    float getRange();
+    void setRange(float range);
+
+    float getTimeUntilAttack();
+    void setTimeUntilAttack(float timeUntilAttack);
+
+    InteractableEntity<?, ?> getTargetEntity();
+    void setTargetEntity(InteractableEntity<?, ?> targetEntity);
+
+    float getFireRate();
+    void setFireRate(float fireRate);
+
+    float getDamage();
+    void setDamage(float damage);
 }

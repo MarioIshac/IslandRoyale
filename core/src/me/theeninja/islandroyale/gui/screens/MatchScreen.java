@@ -11,25 +11,26 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.*;
 import me.theeninja.islandroyale.*;
 import me.theeninja.islandroyale.ai.HumanPlayer;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
 import me.theeninja.islandroyale.entity.building.*;
-import me.theeninja.islandroyale.entity.building.BuildingEntityType;
+import me.theeninja.islandroyale.entity.building.BuildingType;
 import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
-import me.theeninja.islandroyale.entity.building.ResourceBuildingType;
-import me.theeninja.islandroyale.entity.controllable.PersonEntityType;
+import me.theeninja.islandroyale.entity.building.ResourceGeneratorType;
+import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
+import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectileType;
+import me.theeninja.islandroyale.entity.controllable.PersonType;
 import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntityType;
-import me.theeninja.islandroyale.entity.controllable.TransportEntityType;
+import me.theeninja.islandroyale.entity.controllable.TransporterType;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class MatchScreen implements Screen {
 
@@ -39,14 +40,7 @@ public class MatchScreen implements Screen {
     public final static int VISIBLE_WORLD_TILE_WIDTH = 80;
     public final static int VISIBLE_WORLD_TILE_HEIGHT = 45;
 
-    public final static Skin FLAT_EARTH_SKIN;
-
-    private final List<BuildButton<?>> buildButtons = new ArrayList<>();
-
-    static {
-        FileHandle flatEarthSkinFileHandler = new FileHandle("flat-earth/skin/flat-earth-ui.json");
-        FLAT_EARTH_SKIN = new Skin(flatEarthSkinFileHandler);
-    }
+    private final Array<BuildButton<?, ?>> buildButtons = new Array<>();
 
     private final Game game;
 
@@ -74,19 +68,9 @@ public class MatchScreen implements Screen {
 
     private final MatchScreenInputListener inputListener;
 
-    private <T extends EntityType<T>> List<T> getEntityTypes(String directory, Class<T> classType) {
-        return new EntityTypeFactory<>(directory, classType).getEntityTypes();
-    }
-
-    private final List<EntityType<?>> entityTypes = new ArrayList<>();
-
-    public <T extends BuildingEntityType<T>> List<T> getAndAddBuildingEntityTypes(String directory, Class<T> classType) {
-        EntityTypeFactory<T> entityTypeFactory = new EntityTypeFactory<>(directory, classType);
-
-        for (T buildingEntityType : entityTypeFactory.getEntityTypes())
-            getBuildButtons().add(new BuildButton<>(buildingEntityType, player));
-
-        return entityTypeFactory.getEntityTypes();
+    private <A extends Entity<A, B>, B extends EntityType<A, B>> void loadTypes(String directory, Class<B> classType, Consumer<B> consumer) {
+        EntityTypeFactory<A, B> entityTypeFactory = new EntityTypeFactory<>(directory, classType);
+        entityTypeFactory.loadEntityTypes(consumer);
     }
 
     private final Camera mapCamera;
@@ -98,15 +82,35 @@ public class MatchScreen implements Screen {
         return mapViewport;
     }
 
+    private <A extends Entity<A, B>, B extends EntityType<A, B>> void registerEntityType(B entityType) {
+        EntityType.IDS.put(entityType.getId(), entityType);
+    }
+
+    private <A extends Building<A, B>, B extends BuildingType<A, B>> void registerBuildingType(B buildingEntityType, BuildingConstructor<A, B> buildingConstructor) {
+        registerEntityType(buildingEntityType);
+
+        BuildButton<A, B> buildButton = new BuildButton<A, B>(buildingEntityType, getPlayer(), buildingConstructor);
+        getBuildButtons().add(buildButton);
+    }
+
+    private <A extends Building<A, B>, B extends BuildingType<A, B>> Consumer<B> getBuildingTypeRegisterer(BuildingConstructor<A, B> buildingConstructor) {
+        return buildingEntityType -> registerBuildingType(buildingEntityType, buildingConstructor);
+    }
+
     public MatchScreen(Game game) {
-        entityTypes.addAll(getEntityTypes(EntityType.PERSON_DIRECTORY, PersonEntityType.class));
-        entityTypes.addAll(getEntityTypes(EntityType.INTERACTABLE_PROJECTILE_DIRECTORY, InteractableProjectileEntityType.class));
-        entityTypes.addAll(getEntityTypes(EntityType.STATIC_PROJECTILE_DIRECTORY, StaticProjectileEntityType.class));
-        entityTypes.addAll(getEntityTypes(EntityType.TRANSPORT_DIRECTORY, TransportEntityType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.DEFENSE_DIRECTORY, DefenseBuildingType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.RESOURCE_DIRECTORY, ResourceBuildingType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.TRANSPORT_GENERATOR_DIRECTORY, TransportGeneratorBuildingType.class));
-        entityTypes.addAll(getAndAddBuildingEntityTypes(EntityType.PERSON_GENERATOR_DIRECTORY, PersonGeneratorBuildingType.class));
+        // Non Buildings
+        loadTypes(EntityType.PERSON_DIRECTORY, PersonType.class, this::registerEntityType);
+        loadTypes(EntityType.INTERACTABLE_PROJECTILE_DIRECTORY, InteractableProjectileEntityType.class, this::registerEntityType);
+        loadTypes(EntityType.DEFENSE_BULLET_PROJECTILE_DIRECTORY, DefenseBulletProjectileType.class, this::registerEntityType);
+        loadTypes(EntityType.PERSON_BULLET_PROJECTILE_DIRECTORY, PersonBulletProjectileType.class, this::registerEntityType);
+        loadTypes(EntityType.TRANSPORT_DIRECTORY, TransporterType.class, this::registerEntityType);
+
+        // Buildings
+        loadTypes(EntityType.DEFENSE_DIRECTORY, DefenseBuildingType.class, getBuildingTypeRegisterer(DefenseBuilding::new));
+        loadTypes(EntityType.RESOURCE_DIRECTORY, ResourceGeneratorType.class, getBuildingTypeRegisterer(ResourceGenerator::new));
+        loadTypes(EntityType.TRANSPORT_GENERATOR_DIRECTORY, TransporterGeneratorType.class, getBuildingTypeRegisterer(TransporterGenerator::new));
+        loadTypes(EntityType.PERSON_GENERATOR_DIRECTORY, PersonGeneratorType.class, getBuildingTypeRegisterer(PersonGenerator::new));
+        loadTypes(EntityType.PROJECTILE_GENERATOR_DIRECTORY, ProjectileGeneratorType.class, getBuildingTypeRegisterer(ProjectileGenerator::new));
 
         this.inputListener = new MatchScreenInputListener(this);
 
@@ -125,10 +129,10 @@ public class MatchScreen implements Screen {
 
         this.matchMap = new MatchMap(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
 
-        FileHandle checkmarkFileHandle = Gdx.files.internal("CheckMark.png");
+        FileHandle checkMarkFileHandle = Gdx.files.internal("CheckMark.png");
         FileHandle xFileHandle = Gdx.files.internal("X.png");
 
-        this.checkmark = new Texture(checkmarkFileHandle);
+        this.checkmark = new Texture(checkMarkFileHandle);
         this.x = new Texture(xFileHandle);
 
         for (IslandTileType islandTileType : IslandTileType.values()) {
@@ -153,7 +157,7 @@ public class MatchScreen implements Screen {
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
 
-        for (BuildButton<?> buildButton : getBuildButtons()) {
+        for (BuildButton<?, ?> buildButton : getBuildButtons()) {
             getBuildMenu().addActor(buildButton);
         }
 
@@ -197,8 +201,6 @@ public class MatchScreen implements Screen {
     }
     private void drawIsland(Island island) {
         // Refers to position of island relative to bottom left of focus rectangle
-        Vector2 islandCoords = island.getPositionOnMap().cpy();
-
         for (int islandTileX = 0; islandTileX < island.getMaxWidth(); islandTileX++) {
             for (int islandTileY = 0; islandTileY < island.getMaxHeight(); islandTileY++) {
                 IslandTileType islandTileType = island.getRepr()[islandTileX][islandTileY];
@@ -209,8 +211,8 @@ public class MatchScreen implements Screen {
 
                     getBatch().draw(
                             islandTexture,
-                            islandCoords.x + islandTileX,
-                            islandCoords.y + islandTileY,
+                            island.x + islandTileX,
+                            island.y + islandTileY,
                             1,
                             1
                     );
@@ -226,14 +228,7 @@ public class MatchScreen implements Screen {
         drawIslands();
         presentEntities();
 
-        for (int i = 0; i < getBuildMenu().getChildren().size; i++) {
-            Actor actor = getBuildMenu().getChildren().get(i);
-
-            if (!(actor instanceof BuildButton))
-                continue;
-
-            BuildButton<?> buildButton = (BuildButton<?>) actor;
-
+        for (BuildButton<?, ?> buildButton : getBuildButtons()) {
             if (!isBuildButtonInDragState(buildButton))
                 continue;
 
@@ -263,7 +258,7 @@ public class MatchScreen implements Screen {
         getMatchMap().flushDeadEntities();
         getMapStage().getRoot().clearChildren();
 
-        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities())
+        for (Entity<?, ?> entity : getMatchMap().getEntities())
             getMapStage().addActor(entity);
 
         getBatch().begin();
@@ -292,7 +287,7 @@ public class MatchScreen implements Screen {
     }
 
     private void moveEntities(float delta) {
-        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
+        for (Entity<?, ?> entity : getMatchMap().getEntities()) {
             float yDistance = (float) (Math.sin(entity.getVelocityPerSecond().y) * entity.getVelocityPerSecond().x);
             float xDistance = (float) (Math.cos(entity.getVelocityPerSecond().y) * entity.getVelocityPerSecond().x);
 
@@ -301,28 +296,24 @@ public class MatchScreen implements Screen {
     }
 
     private void presentEntities() {
-        for (Entity<? extends EntityType<?>> entity : getMatchMap().getEntities()) {
+        for (Entity<?, ?> entity : getMatchMap().getEntities()) {
             entity.present(getMapCamera(), getHUDStage());
         }
     }
 
     private void updateEntities(float delta) {
-        List<Entity<? extends EntityType<?>>> entities = getMatchMap().getEntities();
+        Array<Entity<?, ?>> entities = getMatchMap().getEntities();
 
         // I use an indexed for-loop here instead of a for-each loop because the entity check method might add
         // a new entity to the list (people shooting projectiles for instance). This allows me to avoid
         // concurrent modification exception.
-        for (int i = 0; i < entities.size(); i++) {
-            Entity<? extends EntityType<?>> entity = entities.get(i);
+        for (int i = 0; i < entities.size; i++) {
+            Entity<?, ?> entity = entities.get(i);
             entity.check(delta, getPlayer(), getMatchMap());
         }
     }
 
-    public  <T extends EntityType<T>> void check(Entity<T> entity, float delta, me.theeninja.islandroyale.ai.Player player, MatchMap matchMap) {
-        entity.getType().check(entity, delta, player, matchMap);
-    }
-
-    private <T extends BuildingEntityType<T>> void handleBuildButton(BuildButton<T> buildButton) {
+    private <A extends Building<A, B>, B extends BuildingType<A, B>> void handleBuildButton(BuildButton<A, B> buildButton) {
         Texture associatedTexture = buildButton.getBuildingType().getTexture();
 
         Vector3 worldCoordsOfMosue = new Vector3(
@@ -348,10 +339,8 @@ public class MatchScreen implements Screen {
         int mouseTileYCoord = Math.round(worldCoordsOfMosue.y);
 
         for (Island island : getMatchMap().getIslands()) {
-            Vector2 islandLocation = island.getPositionOnMap();
-
-            int relativeToIslandX = (int) (mouseTileXCoord - islandLocation.x);
-            int relativeToIslandY = (int) (mouseTileYCoord - islandLocation.y);
+            int relativeToIslandX = (int) (mouseTileXCoord - island.x);
+            int relativeToIslandY = (int) (mouseTileYCoord - island.y);
 
             if (island.canBuild(buildButton.getBuildingType(), relativeToIslandX, relativeToIslandY, getMatchMap()))
                 canBuild = true;
@@ -363,17 +352,12 @@ public class MatchScreen implements Screen {
         getBatch().draw(canBuild ? checkmark : x, worldCoordsOfMosue.x, worldCoordsOfMosue.y + buildButton.getBuildingType().getTileHeight(), 1f, 1f);
 
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
-            Vector2 buildingLocation = new Vector2(
-                    mouseTileXCoord,
-                    mouseTileYCoord
-            );
-
-            Entity<? extends BuildingEntityType<?>> building = buildButton.newBuilding(buildingLocation);
+            Building<A, B> building = buildButton.newBuilding(mouseTileXCoord, mouseTileYCoord);
 
             getMatchMap().getEntities().add(building);
 
             buildButton.setBuildPosition(null);
-            buildButton.getBuildingType().charge(getPlayer().getInventory());
+            //buildButton.getBuildingType().charge(getPlayer().getInventory());
         }
     }
 
@@ -458,7 +442,7 @@ public class MatchScreen implements Screen {
         return resourceTextures;
     }
 
-    public List<BuildButton<?>> getBuildButtons() {
+    public Array<BuildButton<?, ?>> getBuildButtons() {
         return buildButtons;
     }
 

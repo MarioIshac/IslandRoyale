@@ -5,6 +5,7 @@ import me.theeninja.islandroyale.Inventory;
 import me.theeninja.islandroyale.Island;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 
 import java.util.function.Consumer;
@@ -38,7 +39,7 @@ public abstract class Player {
      *                               or intentional delay hence the need for a callback)
      */
     public abstract void requestTransportationRoute(
-        Entity<? extends ControllableEntityType<?>> entity,
+        ControllableEntity<?, ?> entity,
         MatchMap matchMap,
         Consumer<Vector3[]> postAcceptanceConsumer
     );

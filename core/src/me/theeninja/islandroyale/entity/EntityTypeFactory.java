@@ -8,19 +8,18 @@ import me.theeninja.islandroyale.IslandRoyaleGame;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
-public class EntityTypeFactory<T extends EntityType<T>> {
-    private final Class<T> classType;
+public class EntityTypeFactory<A extends Entity<A, B>, B extends EntityType<A, B>> {
+    private final Class<B> classType;
     private final String directory;
-    private final List<T> entityTypes = new ArrayList<>();
+    private final Array<B> entityTypes = new Array<B>();
 
-    public EntityTypeFactory(String directory, Class<T> classType) {
+    public EntityTypeFactory(String directory, Class<B> classType) {
         this.classType = classType;
         this.directory = directory;
-
-        loadEntityTypes();
     }
-    public Class<T> getClassType() {
+    public Class<B> getClassType() {
         return classType;
     }
 
@@ -28,7 +27,7 @@ public class EntityTypeFactory<T extends EntityType<T>> {
         return directory;
     }
 
-    public void loadEntityTypes() {
+    public void loadEntityTypes(Consumer<B> entityTypeConsumer) {
         FileHandle typesDescriptorFileHandle = Gdx.files.internal(directory + "types.txt");
         String text = typesDescriptorFileHandle.readString();
 
@@ -37,22 +36,20 @@ public class EntityTypeFactory<T extends EntityType<T>> {
 
             for (String typeFileName : typeFileNames) {
                 FileHandle typeFileHandle = Gdx.files.internal(directory + typeFileName);
-                T type = IslandRoyaleGame.JSON.fromJson(getClassType(), typeFileHandle);
+                B entityType = IslandRoyaleGame.JSON.fromJson(getClassType(), typeFileHandle);
 
-                EntityType.IDS.put(type.getId(), type);
-
-                String expandedTexturePath = directory + type.getTexturePath();
+                String expandedTexturePath = getDirectory() + entityType.getTexturePath();
                 FileHandle textureFileHandle = Gdx.files.internal(expandedTexturePath);
                 Texture texture = new Texture(textureFileHandle);
 
-                type.setTexture(texture);
+                entityType.setTexture(texture);
 
-                getEntityTypes().add(type);
+                entityTypeConsumer.accept(entityType);
             }
         }
     }
 
-    public List<T> getEntityTypes() {
+    public Array<B> getEntityTypes() {
         return entityTypes;
     }
 }

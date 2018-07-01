@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.Resource;
+import me.theeninja.islandroyale.entity.Skins;
 
 public class ResourceLabel extends HorizontalGroup {
     private final Resource resource;
@@ -22,7 +23,7 @@ public class ResourceLabel extends HorizontalGroup {
         this.player = player;
 
         this.image = new Image(texture);
-        this.label = new Label(resource.name(), MatchScreen.FLAT_EARTH_SKIN);
+        this.label = new Label(resource.name(), Skins.getInstance().getFlatEarthSkin());
 
         addActor(getImage());
         addActor(getLabel());

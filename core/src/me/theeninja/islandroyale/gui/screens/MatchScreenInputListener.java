@@ -6,8 +6,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.InteractableEntity;
 import me.theeninja.islandroyale.entity.InteractableEntityType;
-import me.theeninja.islandroyale.entity.controllable.TransportEntityType;
+import me.theeninja.islandroyale.entity.controllable.Transporter;
+import me.theeninja.islandroyale.entity.controllable.TransporterType;
 
 public class MatchScreenInputListener implements InputProcessor {
 
@@ -77,34 +79,34 @@ public class MatchScreenInputListener implements InputProcessor {
 
         boolean touchedEntity = false;
 
-        for (Entity<? extends EntityType<?>> entity : getMatchScreen().getMatchMap().getEntities()) {
+        for (Entity<?, ?> entity : getMatchScreen().getMatchMap().getEntities()) {
             // Entity is not interactable, no need to handle attempted interaction
-            if (!(entity.getType() instanceof InteractableEntityType))
+            if (!(entity.getEntityType() instanceof InteractableEntityType))
                 continue;
+
+            InteractableEntity<?, ?> interactableEntity = (InteractableEntity<?, ?>) entity;
 
             // If entity is transporter and a person entity type has requested to board this transporter,
             // do not bring up descriptor and allow listeners further down to handle this event
-            if (entity.getType() instanceof TransportEntityType)
-                if (EntityType.getProperty(entity, TransportEntityType.TRANSPORT_REQUEST_LABEL) != null)
+            if (interactableEntity.getEntityType() instanceof TransporterType) {
+                Transporter transporter = (Transporter) entity;
+
+                if (transporter.getRequester() != null)
                     continue;
+            }
 
             boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(checkEntityCoords.x, checkEntityCoords.y);
             boolean touchInDescriptorBounds;
 
-            boolean descriptorShown = EntityType.getProperty(entity, InteractableEntityType.DESCRIPTOR_SHOWN_LABEL);
-
             // If the descriptor is currently not shown, no need to check for its bounds containing mouse click
-            if (!descriptorShown)
+            if (!interactableEntity.isDescriptorShown())
                 touchInDescriptorBounds = false;
 
             else {
-                Actor descriptor = EntityType.getProperty(entity, InteractableEntityType.TABLE_LABEL);
+                Actor descriptor = interactableEntity.getDescriptor();
 
                 boolean xInBounds = descriptor.getX() < checkDescriptorCoords.x && checkDescriptorCoords.x < descriptor.getX() + descriptor.getWidth();
                 boolean yInBounds = descriptor.getY() < checkDescriptorCoords.y && checkDescriptorCoords.y < descriptor.getY() + descriptor.getHeight();
-
-
-
 
                 touchInDescriptorBounds = xInBounds && yInBounds;
             }
@@ -116,7 +118,7 @@ public class MatchScreenInputListener implements InputProcessor {
             // In other words, guarantee that only one entity is touched.
             touchHandledByEntity &= !touchedEntity;
 
-            EntityType.setProperty(entity, InteractableEntityType.DESCRIPTOR_SHOWN_LABEL, touchHandledByEntity);
+            interactableEntity.setDescriptorShown(touchHandledByEntity);
 
             if (touchHandledByEntity)
                 touchedEntity = true;

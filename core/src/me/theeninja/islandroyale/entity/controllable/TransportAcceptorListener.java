@@ -2,64 +2,48 @@ package me.theeninja.islandroyale.entity.controllable;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.badlogic.gdx.utils.Array;
 
 public class TransportAcceptorListener extends InputListener {
-    private final Entity<TransportEntityType> entity;
-    private final List<Entity<TransportEntityType>> transporters = new ArrayList<>();
+    private final Transporter transporter;
+    private final Array<Transporter> transporters = new Array<>();
 
-    TransportAcceptorListener(Entity<TransportEntityType> entity) {
-        this.entity = entity;
+    TransportAcceptorListener(Transporter transporter) {
+        this.transporter = transporter;
     }
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-
-        Entity<PersonEntityType> personRequesting = EntityType.getProperty(getEntity(), TransportEntityType.TRANSPORT_REQUEST_LABEL);
+        Person personRequesting = getTransporter().getRequester();
 
         // Indicates that there is no person requesting to be transported
         if (personRequesting == null)
             return false; // Return false, indicating that other lick events such as show descriptor can be processed
 
-        List<Entity<PersonEntityType>> personsCarried = EntityType.getProperty(
-                getEntity(),
-                TransportEntityType.CARRIED_ENTITIES_LABEL
-        );
-
-        Entity<TransportEntityType> currentTransporter = EntityType.getProperty(personRequesting, PersonEntityType.CARRIER_LABEL);
+        Transporter currentTransporter = personRequesting.getCarrier();
 
         // Indicates that the user's intent is to transfer the person from one transproter to ANOTHER transproter
         // which we handle by first removing person from original handler
-        if (currentTransporter != null) {
-            List<Entity<PersonEntityType>> transportedPersons = EntityType.getProperty(currentTransporter, TransportEntityType.CARRIED_ENTITIES_LABEL);
-
-            transportedPersons.remove(personRequesting);
-        }
+        if (currentTransporter != null)
+            currentTransporter.getCarriedEntities().removeValue(personRequesting, true);
 
         // Now, old transporter (if any) is irrelevant, and simply add person to new transport
-        EntityType.setProperty(personRequesting, PersonEntityType.CARRIER_LABEL, getEntity());
-        personsCarried.add(personRequesting);
-        int numberOfEntitiesCarried = EntityType.getProperty(getEntity(), TransportEntityType.NUMBER_OF_ENTITIES_CARRIED_LABEL);
-        EntityType.setProperty(getEntity(), TransportEntityType.NUMBER_OF_ENTITIES_CARRIED_LABEL, numberOfEntitiesCarried);
+        personRequesting.setCarrier(getTransporter());
+        getTransporter().getCarriedEntities().add(personRequesting);
 
-        // Tell other transporters that person has been added, therefore other transporters
+        // Tell all (including other) transporters that person has been added, therefore other transporters
         // need not listen for person boarding it anymore.
-        for (Entity<TransportEntityType> transporter : getTransporters())
-            EntityType.setProperty(transporter, TransportEntityType.TRANSPORT_REQUEST_LABEL, null);
+        for (Transporter transporter : getTransporters())
+            transporter.setRequester(null);
 
         return true;
     }
 
-    public Entity<TransportEntityType> getEntity() {
-        return entity;
+    public Transporter getTransporter() {
+        return transporter;
     }
 
-    public List<Entity<TransportEntityType>> getTransporters() {
+    public Array<Transporter> getTransporters() {
         return transporters;
     }
 }
