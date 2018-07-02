@@ -1,6 +1,7 @@
 package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
@@ -29,8 +30,8 @@ public class ResourceGenerator extends Building<ResourceGenerator, ResourceGener
     }
 
     @Override
-    public void present(Camera projector, Stage stage) {
-        super.present(projector, stage);
+    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
+        super.present(projector, stage, shapeRenderer);
     }
 
     public float getRate() {

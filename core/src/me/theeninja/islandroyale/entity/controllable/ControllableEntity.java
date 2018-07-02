@@ -26,11 +26,9 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
 
     private final Array<Vector2> path = new Array<>();
     private int pathIndex = -1;
-    private final ShapeRenderer shapeRenderer;
 
     public ControllableEntity(B entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
-        this.shapeRenderer = new ShapeRenderer();
     }
 
     public TextButton getTargetSelector() {
@@ -132,8 +130,8 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     }
 
     @Override
-    public void present(Camera projector, Stage stage) {
-        super.present(projector, stage);
+    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
+        super.present(projector, stage, shapeRenderer);
 
         // Indicates that others paths belonging to different entitiesa re present
         if (path != null && PathSelectionInputListener.CURRENTLY_SHOWN_ENTITY != null) {
@@ -141,31 +139,27 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
             // is this entity. If no entity is undergoing a new path selection, this is false.
             boolean isThisEntityCurrentlyShown = PathSelectionInputListener.CURRENTLY_SHOWN_ENTITY == this;
 
-            getShapeRenderer().setColor(isThisEntityCurrentlyShown ? Color.PINK : Color.BLUE);
-            getShapeRenderer().begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(isThisEntityCurrentlyShown ? Color.PINK : Color.BLUE);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
             for (Vector2 pathComponent : getPath())
-                getShapeRenderer().circle(pathComponent.x, pathComponent.y, 2);
+                shapeRenderer.circle(pathComponent.x, pathComponent.y, 2);
 
-            getShapeRenderer().end();
+            shapeRenderer.end();
         }
 
         // Indicates that a new path is being selected
         if (getPathSelectionInputListener() != null) {
             getPathSelectionInputListener().update();
 
-            getShapeRenderer().setColor(Color.RED);
-            getShapeRenderer().begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(Color.RED);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
             for (Vector2 pathComponent : getPathSelectionInputListener().getPath())
-                getShapeRenderer().circle(pathComponent.x, pathComponent.y, 2);
+                shapeRenderer.circle(pathComponent.x, pathComponent.y, 2);
 
-            getShapeRenderer().end();
+            shapeRenderer.end();
         }
-    }
-
-    public ShapeRenderer getShapeRenderer() {
-        return shapeRenderer;
     }
 
     public PathSelectionInputListener<A, B> getPathSelectionInputListener() {

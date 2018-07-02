@@ -1,6 +1,7 @@
 package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -25,12 +26,12 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
 
     @Override
     public void check(float delta, Player player, MatchMap matchMap) {
-        //if (shouldRemove(entity))
-            //  setProperty(entity, DESCRIPTOR_SHOWN_LABEL, false);
+        // If entity is removed, hide descriptor as entity is hidden as well
+        this.isDescriptorShown &= shouldRemove();
     }
 
     @Override
-    public void present(Camera projector, Stage stage) {
+    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
         if (isDescriptorShown()) {
             Vector3 coords = new Vector3(getSprite().getX(), getSprite().getY(), 0);
             projector.project(coords);
@@ -52,7 +53,7 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
     }
 
     public void setDescriptorShown(boolean descriptorShown) {
-        isDescriptorShown = descriptorShown;
+        this.isDescriptorShown = descriptorShown;
     }
 
     public Table getDescriptor() {

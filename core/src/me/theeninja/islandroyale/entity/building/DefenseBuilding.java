@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
@@ -77,8 +78,8 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
      * (in tiles) of said entity.
      */
     @Override
-    public void present(Camera projector, Stage stage) {
-        super.present(projector, stage);
+    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
+        super.present(projector, stage, shapeRenderer);
 
         getRangeSprite().setPosition(getSprite().getX(), getSprite().getY());
         getRangeSprite().setOriginCenter();

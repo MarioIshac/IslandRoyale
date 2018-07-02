@@ -4,6 +4,7 @@ package me.theeninja.islandroyale.entity;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -102,7 +103,7 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
 
     /**
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
-     * Should perform any NON-VISUAL updates. This should be followed up by {@link #present(Camera, Stage)}
+     * Should perform any NON-VISUAL updates. This should be followed up by {@link #present(Camera, Stage, ShapeRenderer)}
      */
     public abstract void check(float delta, Player player, MatchMap matchMap);
 
@@ -110,7 +111,7 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
      * Should perform any VISUAL updates. This should follow {@link #check(float, Player, MatchMap)}
      */
-    public abstract void present(Camera projector, Stage stage);
+    public abstract void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer);
 
     public B getEntityType() {
         return entityType;

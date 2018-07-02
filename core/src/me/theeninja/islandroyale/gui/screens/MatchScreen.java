@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -191,11 +192,12 @@ public class MatchScreen implements Screen {
 
     @Override
     public void show() {
+        System.out.println("A");
         Gdx.input.setInputProcessor(inputProcessor);
-
     }
 
     private void drawIslands() {
+        System.out.println("A");
         for (Island island : getMatchMap().getIslands())
             drawIsland(island);
     }
@@ -295,9 +297,11 @@ public class MatchScreen implements Screen {
         }
     }
 
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+
     private void presentEntities() {
         for (Entity<?, ?> entity : getMatchMap().getEntities()) {
-            entity.present(getMapCamera(), getHUDStage());
+            entity.present(getMapCamera(), getHUDStage(), getShapeRenderer());
         }
     }
 
@@ -317,11 +321,12 @@ public class MatchScreen implements Screen {
         Texture associatedTexture = buildButton.getBuildingType().getTexture();
 
         Vector3 worldCoordsOfMosue = new Vector3(
-                buildButton.getBuildPosition().x,
-                // Mouse coords are relative to upper left, not bottom left, so make y
-                // equal to height - y
-                Gdx.graphics.getHeight() - buildButton.getBuildPosition().y,
-                0
+            buildButton.getBuildPosition().x,
+
+            // Mouse coords are relative to upper left, not bottom left, so make y
+            // equal to height - y
+            Gdx.graphics.getHeight() - buildButton.getBuildPosition().y,
+            0
         );
 
         // Convert from screen coords to world coords
@@ -460,5 +465,9 @@ public class MatchScreen implements Screen {
 
     public Camera getHudCamera() {
         return hudCamera;
+    }
+
+    public ShapeRenderer getShapeRenderer() {
+        return shapeRenderer;
     }
 }

@@ -73,10 +73,7 @@ public class MatchScreenInputListener implements InputProcessor {
         getMatchScreen().getMapCamera().unproject(checkEntityCoords);
         getMatchScreen().getHudCamera().unproject(checkDescriptorCoords);
 
-
-
-
-
+        // Represents whether any entity on the match map was touched
         boolean touchedEntity = false;
 
         for (Entity<?, ?> entity : getMatchScreen().getMatchMap().getEntities()) {
@@ -96,13 +93,11 @@ public class MatchScreenInputListener implements InputProcessor {
             }
 
             boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(checkEntityCoords.x, checkEntityCoords.y);
-            boolean touchInDescriptorBounds;
+            System.out.println("Touched in Entity Bounds: " + touchInEntityBounds);
 
-            // If the descriptor is currently not shown, no need to check for its bounds containing mouse click
-            if (!interactableEntity.isDescriptorShown())
-                touchInDescriptorBounds = false;
+            boolean touchInDescriptorBounds = false;
 
-            else {
+            if (interactableEntity.isDescriptorShown()) {
                 Actor descriptor = interactableEntity.getDescriptor();
 
                 boolean xInBounds = descriptor.getX() < checkDescriptorCoords.x && checkDescriptorCoords.x < descriptor.getX() + descriptor.getWidth();

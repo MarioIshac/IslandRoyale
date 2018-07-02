@@ -20,11 +20,11 @@ public class InteractableProjectileEntity extends ControllableEntity<Interactabl
 
     @Override
     public void check(float delta, Player player, MatchMap matchMap) {
-
+        super.check(delta, player, matchMap);
     }
 
     @Override
-    public void present(Camera mapCamera, Stage hudStage) {
-        super.present( mapCamera, hudStage);
+    public void present(Camera mapCamera, Stage hudStage, ShapeRenderer shapeRenderer) {
+        super.present( mapCamera, hudStage, shapeRenderer);
     }
 }

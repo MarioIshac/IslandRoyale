@@ -1,6 +1,7 @@
 package me.theeninja.islandroyale.entity.controllable;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
@@ -76,7 +77,7 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
     }
 
     @Override
-    public void present(Camera mapCamera, Stage hudStage) {
-        super.present(mapCamera, hudStage);
+    public void present(Camera mapCamera, Stage hudStage, ShapeRenderer shapeRenderer) {
+        super.present(mapCamera, hudStage, shapeRenderer);
     }
 }

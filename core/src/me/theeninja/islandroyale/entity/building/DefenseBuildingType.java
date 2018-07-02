@@ -6,9 +6,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBuildingType> {
-
-    private Sprite rangeSprite;
-
     private float baseDamage;
 
     /**
@@ -37,20 +34,5 @@ public class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBu
 
     public float getBaseDamage() {
         return baseDamage;
-    }
-
-    public Sprite getRangeSprite() {
-        return rangeSprite;
-    }
-
-    @Override
-    public void setUpEntityType(DefenseBuildingType entityType) {
-        super.setUpEntityType(entityType);
-
-        FileHandle rangeFileHandle = Gdx.files.internal("Range.png");
-        Texture rangeTexture = new Texture(rangeFileHandle);
-        this.rangeSprite = new Sprite(rangeTexture);
-
-        getRangeSprite().setSize(1, 1);
     }
 }

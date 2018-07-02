@@ -80,8 +80,8 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
     }
 
     @Override
-    public void present(Camera projector, Stage stage) {
-        super.present(projector, stage);
+    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
+        super.present(projector, stage, shapeRenderer);
     }
 
     public Queue<Integer> getEntityIdsInQueue() {
