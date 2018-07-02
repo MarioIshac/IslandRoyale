@@ -20,6 +20,21 @@ public class IslandRoyaleGame extends Game {
         setScreen(matchScreen);
     }
 
+    private static final int FULLSCREEN_KEY = Keys.F11;
+
+    @Override
+    public void render() {
+        super.render();
+
+        // Toggle Fullscreen
+        this.fullScreen ^= Gdx.input.isKeyJustPressed(FULLSCREEN_KEY);
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        super.resize(width, height);
+    }
+
     private boolean fullScreen = true;
     private boolean inBuidMode = false;
 
@@ -30,13 +45,7 @@ public class IslandRoyaleGame extends Game {
         JSON.setSerializer(Inventory.class, new InventorySerializer());
     }
 
-    @Override
-    public void render() {
-        super.render();
 
-        if (Gdx.input.isKeyJustPressed(Keys.F11))
-            setFullScreen(!isFullScreen());
-    }
 
     public boolean isFullScreen() {
         return fullScreen;

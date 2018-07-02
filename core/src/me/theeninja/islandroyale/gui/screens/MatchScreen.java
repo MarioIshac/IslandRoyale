@@ -250,11 +250,6 @@ public class MatchScreen implements Screen {
         Gdx.gl.glClearColor(0.5f, 0.5f, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        //if (getInputListener().isMapShown())
-        //    getMapViewport().setWorldSize(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
-        //else
-        //    getMapViewport().setWorldSize(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT);
-
         getMapViewport().apply(true);
 
         getMatchMap().flushDeadEntities();
