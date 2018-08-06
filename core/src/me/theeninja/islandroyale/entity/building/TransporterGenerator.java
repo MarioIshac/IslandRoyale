@@ -19,22 +19,6 @@ public class TransporterGenerator extends OffenseBuilding<TransporterGenerator, 
     }
 
     @Override
-    public Vector2 getAvailableCoordinates(TransporterType entityType, float buildingX, float buildingY, MatchMap matchMap) {
-        Island associatedIsland = matchMap.getIsland(buildingX, buildingY);
-
-        float relativeToIslandX = buildingX - associatedIsland.x;
-        float relativeToIslandY = buildingY - associatedIsland.y;
-
-        int availableX = (int) relativeToIslandX;
-        int availableY = (int) relativeToIslandY;
-
-        while (associatedIsland.getRepr()[availableX][availableY] != null)
-            availableX++;
-
-        return new Vector2(availableX, availableY);
-    }
-
-    @Override
     Transporter newGenericSpecificEntity(TransporterType entityType, Player owner, float x, float y) {
         return new Transporter(entityType, owner, x, y);
     }

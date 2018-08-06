@@ -1,0 +1,18 @@
+{
+  "name": "Paper in a Bottle",
+  "id": 100000,
+  "baseHealth": 100,
+  "maxLevel": 10,
+  "tileWidth": 2,
+  "tileHeight": 2,
+  "resource": "WOOD",
+  "dataClass": "Building",
+  "dataMethods": [
+    "getX",
+    "getY"
+  ],
+  "messages": [
+    "Something fishy has been seen at ({0}, {1}).",
+    "Might want to check out ({0}, {1})."
+  ]
+}

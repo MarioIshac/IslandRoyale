@@ -8,8 +8,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import me.theeninja.islandroyale.entity.Skins;
 
 public class HomeScreen implements Screen {
     private final Game game;
@@ -19,6 +24,34 @@ public class HomeScreen implements Screen {
 
     private final static String BACKGROUND_IMAGE_LOCATION = "OceanBackground.jpg";
 
+    private static final String NEW_OFFLINE_MATCH = "Offline Match";
+    private static final String NEW_ONLINE_MATCH = "Online Match";
+    private static final String SETTINGS = "Settings";
+
+    private static final float WIDTH_SEPARATOR = 10f;
+    private static final float HEIGHT_SEPARATOR = 10f;
+
+    private class OfflineMatchListener extends ClickListener {
+        @Override
+        public void clicked(InputEvent event, float x, float y) {
+
+        }
+    }
+
+    private class OnlineMatchListener extends ClickListener {
+        @Override
+        public void clicked(InputEvent event, float x, float y) {
+            super.clicked(event, x, y);
+        }
+    }
+
+    private class SettingsListener extends ClickListener {
+        @Override
+        public void clicked(InputEvent event, float x, float y) {
+            super.clicked(event, x, y);
+        }
+    }
+
     public HomeScreen(Game game) {
         this.game = game;
         this.batch = new SpriteBatch();
@@ -26,6 +59,36 @@ public class HomeScreen implements Screen {
 
         FileHandle backgroundImageFileHandle = Gdx.files.internal(BACKGROUND_IMAGE_LOCATION);
         this.backgroundImage = new Texture(backgroundImageFileHandle);
+
+        Button newOfflineMatchButton = new TextButton(NEW_OFFLINE_MATCH, Skins.getInstance().getFlatEarthSkin());
+        Button newOnlineMatchButton = new TextButton(NEW_ONLINE_MATCH, Skins.getInstance().getFlatEarthSkin());
+        Button settingsButton = new TextButton(SETTINGS, Skins.getInstance().getFlatEarthSkin());
+
+        getStage().addActor(newOfflineMatchButton);
+        getStage().addActor(newOnlineMatchButton);
+        getStage().addActor(settingsButton);
+
+        float halfWidth = Gdx.graphics.getWidth();
+        float halfHeight = Gdx.graphics.getHeight();
+
+        newOfflineMatchButton.setPosition(
+            halfWidth - WIDTH_SEPARATOR / 2 - newOfflineMatchButton.getWidth(),
+                halfHeight + HEIGHT_SEPARATOR / 2 - newOfflineMatchButton.getHeight() / 2
+        );
+
+        newOnlineMatchButton.setPosition(
+                halfWidth + WIDTH_SEPARATOR / 2,
+                halfHeight + HEIGHT_SEPARATOR / 2 - newOnlineMatchButton.getHeight() / 2
+        );
+
+        settingsButton.setPosition(
+                halfWidth - settingsButton.getWidth() / 2,
+                halfHeight - HEIGHT_SEPARATOR / 2 - settingsButton.getHeight()
+        );
+
+        newOfflineMatchButton.addListener(new ClickListener(
+
+        ));
     }
 
     @Override

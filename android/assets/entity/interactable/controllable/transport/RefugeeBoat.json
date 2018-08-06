@@ -1,6 +1,7 @@
 {
   "name": "Refugee Boat",
-  "id": 4000,
+  "id": 60000,
+  "baseProductionTime": 8,
   "maxLevel": 10,
   "baseHealth": 100,
   "baseMovementSpeed": 2,

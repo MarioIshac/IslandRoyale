@@ -1,13 +1,15 @@
 package me.theeninja.islandroyale.entity;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.Disposable;
 
-public class Skins {
+public class Skins implements Disposable {
     private static final Skins instance = new Skins();
 
     private Skins() {
-        FileHandle flatEarthSkinFileHandler = new FileHandle("flat-earth/skin/flat-earth-ui.json");
+        FileHandle flatEarthSkinFileHandler = Gdx.files.internal("flat-earth/skin/flat-earth-ui.json");
         this.flatEarthSkin = new Skin(flatEarthSkinFileHandler);
     }
 
@@ -19,5 +21,10 @@ public class Skins {
 
     public Skin getFlatEarthSkin() {
         return flatEarthSkin;
+    }
+
+    @Override
+    public void dispose() {
+        getFlatEarthSkin().dispose();
     }
 }

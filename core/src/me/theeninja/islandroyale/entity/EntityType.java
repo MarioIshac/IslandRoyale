@@ -2,6 +2,7 @@ package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.ObjectMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,12 +13,6 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
     private String texturePath;
 
     public abstract int getDrawingPriority();
-
-    protected void setUpEntity(A entity) {
-        int baseLevel = getBaseLevel(entity);
-
-        entity.setLevel(baseLevel);
-    }
 
     protected abstract int getBaseLevel(A entity);
 
@@ -30,6 +25,8 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
 
     public static final Map<Integer, EntityType<?, ?>> IDS = new HashMap<>();
 
+    @SuppressWarnings("unchecked") // As there is no possible way to perform type safety given an integer id that
+    // Represents many different types of entities
     public static <Y extends Entity<Y, Z>, Z extends EntityType<Y, Z>> Z getEntityType(int id) {
         return (Z) IDS.get(id);
     }
@@ -38,6 +35,7 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
 
     private static final String INTERACTABLE_DIRECTORY = ENTITY_DIRECTORY + "interactable/";
     private static final String BULLET_PROJECTILE_DIRECTORY = ENTITY_DIRECTORY + "bullet/";
+    private static final String TREASURE_DIRECTORY = ENTITY_DIRECTORY + "treasure/";
 
     private static final String BUILDING_DIRECTORY = INTERACTABLE_DIRECTORY + "building/";
     private static final String CONTROLLABLE_DIRECTORY = INTERACTABLE_DIRECTORY + "controllable/";
@@ -57,6 +55,21 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
 
     public static final String DEFENSE_BULLET_PROJECTILE_DIRECTORY = BULLET_PROJECTILE_DIRECTORY + "defense/";
     public static final String PERSON_BULLET_PROJECTILE_DIRECTORY = BULLET_PROJECTILE_DIRECTORY + "person/";
+
+    public static final String RESOURCE_TREASURE_DIRECTORY = TREASURE_DIRECTORY + "resource/";
+    public static final String DATA_TREASURE_DIRECTORY = TREASURE_DIRECTORY + "data/";
+
+    public static final int INTERACTABLE_PROJECTILE_PRIORITY = 0;
+    public static final int PERSON_PRIORITY = 1;
+    public static final int TRANSPORT_PRIORITY = 2;
+    public static final int TREASURE_SEEKER_PRIORITY_MIN = 1;
+    public static final int TREASURE_SEEKER_PRIORITY_MAX = 2;
+
+    public static final int TREASURE_PRIORITY = 3;
+    public static final int BUILDING_PRIORITY = 4;
+    public static final int BULLET_PROJECTILE_PRIORITY = 5;
+
+    public static final int NUMBER_OF_PRIORITIES = 6;
 
     private int id;
 
@@ -88,9 +101,5 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
 
     public int getTileWidth() {
         return tileWidth;
-    }
-
-    public void setUpEntityType(B entityType) {
-        // By default, nothing done
     }
 }

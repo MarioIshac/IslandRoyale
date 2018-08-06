@@ -2,6 +2,7 @@ package me.theeninja.islandroyale;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Graphics;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Screen;
@@ -27,16 +28,14 @@ public class IslandRoyaleGame extends Game {
         super.render();
 
         // Toggle Fullscreen
-        this.fullScreen ^= Gdx.input.isKeyJustPressed(FULLSCREEN_KEY);
+        if (Gdx.input.isKeyJustPressed(FULLSCREEN_KEY))
+            toggleFullScreen();
     }
 
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
     }
-
-    private boolean fullScreen = true;
-    private boolean inBuidMode = false;
 
     public static final Json JSON = new Json();
 
@@ -47,17 +46,11 @@ public class IslandRoyaleGame extends Game {
 
 
 
-    public boolean isFullScreen() {
-        return fullScreen;
-    }
-
-    public void setFullScreen(boolean fullScreen) {
-        this.fullScreen = fullScreen;
-
+    public void toggleFullScreen() {
         DisplayMode displayMode = Gdx.graphics.getDisplayMode();
-        if (isFullScreen())
-            Gdx.graphics.setFullscreenMode(displayMode);
-        else
+        if (Gdx.graphics.isFullscreen())
             Gdx.graphics.setWindowedMode(displayMode.width, displayMode.height);
+        else
+            Gdx.graphics.setFullscreenMode(displayMode);
     }
 }

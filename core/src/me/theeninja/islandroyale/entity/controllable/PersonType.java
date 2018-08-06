@@ -1,6 +1,5 @@
 package me.theeninja.islandroyale.entity.controllable;
 
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.entity.*;
 
@@ -18,17 +17,17 @@ public class PersonType extends ControllableEntityType<Person, PersonType> {
 
     @Override
     public int getDrawingPriority() {
-        return 2;
+        return EntityType.PERSON_PRIORITY;
     }
 
     @Override
-    public void configureEditor(Person entity, Table table) {
-        super.configureEditor(entity, table);
+    public void configureEditor(Person entity) {
+        super.configureEditor(entity);
 
         TextButton transportButton = new TextButton("Transport", Skins.getInstance().getFlatEarthSkin());
-        transportButton.addListener(entity.getTransportInitiatorListener());
+        transportButton.addListener(entity.getTransportListener());
 
-        table.add(transportButton).row();
+        entity.getDescriptor().add(transportButton).row();
     }
 
     public float getBaseDamage() {
@@ -38,9 +37,4 @@ public class PersonType extends ControllableEntityType<Person, PersonType> {
     public float getBaseFireRate() {
         return baseFireRate;
     }
-
-    /*@Override
-    public int getStaticProjectileID() {
-        return -1;
-    }*/
 }

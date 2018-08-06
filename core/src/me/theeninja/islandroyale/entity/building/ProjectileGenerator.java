@@ -18,11 +18,6 @@ public class ProjectileGenerator extends OffenseBuilding<ProjectileGenerator, Pr
     }
 
     @Override
-    public Vector2 getAvailableCoordinates(InteractableProjectileEntityType entityType, float buildingX, float buildingY, MatchMap matchMap) {
-        return null;
-    }
-
-    @Override
     InteractableProjectileEntity newGenericSpecificEntity(InteractableProjectileEntityType entityType, Player owner, float x, float y) {
         return new InteractableProjectileEntity(entityType, owner, x, y);
     }

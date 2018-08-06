@@ -1,22 +1,22 @@
 package me.theeninja.islandroyale.desktop;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.Graphics;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import me.theeninja.islandroyale.IslandRoyaleGame;
 
 public class DesktopLauncher {
-	public static void main (String[] arg) {
-		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+	public static void main(String[] arg) {
+	    Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 
-		config.width = LwjglApplicationConfiguration.getDesktopDisplayMode().width;
-		config.height = LwjglApplicationConfiguration.getDesktopDisplayMode().height;
+	    Graphics.DisplayMode primaryMonitorDisplayMode = Lwjgl3ApplicationConfiguration.getDisplayMode();
 
-		config.fullscreen = true;
-		config.vSyncEnabled = true;
+		config.useVsync(true);
+		config.setFullscreenMode(primaryMonitorDisplayMode);
 
 		IslandRoyaleGame islandRoyaleGame = new IslandRoyaleGame();
 
-		new LwjglApplication(islandRoyaleGame, config);
+		new Lwjgl3Application(islandRoyaleGame, config);
 	}
 }

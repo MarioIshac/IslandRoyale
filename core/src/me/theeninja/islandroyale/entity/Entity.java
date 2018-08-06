@@ -23,33 +23,64 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         return (float) Math.sqrt(rangeBetweenSquared(entityOne, entityTwo));
     }
 
+    /**
+     * Performs check outlined in <a href="https://stackoverflow.com/questions/23302698/java-check-if-two-rectangles-overlap-at-any-point">here</a>.
+     *
+     * @return Whether the rectangles defined by the provided coordinates overlap. Do note that this is different than contains (one rectangle
+     * must only partially include another rectangle, not completely).
+     */
+    protected static boolean overlap(Entity<?, ?> entityOne, Entity<?, ?> entityTwo) {
+        float bottomXEntityOne = (entityOne.getSprite().getX());
+        float bottomYEntityOne = (entityOne.getSprite().getY());
+
+        float upperXEntityOne = bottomXEntityOne + entityOne.getSprite().getWidth();
+        float upperYEntityOne = bottomYEntityOne + entityOne.getSprite().getHeight();
+
+        float bottomXEntityTwo = (entityTwo.getSprite().getX());
+        float bottomYEntityTwo = (entityTwo.getSprite().getY());
+
+        float upperXEntityTwo = bottomXEntityTwo + entityTwo.getSprite().getWidth();
+        float upperYEntityTwo = bottomYEntityTwo + entityTwo.getSprite().getHeight();
+
+        boolean toRight = bottomXEntityTwo > upperXEntityOne;
+        boolean toUp = bottomYEntityTwo > upperYEntityOne;
+        boolean toLeft = upperXEntityTwo < bottomXEntityOne;
+        boolean toDown = upperYEntityTwo < bottomYEntityOne;
+
+        boolean doesNotOverlap = toRight || toUp || toLeft || toDown;
+
+        return !doesNotOverlap;
+    }
+
     @EntityAttribute
     private int level;
 
     private final Sprite sprite;
 
-    /**
-     * X is distance to move per secod
-     * Y is angle relative to positive x axis that signifies direction, in radians
-     */
-    private final Vector2 velocityPerSecond = new Vector2(0, 0);
+    private float speed;
+    private float direction;
 
-    private final Player owner;
+    private Player owner;
+
+    public void setOwner(Player owner) {
+        this.owner = owner;
+    }
 
     private final B entityType;
 
     public Entity(B entityType, Player owner, float x, float y) {
+        initializeConstructorDependencies();
+
         this.entityType = entityType;
         this.owner = owner;
         this.sprite = new Sprite(entityType.getTexture());
 
-        // `this` would refer to an instance of Entity<A, B> rather than A, getReference() returns the instance of the
-        // subclass (type A) rather than an instance of the superclass (type Entity<A, B>)
-        getEntityType().setUpEntity(getReference());
-
         getSprite().setSize(entityType.getTexture().getWidth() / 16, entityType.getTexture().getHeight() / 16);
         getSprite().setPosition(x, y);
         getSprite().setOriginCenter();
+
+        // Higher Z Index Correlates to Significant (Lower) Priority. Z Index determines drawing order of actors
+        setZIndex(EntityType.NUMBER_OF_PRIORITIES - getEntityType().getDrawingPriority());
     }
 
     /**
@@ -71,33 +102,16 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         return sprite;
     }
 
-    public Vector2 getVelocityPerSecond() {
-        return velocityPerSecond;
-    }
-
-    public void setSpeed(float speed) {
-        getVelocityPerSecond().x = speed;
-    }
-
-    public void setDirection(float angle) {
-        getVelocityPerSecond().y = angle;
-    }
-
-    public float getSpeed() {
-        return getVelocityPerSecond().x;
-    }
-
-    public float getDirection() {
-        return getVelocityPerSecond().y;
-    }
-
     @Override
     public void act(float delta) {
         super.act(delta);
+
+        setBounds(getSprite().getX(), getSprite().getY(), getSprite().getWidth(), getSprite().getHeight());
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
+        super.draw(batch, parentAlpha);
         getSprite().draw(batch);
     }
 
@@ -111,7 +125,7 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
      * Should perform any VISUAL updates. This should follow {@link #check(float, Player, MatchMap)}
      */
-    public abstract void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer);
+    public abstract void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer);
 
     public B getEntityType() {
         return entityType;
@@ -125,4 +139,29 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
     public void setLevel(int level) {
         this.level = level;
     }
+
+    /**
+     * Initializes fields that a super class constructor is dependent upon, prior to calling said super constructor.
+     */
+    public void initializeConstructorDependencies() {
+
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public float getDirection() {
+        return direction;
+    }
+
+    public void setDirection(float direction) {
+        this.direction = direction;
+    }
+
+
 }

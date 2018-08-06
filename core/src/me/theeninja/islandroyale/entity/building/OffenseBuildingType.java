@@ -1,5 +1,7 @@
 package me.theeninja.islandroyale.entity.building;
 
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -22,22 +24,25 @@ public abstract class OffenseBuildingType<A extends OffenseBuilding<A, B, C, D>,
     private List<Integer> entityIDsProduced;
 
     @Override
-    public void configureEditor(A entity, Table table) {
-        super.configureEditor(entity, table);
+    public void configureEditor(A entity) {
+        super.configureEditor(entity);
 
         Label queueLabel = new Label("Queue", Skins.getInstance().getFlatEarthSkin());
-        table.add(queueLabel).row();
+        entity.getDescriptor().add(queueLabel).row();
 
         for (int entityID : getEntityIDsProduced()) {
-            TextButton queueButton = new TextButton(EntityType.getEntityType(entityID).getName(), Skins.getInstance().getFlatEarthSkin());
+            D entityTypeProduced = EntityType.getEntityType(entityID);
 
-            QueueButtonListener queueButtonListener = new QueueButtonListener(entityID);
+            Actor queueButton = new TextButton(entityTypeProduced.getName(), Skins.getInstance().getFlatEarthSkin());
+
+            QueueButtonListener<C, D> queueButtonListener = new QueueButtonListener<>(entityTypeProduced);
             queueButton.addListener(queueButtonListener);
 
-            table.add(queueButton).row();
-
+            entity.getDescriptor().add(queueButton).row();
             entity.getQueueButtonListeners().add(queueButtonListener);
         }
+
+        entity.getDescriptor().add(entity.getQueueDisplay()).row();
     }
 
     public List<Integer> getEntityIDsProduced() {

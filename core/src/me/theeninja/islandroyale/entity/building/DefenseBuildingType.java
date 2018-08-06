@@ -23,7 +23,6 @@ public class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBu
      */
     private int staticProjectileID;
 
-
     public float getBaseFireRate() {
         return baseFireRate;
     }
@@ -34,5 +33,9 @@ public class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBu
 
     public float getBaseDamage() {
         return baseDamage;
+    }
+
+    public float getBaseRange() {
+        return baseRange;
     }
 }

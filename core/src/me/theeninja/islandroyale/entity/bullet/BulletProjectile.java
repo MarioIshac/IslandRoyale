@@ -26,13 +26,17 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
         should remain the same.
          */
         this.targetEntity = getInitiatorEntity().getTargetEntity();
+
+        setMovementSpeed(getEntityType().getBaseMovementSpeed());
+
+        setLevel(getEntityType().getBaseLevel(getReference()));
     }
 
     private boolean hasCollided = false;
 
     @Override
     public boolean shouldRemove() {
-        return hasCollided;
+        return this.hasCollided;
     }
 
     public void setCollided(boolean hasCollided) {
@@ -41,23 +45,10 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
 
     @Override
     public void check(float delta, Player player, MatchMap matchMap) {
-        float bottomXOfTarget = (getTargetEntity().getSprite().getX());
-        float bottomYOfTarget = (getTargetEntity().getSprite().getY());
+        boolean doesProjectileOverlapTarget = overlap(this, getTargetEntity());
 
-        float upperXOfTarget = bottomXOfTarget + getTargetEntity().getEntityType().getTileWidth();
-        float upperYOfTarget = bottomYOfTarget + getTargetEntity().getEntityType().getTileHeight();
-
-        float bottomXOfProjectile = (getSprite().getX());
-        float bottomYOfProjectile = (getSprite().getY());
-
-        float upperXOfProjectile = bottomXOfProjectile + getTargetEntity().getEntityType().getTileWidth();
-        float upperYOfProjectile = bottomYOfProjectile + getTargetEntity().getEntityType().getTileHeight();
-
-        boolean isXContained = bottomXOfTarget <= bottomXOfProjectile && upperXOfProjectile <= upperXOfTarget;
-        boolean isYContained = bottomYOfTarget <= bottomYOfProjectile && upperYOfProjectile <= upperYOfTarget;
-
-        // Indicates that the target entity fully contains the bullet launched at it
-        if (isXContained && isYContained) {
+        if (doesProjectileOverlapTarget) {
+            System.out.println("Does overlap");
             setCollided(true);
 
             getTargetEntity().damage(getDamage());
@@ -65,30 +56,32 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
             return;
         }
 
-        float centerXOfTarget = (bottomXOfTarget + upperXOfTarget) / 2;
-        float centerYOfTarget = (bottomYOfTarget + upperYOfTarget) / 2;
+        float centerXOfTarget = getTargetEntity().getSprite().getOriginX();
+        float centerYOfTarget = getTargetEntity().getSprite().getOriginY();
 
-        float centerXOfProjectile = (bottomXOfProjectile + upperXOfProjectile) / 2;
-        float centerYOfProjectile = (bottomYOfProjectile + upperYOfProjectile) / 2;
+        float centerXOfProjectile = getSprite().getOriginX();
+        float centerYOfProjectile = getSprite().getOriginY();
 
         float yDistance = centerYOfTarget - centerYOfProjectile;
         float xDistance = centerXOfTarget - centerXOfProjectile;
 
         // Arc tangent only returns valid value in quadrant 1 or 4, i.e other entity has to be
         // to the right of this entity. Solution is two if statements below
-        float resultingAngle = (float) Math.atan(yDistance / xDistance);
-
-        // Shift from 1st to 3rd quadrant OR 4th to 2nd quadrant (handles both cases).
-        if (xDistance < 0)
-            resultingAngle += Math.PI;
+        float resultingAngle = (float) Math.atan2(yDistance, xDistance);
 
         setDirection(resultingAngle);
-        getSprite().setRotation((float) Math.toDegrees(resultingAngle) - 45);
+
+        float resultingDegreeAngle = (float) Math.toDegrees(resultingAngle);
+
+        // Apply angle offset to guarantee that any projectile head or tail is along the segment between target and shooter entity
+        resultingDegreeAngle += getEntityType().getAngleOffset();
+
+        getSprite().setRotation(resultingDegreeAngle);
     }
 
     @Override
-    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
-
+    public void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer) {
+        // TODO Apply/Add Support for Particle Effects
     }
 
     public C getInitiatorEntity() {

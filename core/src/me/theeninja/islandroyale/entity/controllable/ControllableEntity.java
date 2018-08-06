@@ -18,30 +18,93 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     private static final String COORDINATES_SELECT = "Route To";
     private static final String COORDINATES_RESET = "Reset";
 
-    private final TextButton targetSelector = new TextButton(COORDINATES_SELECT, Skins.getInstance().getFlatEarthSkin());
-    private final TextButton targetResettor = new TextButton(COORDINATES_RESET, Skins.getInstance().getFlatEarthSkin());
+    private TextButton targetSelector;
+    private TextButton targetResettor;
+
+    @Override
+    public void initializeConstructorDependencies() {
+        super.initializeConstructorDependencies();
+
+        this.targetSelector = new TextButton(COORDINATES_SELECT, Skins.getInstance().getFlatEarthSkin());
+        this.targetResettor = new TextButton(COORDINATES_RESET, Skins.getInstance().getFlatEarthSkin());
+        this.pathSelectionInputListener = new PathSelectionInputListener<>(getReference());
+    }
 
     @EntityAttribute
     private float movementSpeed;
 
-    private final Array<Vector2> path = new Array<>();
-    private int pathIndex = -1;
+    @EntityAttribute
+    private float productionTime;
 
     public ControllableEntity(B entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
+
+        setMovementSpeed(getEntityType().getBaseMovementSpeed());
+        setProductionTime(getEntityType().getProductionTime());
     }
 
     public TextButton getTargetSelector() {
         return targetSelector;
     }
 
-    public void updateMoveAttributes() {
+    private final Array<Vector2> path = new Array<>();
+    private int pathIndex = 0;
+
+    private static final float EPSILON = 1e-3f;
+
+    private float getXDifference(Vector2 pathComponent) {
+        float xDifference = pathComponent.x - getSprite().getX();
+
+        xDifference = Math.abs(xDifference) < EPSILON ? 0 : xDifference;
+
+        System.out.println("X Difference " + xDifference);
+
+        return xDifference;
+    }
+
+    private float getYDifference(Vector2 pathComponent) {
+        float yDifference = pathComponent.y - getSprite().getY();
+
+        yDifference = Math.abs(yDifference) < EPSILON ? 0 : yDifference;
+
+        System.out.println("Y Difference " + yDifference);
+
+        return yDifference;
+    }
+
+    public float orient(Vector2 pathComponent) {
+        float xDiff = getXDifference(pathComponent);
+        float yDiff = getYDifference(pathComponent);
+
+        return (float) Math.atan2(yDiff, xDiff);
+    }
+
+    private boolean isPastX(double angleToComponent, double xDiff) {
+        boolean angleInPositiveXQuadrants = (-Math.PI / 2 <= angleToComponent && angleToComponent <= Math.PI / 2);
+        System.out.println("Is Past X: " + (angleInPositiveXQuadrants ? (xDiff <= 0) : (xDiff >= 0)));
+
+        return angleInPositiveXQuadrants ? (xDiff <= 0) : (xDiff >= 0);
+
+    }
+
+    private boolean isPastY(double angleToComponent, double yDiff) {
+        boolean angleInPositiveYQuadrants = (0 <= angleToComponent) && (angleToComponent <= Math.PI);
+        System.out.println("Is Past Y: " + (angleInPositiveYQuadrants ? (yDiff <= 0) : (yDiff >= 0)));
+
+        return angleInPositiveYQuadrants ? (yDiff <= 0) : (yDiff >= 0);
+    }
+
+    private boolean isEndOfPathReached() {
+        return getPathIndex() == getPath().size;
+    }
+
+    void updateMoveAttributes() {
         // No path assigned
         if (getPath().size == 0)
             return;
 
-        if (getPathIndex() == getPath().size) {
-            // No more path to travel, speed = 0
+        // No more path to travel
+        if (isEndOfPathReached()) {
             setSpeed(0);
 
             return;
@@ -49,60 +112,33 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
 
         Vector2 nextPathComponent = getPath().get(getPathIndex());
 
-        float xDiff = getSprite().getX() - nextPathComponent.x;
-        float yDiff = getSprite().getY() - nextPathComponent.y;
-
-        xDiff = Math.abs(xDiff) < 1e-3 ? 0 : xDiff;
-        yDiff = Math.abs(yDiff) < 1e-3 ? 0 : yDiff;
-
-        double currentAngle = getDirection();
-        //currentAngle = roundToNearestEighthAngle(currentAngle);
-
-        boolean angleInPositiveYQuadrants = (0 <= currentAngle) && (currentAngle <= Math.PI);
-        boolean pastY = angleInPositiveYQuadrants ? (yDiff >= 0) : (yDiff <= 0);
-
-        boolean angleInPositiveXQuadrants = (currentAngle <= Math.PI / 2) || (3 * Math.PI / 2 <= currentAngle);
-        boolean pastX = angleInPositiveXQuadrants ? (xDiff >= 0) : (xDiff <= 0);
-
-        // Indicates that we have passed the closest path component, adjust course with respect
+        // Indicates that we have passed the path component we are on route to, adjust course with respect
         // to next available path component.
-        if (pastY && pastX) {
-            this.pathIndex += 1;
+        if (isPastX(getDirection(), getXDifference(nextPathComponent)) &&
+                isPastY(getDirection(), getYDifference(nextPathComponent))) {
 
-            /*if (targetPath.size == nextAvailableIndex)
-                entity.setSpeed(0);
-            else {
-                nextPathComponent = targetPath.get(nextAvailableIndex);
-                updateDirection(entity, nextPathComponent);
-            }*/
+            setPathIndex(getPathIndex() + 1);
+
+            // No more path to travel
+            if (isEndOfPathReached()) {
+                setSpeed(0);
+
+                return;
+            }
         }
 
-            /*Vector2 closestPathComponent = null;
-            Vector2 entityLocation = new Vector2(entity.getSprite().getX(), entity.getSprite().getY());
+        System.out.println("Path Index " + getPathIndex());
 
-            for (Vector2 pathComponent : targetPath) {
-                if (closestPathComponent == null) {
-                    closestPathComponent = pathComponent;
-                    continue;
-                }
+        float angleToComponent = orient(getPath().get(getPathIndex()));
 
-                float distance2 = closestPathComponent.dst2(pathComponent);
+        System.out.println(("Angle To Component " + angleToComponent));
 
-                if (pathComponent.dst2(entityLocation) < minDistance2) {
-                    closestPathComponent = pathComponent;
-                    minDistance2 = distance2;
-                }
-            }
+        setDirection(angleToComponent);
 
-            float xDiff = closestPathComponent.x - entityLocation.x;
-            float yDiff = closestPathComponent.y - entityLocation.y;
+        // In case user upgrades entity during travel of entity -> movement speed changes -> update required for actual speed
+        setSpeed(getMovementSpeed());
 
-            double angle = Math.atan(yDiff / xDiff);
-
-            if (xDiff < 0)
-                angle += Math.PI;
-            entity.setDirection((float) angle);
-            setDefaultSpeed(entity); */
+        System.out.println();
     }
 
     public Array<Vector2> getPath() {
@@ -113,61 +149,63 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
         return targetResettor;
     }
 
-    private PathSelectionInputListener<A, B> pathSelectionInputListener = null;
+    private PathSelectionInputListener<A, B> pathSelectionInputListener;
 
     @Override
     public void check(float delta, Player player, MatchMap matchMap) {
         super.check(delta, player, matchMap);
 
-        boolean hasPath = getPath().size == 0;
+        boolean hasPath = getPath().size != 0;
 
-        if (!hasPath)
-            getTargetSelector().setText(COORDINATES_SELECT);
-        else {
-            Vector2 pathEnd = path.get(path.size - 1);
+        if (hasPath) {
+            Vector2 pathEnd = getPath().get(path.size - 1);
             getTargetSelector().setText(pathEnd.toString());
         }
+
+        else
+            getTargetSelector().setText(COORDINATES_SELECT);
+    }
+
+    private static final Color OLD_SELF_PATH_COLOR = Color.RED;
+    private static final Color NEW_SELF_PATH_COLOR = Color.BLUE;
+    private static final Color OTHER_PATH_COLOR = Color.PINK;
+
+    private static void drawPath(Array<Vector2> path, Color color, ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(color);
+
+        for (Vector2 pathComponent : path)
+            shapeRenderer.circle(pathComponent.x, pathComponent.y, 2);
     }
 
     @Override
-    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
-        super.present(projector, stage, shapeRenderer);
+    public void present(Camera mapCamera, Stage hudStage, ShapeRenderer shapeRenderer) {
+        super.present(mapCamera, hudStage, shapeRenderer);
 
-        // Indicates that others paths belonging to different entitiesa re present
-        if (path != null && PathSelectionInputListener.CURRENTLY_SHOWN_ENTITY != null) {
-            // Represents whether the entity currently undergoing a new path selection, if any entity at all,
-            // is this entity. If no entity is undergoing a new path selection, this is false.
-            boolean isThisEntityCurrentlyShown = PathSelectionInputListener.CURRENTLY_SHOWN_ENTITY == this;
-
-            shapeRenderer.setColor(isThisEntityCurrentlyShown ? Color.PINK : Color.BLUE);
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-            for (Vector2 pathComponent : getPath())
-                shapeRenderer.circle(pathComponent.x, pathComponent.y, 2);
-
-            shapeRenderer.end();
+        if (!PathSelectionInputListener.areAnyInUse()) {
+            System.out.println("None are in use");
+            return;
         }
 
-        // Indicates that a new path is being selected
-        if (getPathSelectionInputListener() != null) {
+        System.out.println("Currently Shown " + PathSelectionInputListener.getCurrentlyShownEntity());
+
+        shapeRenderer.setProjectionMatrix(mapCamera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        if (getPathSelectionInputListener().isInUse()) {
             getPathSelectionInputListener().update();
 
-            shapeRenderer.setColor(Color.RED);
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-            for (Vector2 pathComponent : getPathSelectionInputListener().getPath())
-                shapeRenderer.circle(pathComponent.x, pathComponent.y, 2);
-
-            shapeRenderer.end();
+            drawPath(this.getPath(), OLD_SELF_PATH_COLOR, shapeRenderer);
+            drawPath(getPathSelectionInputListener().getPath(), NEW_SELF_PATH_COLOR, shapeRenderer);
         }
+
+        else
+            drawPath(getPathSelectionInputListener().getPath(), OTHER_PATH_COLOR, shapeRenderer);
+
+        shapeRenderer.end();
     }
 
     public PathSelectionInputListener<A, B> getPathSelectionInputListener() {
         return pathSelectionInputListener;
-    }
-
-    public void setPathSelectionInputListener(PathSelectionInputListener<A, B> pathSelectionInputListener) {
-        this.pathSelectionInputListener = pathSelectionInputListener;
     }
 
     public int getPathIndex() {
@@ -184,5 +222,13 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
 
     public void setMovementSpeed(float movementSpeed) {
         this.movementSpeed = movementSpeed;
+    }
+
+    public float getProductionTime() {
+        return productionTime;
+    }
+
+    public void setProductionTime(float productionTime) {
+        this.productionTime = productionTime;
     }
 }

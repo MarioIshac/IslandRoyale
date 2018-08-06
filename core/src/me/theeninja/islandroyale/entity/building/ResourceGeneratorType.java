@@ -19,9 +19,4 @@ public class ResourceGeneratorType extends BuildingType<ResourceGenerator, Resou
     public Resource getResource() {
         return resource;
     }
-
-    @Override
-    protected void setUpEntity(ResourceGenerator entity) {
-        entity.setRate(getBaseRate());
-    }
 }

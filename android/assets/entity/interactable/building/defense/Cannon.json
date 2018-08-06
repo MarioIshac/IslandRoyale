@@ -1,7 +1,7 @@
 {
   "name": "Cannon",
   "staticProjectileID": 6000,
-  "id": 1001,
+  "id": 10000,
   "baseHealth": 100,
   "maxLevel": 10,
   "tileWidth": 2,

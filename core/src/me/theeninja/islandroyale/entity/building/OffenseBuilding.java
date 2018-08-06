@@ -1,21 +1,36 @@
 package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Queue;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
-import me.theeninja.islandroyale.entity.InteractableEntityType;
+import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 
 public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B extends OffenseBuildingType<A, B, C, D>, C extends ControllableEntity<C, D>, D extends ControllableEntityType<C, D>> extends Building<A, B> {
-    private final Queue<Integer> entityIdsInQueue = new Queue<>();
-    private final Array<QueueButtonListener> queueButtonListeners = new Array<>();
+    private Queue<D> entityTypesInQueue;
+    private Array<QueueButtonListener<C, D>> queueButtonListeners;
+    private Group queueDisplay;
+
     private float timeUntilProduction = -1;
+
+    @Override
+    public void initializeConstructorDependencies() {
+        super.initializeConstructorDependencies();
+
+        // By initializing prior to super constructor execution, configureEditor can use this variable
+        this.entityTypesInQueue = new Queue<>();
+        this.queueButtonListeners = new Array<>();
+        this.queueDisplay = new HorizontalGroup();
+    }
 
     public OffenseBuilding(B entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
@@ -26,33 +41,55 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         return false;
     }
 
-    private void checkQueues() {
-        for (QueueButtonListener queueButtonListener : getQueueButtonListeners()) {
+    private void updateQueue() {
+        for (QueueButtonListener<C, D> queueButtonListener : getQueueButtonListeners()) {
             if (queueButtonListener.shouldQueryEntity()) {
+                D entityTypeProduced = queueButtonListener.getEntityTypeProduced();
+                float productionTime = entityTypeProduced.getProductionTime();
 
-                // If there are no other entities queued, queue this entity with its associated time required
-                if (getEntityIdsInQueue().size == 0)
-                    setTimeUntilProduction(2);
+                if (getEntityTypesInQueue().size == 0)
+                    setTimeUntilProduction(productionTime);
 
-                else {
-                    // Else, we still add it, however we do not modify the time as that is being handled by the
-                    // below check method
-                    getEntityIdsInQueue().addLast(queueButtonListener.getId());
-                    queueButtonListener.setShouldQueryEntity(false);
-                }
+                getEntityTypesInQueue().addLast(entityTypeProduced);
+
+                Texture texture = entityTypeProduced.getTexture();
+
+                Actor entityDisplay = new Image(texture);
+
+                getQueueDisplay().addActor(entityDisplay);
+
+                System.out.println(getQueueDisplay().getStage());
+                System.out.println(getQueueDisplay().getHeight() + " " + getQueueDisplay().getWidth() + " <-- Size");
+
+                queueButtonListener.setShouldQueryEntity(false);
             }
-
         }
+    }
+
+    /**
+     * Removes the first entity type in queue, while also removing the actor in {@code queueDisplay} that
+     * signifies to the user that the entity type is in the queue.
+     *
+     * @return The first entity type in the queue that was removed.
+     */
+    private D removeQueueHead() {
+        D producedEntityType = getEntityTypesInQueue().removeFirst();
+
+        Actor associatedEntityDisplay = getQueueDisplay().getChildren().get(0);
+        // Remove entity display from queue display, signifying that entity is exiting queue and is now being produced
+        associatedEntityDisplay.remove();
+
+        return producedEntityType;
     }
 
     @Override
     public void check(float delta, Player player, MatchMap matchMap) {
         super.check(delta, player, matchMap);
 
-        checkQueues();
+        updateQueue();
 
         // No entities left to process
-        if (getEntityIdsInQueue().size == 0)
+        if (getEntityTypesInQueue().size == 0)
             return;
 
         this.timeUntilProduction -= delta;
@@ -60,32 +97,28 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         if (getTimeUntilProduction() > 0)
             return;
 
-        int entityTypeID = getEntityIdsInQueue().removeFirst();
+        D producedEntityType = removeQueueHead();
+        C newEntity = produceEntity(producedEntityType, matchMap);
 
-        D producedEntityType = InteractableEntityType.getEntityType(entityTypeID);
-
-        Vector2 position = new Vector2(getSprite().getX(), getSprite().getY());
-        C newEntity = newEntity(producedEntityType, matchMap);
-
-        matchMap.getEntities().add(newEntity);
+        matchMap.addEntity(newEntity);
 
         // No more entities left to process
-        if (getEntityIdsInQueue().size == 0)
+        if (getEntityTypesInQueue().size == 0)
             return;
 
-        int nextEntityID = getEntityIdsInQueue().first();
-        float requiredTime = 2;
+        D nextProducedEntityType = getEntityTypesInQueue().first();
+        float requiredTime = nextProducedEntityType.getProductionTime();
 
         setTimeUntilProduction(requiredTime);
     }
 
     @Override
-    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
-        super.present(projector, stage, shapeRenderer);
+    public void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer) {
+        super.present(projector, hudStage, shapeRenderer);
     }
 
-    public Queue<Integer> getEntityIdsInQueue() {
-        return entityIdsInQueue;
+    public Queue<D> getEntityTypesInQueue() {
+        return entityTypesInQueue;
     }
 
     public float getTimeUntilProduction() {
@@ -96,16 +129,37 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         this.timeUntilProduction = secondsUntilProduction;
     }
 
-    public Array<QueueButtonListener> getQueueButtonListeners() {
+    public Array<QueueButtonListener<C, D>> getQueueButtonListeners() {
         return queueButtonListeners;
     }
 
-    public abstract Vector2 getAvailableCoordinates(D entityType, float buildingX, float buildingY, MatchMap matchMap);
+    /**
+     * Returns the potential coordinates for the entity WITHOUT consideration for surrounding entities at these
+     * potential coordinates. Most of the time the potential coordinates would be equivalent to the building
+     * coordinates, however transporters must be spawned in the water so that is an exception.
+     *
+     * @param entityType
+     * @param matchMap
+     * @return
+     */
+    public Vector2 getAvailableCoordinates(D entityType, MatchMap matchMap) {
+        return new Vector2(getX(), getY());
+    }
+
+    public void modifyForSurroundingEntities(Vector2 potentialEntityPosition, Array<Entity<?, ?>>[] entities) {
+
+    }
+
     abstract C newGenericSpecificEntity(D entityType, Player owner, float x, float y);
 
-    public C newEntity(D entityType, MatchMap matchMap) {
-        Vector2 availablePosition = getAvailableCoordinates(entityType, getSprite().getX(), getSprite().getY(), matchMap);
+    public C produceEntity(D entityType, MatchMap matchMap) {
+        Vector2 availablePosition = getAvailableCoordinates(entityType, matchMap);
+        modifyForSurroundingEntities(availablePosition, matchMap.getAllPriorityEntities());
 
         return newGenericSpecificEntity(entityType, getOwner(), availablePosition.x, availablePosition.y);
+    }
+
+    public Group getQueueDisplay() {
+        return queueDisplay;
     }
 }

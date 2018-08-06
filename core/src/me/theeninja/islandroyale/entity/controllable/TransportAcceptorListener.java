@@ -4,17 +4,16 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
 
-public class TransportAcceptorListener extends InputListener {
-    private final Transporter transporter;
-    private final Array<Transporter> transporters = new Array<>();
-
-    TransportAcceptorListener(Transporter transporter) {
-        this.transporter = transporter;
+public class TransportAcceptorListener extends TransportListener<Transporter, TransporterType> {
+    TransportAcceptorListener(Transporter entity) {
+        super(entity);
     }
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        Person personRequesting = getTransporter().getRequester();
+        System.out.println("Transport accepted");
+
+        Person personRequesting = getEntity().getRequester();
 
         // Indicates that there is no person requesting to be transported
         if (personRequesting == null)
@@ -28,8 +27,8 @@ public class TransportAcceptorListener extends InputListener {
             currentTransporter.getCarriedEntities().removeValue(personRequesting, true);
 
         // Now, old transporter (if any) is irrelevant, and simply add person to new transport
-        personRequesting.setCarrier(getTransporter());
-        getTransporter().getCarriedEntities().add(personRequesting);
+        personRequesting.setCarrier(getEntity());
+        getEntity().getCarriedEntities().add(personRequesting);
 
         // Tell all (including other) transporters that person has been added, therefore other transporters
         // need not listen for person boarding it anymore.
@@ -37,13 +36,5 @@ public class TransportAcceptorListener extends InputListener {
             transporter.setRequester(null);
 
         return true;
-    }
-
-    public Transporter getTransporter() {
-        return transporter;
-    }
-
-    public Array<Transporter> getTransporters() {
-        return transporters;
     }
 }

@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.MathUtils;
 
 import java.util.*;
 
+import com.badlogic.gdx.utils.IntArray;
 import me.theeninja.islandroyale.entity.building.BuildingType;
 
 public class Island {
@@ -13,17 +14,22 @@ public class Island {
     private static final float NON_SCALED_CENTER_BLOCKS = (float) Math.sqrt(2);
     private static final int SURROUNDING_BLOCKS_REQUIRED = 2;
 
-    public float x;
-    public float y;
+    public int getX() {
+        return x;
+    }
+
+    public final int x;
+
+    public int getY() {
+        return y;
+    }
+
+    public final int y;
 
     private final int maxWidth;
     private final int maxHeight;
 
-    Island(int unScaledMaxSideLength, float x, float y) {
-        this(unScaledMaxSideLength, unScaledMaxSideLength, x, y);
-    }
-
-    Island(int unScaledMaxWidth, int unscaledMaxHeight, float x, float y) {
+    Island(int unScaledMaxWidth, int unscaledMaxHeight, int x, int y) {
         this.maxHeight = unScaledMaxWidth * BLOCK_MULTIPLIER;
         this.maxWidth = unscaledMaxHeight * BLOCK_MULTIPLIER;
 

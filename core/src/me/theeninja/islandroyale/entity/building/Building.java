@@ -7,4 +7,10 @@ public abstract class Building<A extends Building<A, B>, B extends BuildingType<
     public Building(B entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
     }
+
+    @Override
+    protected boolean calculateUpgradable() {
+        // A building is always upgradable
+        return true;
+    }
 }

@@ -2,12 +2,17 @@ package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
+import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 
-public class QueueButtonListener extends InputListener {
-    private final int id;
+import javax.naming.ldap.Control;
+import javax.sound.midi.ControllerEventListener;
 
-    QueueButtonListener(int id) {
-        this.id = id;
+public class QueueButtonListener<C extends ControllableEntity<C, D>, D extends ControllableEntityType<C, D>> extends InputListener {
+    private final D entityTypeProduced;
+
+    QueueButtonListener(D entityTypeProduced) {
+        this.entityTypeProduced = entityTypeProduced;
     }
 
     /**
@@ -24,8 +29,7 @@ public class QueueButtonListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-
+        System.out.println("Attempt at query");
         setShouldQueryEntity(true);
         return true;
     }
@@ -35,11 +39,8 @@ public class QueueButtonListener extends InputListener {
     }
 
     public void setShouldQueryEntity(boolean shouldQueryEntity) {
+        System.out.println(("Queried Entity set to " + shouldQueryEntity));
         this.shouldQueryEntity = shouldQueryEntity;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public boolean hasQueriedEntity() {
@@ -48,5 +49,9 @@ public class QueueButtonListener extends InputListener {
 
     public void setHasQueriedEntity(boolean hasQueriedEntity) {
         this.hasQueriedEntity = hasQueriedEntity;
+    }
+
+    public D getEntityTypeProduced() {
+        return entityTypeProduced;
     }
 }

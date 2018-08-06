@@ -1,6 +1,7 @@
 {
   "name": "Native Ranger",
-  "id": 3001,
+  "id": 50000,
+  "baseProductionTime": 2,
   "maxLevel": 10,
   "tileWidth": 1,
   "tileHeight": 2,

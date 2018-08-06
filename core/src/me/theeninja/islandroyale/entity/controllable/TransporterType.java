@@ -1,5 +1,7 @@
 package me.theeninja.islandroyale.entity.controllable;
 
+import me.theeninja.islandroyale.entity.EntityType;
+
 public class TransporterType extends ControllableEntityType<Transporter, TransporterType> {
     public static final String CARRIED_ENTITIES_LABEL = "carriedEntities";
     public static final String TRANSPORT_REQUEST_LABEL = "transportRequest";
@@ -20,7 +22,7 @@ public class TransporterType extends ControllableEntityType<Transporter, Transpo
 
     @Override
     public int getDrawingPriority() {
-        return 1;
+        return EntityType.TRANSPORT_PRIORITY;
     }
 
     public int getPixelMargin() {

@@ -13,6 +13,8 @@ public class ResourceGenerator extends Building<ResourceGenerator, ResourceGener
 
     public ResourceGenerator(ResourceGeneratorType entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
+
+        setRate(getEntityType().getBaseRate());
     }
 
     @Override
@@ -30,8 +32,8 @@ public class ResourceGenerator extends Building<ResourceGenerator, ResourceGener
     }
 
     @Override
-    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
-        super.present(projector, stage, shapeRenderer);
+    public void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer) {
+        super.present(projector, hudStage, shapeRenderer);
     }
 
     public float getRate() {

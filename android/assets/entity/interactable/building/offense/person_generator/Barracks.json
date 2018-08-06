@@ -1,8 +1,8 @@
 {
   "name": "Barracks",
-  "id": 2000,
+  "id": 20000,
   "entityIDsProduced": [
-    3001
+    50000
   ],
   "inventoryCost": {
     "resourceEntries": []

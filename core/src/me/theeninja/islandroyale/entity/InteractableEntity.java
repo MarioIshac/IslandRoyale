@@ -4,44 +4,75 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 
 public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B extends InteractableEntityType<A, B>> extends Entity<A, B> {
     public InteractableEntity(B entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
+
+        getEntityType().configureEditor(getReference());
+        setHealth(getEntityType().getBaseHealth());
+        setLevel(getEntityType().getBaseLevel(getReference()));
     }
 
     @EntityAttribute
     private float health;
 
     private final Table descriptor = new Table();
-    private boolean isDescriptorShown = false;
+    private boolean descriptorShown;
+    private boolean hasUserRemoved;
+
+    private UpgradeListener<A, B> upgradeListener;
+    private Button upgradeButton;
+
+    private static final String UPGRADE_TEXT = "Upgrade";
+
+    private void updateUpgradable(boolean isUpgradable) {
+        getUpgradeListener().setUpgradable(isUpgradable);
+        getUpgradeButton().setDisabled(true);
+    }
+
+    @Override
+    public void initializeConstructorDependencies() {
+        this.upgradeListener = new UpgradeListener<>(getReference());
+        this.upgradeButton = new TextButton(UPGRADE_TEXT, Skins.getInstance().getFlatEarthSkin());
+    }
 
     @Override
     public boolean shouldRemove() {
-        return false;
+        return getHealth() <= 0 || hasUserRemoved();
     }
 
     @Override
     public void check(float delta, Player player, MatchMap matchMap) {
         // If entity is removed, hide descriptor as entity is hidden as well
-        this.isDescriptorShown &= shouldRemove();
+        if (shouldRemove())
+            this.descriptorShown = false;
+
+        updateUpgradable(calculateUpgradable());
     }
 
     @Override
-    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
+    public void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer) {
         if (isDescriptorShown()) {
-            Vector3 coords = new Vector3(getSprite().getX(), getSprite().getY(), 0);
-            projector.project(coords);
+            getDescriptor().pack();
 
-            //displayActor.pack();
+            float topLeftX = getX();
+            float topLeftY = getY() + getHeight();
 
-            // Show this table directly under entity, not over it
-            getDescriptor().setPosition(coords.x, coords.y - getDescriptor().getHeight());
+            Vector3 entityHUDCoordinates = new Vector3(topLeftX, topLeftY, 0);
 
-            stage.addActor(getDescriptor());
+            // Entity Coordinates in Pixels On Screen
+            projector.project(entityHUDCoordinates);
+            //hudStage.getCamera().unproject(entityHUDCoordinates);
+
+            getDescriptor().setPosition(entityHUDCoordinates.x, entityHUDCoordinates.y);
+
+            hudStage.addActor(getDescriptor());
         }
 
         else
@@ -49,11 +80,12 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
     }
 
     public boolean isDescriptorShown() {
-        return isDescriptorShown;
+        return descriptorShown;
     }
 
     public void setDescriptorShown(boolean descriptorShown) {
-        this.isDescriptorShown = descriptorShown;
+        System.out.println(("Setting desriptor shown to " + descriptorShown));
+        this.descriptorShown = descriptorShown;
     }
 
     public Table getDescriptor() {
@@ -70,5 +102,24 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
 
     public void damage(float damageAmount) {
         this.health -= damageAmount;
+    }
+
+
+    public boolean hasUserRemoved() {
+        return hasUserRemoved;
+    }
+
+    public void setHasUserRemoved(boolean hasUserRemoved) {
+        this.hasUserRemoved = hasUserRemoved;
+    }
+
+    public UpgradeListener<A, B> getUpgradeListener() {
+        return upgradeListener;
+    }
+
+    protected abstract boolean calculateUpgradable();
+
+    public Button getUpgradeButton() {
+        return upgradeButton;
     }
 }

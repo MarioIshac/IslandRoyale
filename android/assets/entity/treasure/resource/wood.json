@@ -1,0 +1,10 @@
+{
+  "name": "Wood Pallet",
+  "id": 100000,
+  "maxLevel": 10,
+  "tileWidth": 2,
+  "tileHeight": 2,
+  "resource": "WOOD",
+  "minCount": 100,
+  "maxCount": 120
+}

@@ -1,5 +1,6 @@
 {
   "name": "Lumber Mill",
+  "id": 1,
   "baseHealth": 100,
   "maxLevel": 10,
   "tileWidth": 2,

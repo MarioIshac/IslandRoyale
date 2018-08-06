@@ -18,8 +18,16 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
 
     private float timeUntilAttack;
     private InteractableEntity<?, ?> targetEntity;
+    private boolean aggressive;
 
-    private final TransportInitiatorListener transportInitiatorListener = new TransportInitiatorListener(this);
+    private TransportInitiatorListener transportListener;
+
+    @Override
+    public void initializeConstructorDependencies() {
+        super.initializeConstructorDependencies();
+
+        this.transportListener = new TransportInitiatorListener(this);;
+    }
 
     private Transporter carrier;
 
@@ -32,21 +40,13 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
         return this;
     }
 
+    public static final float ANGLE_CHANGE_FACTOR = 1;
+
     @Override
     public void check(float timeChange, Player player, MatchMap matchMap) {
         super.check(timeChange, player, matchMap);
 
-        // Update all transporters within the load to transport listener.
-        getTransportInitiatorListener().getTransporters().clear();
-
-        for (Entity<?, ?> matchMapEntity : matchMap.getEntities()) {
-            if (!(matchMapEntity.getEntityType() instanceof TransporterType))
-                continue;
-
-            Transporter transporter = (Transporter) matchMapEntity;
-
-            getTransportInitiatorListener().getTransporters().add(transporter);
-        }
+        getTransportListener().refreshTransporters(matchMap.getAllPriorityEntities());
 
         // If this person is being carried by transporation, let the transporter
         // take care of controllable this entity
@@ -61,7 +61,27 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
             setTargetEntity(targetEntity);
         }
 
-        attackIfRequired(timeChange);
+        if (getTargetEntity() != null) {
+            attackIfRequired(timeChange);
+
+            if (isAggressive()) {
+                float xDistanceFromTarget = getTargetEntity().getX() - getX();
+                float yDistanceFromTarget = getTargetEntity().getY() - getY();
+
+                float angleToTarget = (float) Math.atan2(yDistanceFromTarget, xDistanceFromTarget);
+
+                float angleAdjustmentRequired = angleToTarget - getDirection();
+
+                float angleAdjustment = Math.signum(angleAdjustmentRequired) * ANGLE_CHANGE_FACTOR;
+
+                setDirection(getDirection() + angleAdjustment);
+            }
+        }
+    }
+
+    @Override
+    protected boolean calculateUpgradable() {
+        return false;
     }
 
     private void attackIfRequired(float delta) {
@@ -138,8 +158,8 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
         this.damage = damage;
     }
 
-    public TransportInitiatorListener getTransportInitiatorListener() {
-        return transportInitiatorListener;
+    public TransportInitiatorListener getTransportListener() {
+        return transportListener;
     }
 
     public Transporter getCarrier() {
@@ -148,5 +168,13 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
 
     public void setCarrier(Transporter carrier) {
         this.carrier = carrier;
+    }
+
+    public boolean isAggressive() {
+        return aggressive;
+    }
+
+    public void setAggressive(boolean aggressive) {
+        this.aggressive = aggressive;
     }
 }

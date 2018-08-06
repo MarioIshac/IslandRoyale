@@ -1,8 +1,8 @@
 {
   "name": "Sea Port",
-  "id": 2000,
+  "id": 30000,
   "entityIDsProduced": [
-    4000
+    60000
   ],
   "inventoryCost": {
     "resourceEntries": []

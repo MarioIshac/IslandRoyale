@@ -22,6 +22,9 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
     @EntityAttribute
     private float fireRate;
 
+    @EntityAttribute
+    private float damage;
+
     private float timeUntilAttack;
     private InteractableEntity<?, ?> targetEntity;
 
@@ -29,6 +32,10 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
 
     public DefenseBuilding(DefenseBuildingType entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
+
+        setRange(getEntityType().getBaseRange());
+        setDamage(getEntityType().getBaseDamage());
+        setFireRate(getEntityType().getBaseFireRate());
 
         FileHandle rangeFileHandle = Gdx.files.internal("Range.png");
         Texture rangeTexture = new Texture(rangeFileHandle);
@@ -46,27 +53,37 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
     public void check(float delta, Player player, MatchMap matchMap) {
         super.check(delta, player, matchMap);
 
+        System.out.println("Checking");
+
         // Does 2 things:
         // 1) Ensures that there is always the requested field within map (obvious)
         // 2) Ensures that upon entity construction, a shot is not fired IMMEDIATELY. Rather, it is fired
         // after a delay equivalent to the required elapsed seconds
         setTimeUntilAttack(getTimeUntilAttack() - delta);
 
-        if (getTimeUntilAttack() > 0)
+        if (getTimeUntilAttack() > 0) {
+            System.out.println("Waiting to attack with " + getTimeUntilAttack() + " remaining");
             return;
+        }
 
         // If the current target entity has expired, i.e a new target entity is required
         if (isNewTargetEntityRequired(this)) {
             InteractableEntity<?, ?> newTargetEntity = getNewTargetEntity(this, matchMap);
             setTargetEntity(newTargetEntity);
 
+            System.out.println("Target Entity " + getTargetEntity());
+
             // If the NEW target entity is also null, that indicates that no entities are within range
-            if (newTargetEntity == null)
+            if (newTargetEntity == null) {
+                System.out.println("No entities within range");
                 return;
+            }
         }
 
         BulletProjectile<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> projectile = newProjectile(this);
-        matchMap.getEntities().add(projectile);
+        matchMap.addEntity(projectile);
+
+        System.out.println("Launched Attack");
 
         setTimeUntilAttack(1 / getFireRate());
     }
@@ -78,10 +95,11 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
      * (in tiles) of said entity.
      */
     @Override
-    public void present(Camera projector, Stage stage, ShapeRenderer shapeRenderer) {
-        super.present(projector, stage, shapeRenderer);
+    public void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer) {
+        super.present(projector, hudStage, shapeRenderer);
 
         getRangeSprite().setPosition(getSprite().getX(), getSprite().getY());
+        System.out.println("(" + getSprite().getX() + " " + getSprite().getY() + ")");
         getRangeSprite().setOriginCenter();
 
         // Scaling wll scale the width by the argument, so we must supply diameter
@@ -89,14 +107,14 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
 
-        getRangeSprite().draw(stage.getBatch());
+        getRangeSprite().draw(getStage().getBatch());
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     @Override
     public int getStaticProjectileID() {
-        return 0;
+        return getEntityType().getStaticProjectileID();
     }
 
     @Override
@@ -146,12 +164,12 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
 
     @Override
     public float getDamage() {
-        return 0;
+        return damage;
     }
 
     @Override
     public void setDamage(float damage) {
-
+        this.damage = damage;
     }
 
     public Sprite getRangeSprite() {

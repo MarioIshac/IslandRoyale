@@ -29,14 +29,19 @@ import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectileType;
 import me.theeninja.islandroyale.entity.controllable.PersonType;
 import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntityType;
 import me.theeninja.islandroyale.entity.controllable.TransporterType;
+import me.theeninja.islandroyale.entity.treasure.DataTreasureType;
+import me.theeninja.islandroyale.entity.treasure.ResourceTreasureType;
+import me.theeninja.islandroyale.entity.treasure.Treasure;
+import me.theeninja.islandroyale.entity.treasure.TreasureType;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 public class MatchScreen implements Screen {
-
     public final static int WHOLE_WORLD_TILE_WIDTH = 1000;
     public final static int WHOLE_WORLD_TILE_HEIGHT = 1000;
+
+    private final BitSet exploredTiles = new BitSet(WHOLE_WORLD_TILE_WIDTH * WHOLE_WORLD_TILE_WIDTH + WHOLE_WORLD_TILE_HEIGHT);
 
     public final static int VISIBLE_WORLD_TILE_WIDTH = 80;
     public final static int VISIBLE_WORLD_TILE_HEIGHT = 45;
@@ -60,7 +65,7 @@ public class MatchScreen implements Screen {
     private final Texture x;
 
     private final Batch batch;
-    public final InputProcessor inputProcessor;
+    private final InputProcessor inputProcessor;
 
     private boolean isTouchDown;
 
@@ -90,12 +95,18 @@ public class MatchScreen implements Screen {
     private <A extends Building<A, B>, B extends BuildingType<A, B>> void registerBuildingType(B buildingEntityType, BuildingConstructor<A, B> buildingConstructor) {
         registerEntityType(buildingEntityType);
 
-        BuildButton<A, B> buildButton = new BuildButton<A, B>(buildingEntityType, getPlayer(), buildingConstructor);
+        BuildButton<A, B> buildButton = new BuildButton<>(buildingEntityType, getPlayer(), buildingConstructor);
         getBuildButtons().add(buildButton);
     }
 
     private <A extends Building<A, B>, B extends BuildingType<A, B>> Consumer<B> getBuildingTypeRegisterer(BuildingConstructor<A, B> buildingConstructor) {
         return buildingEntityType -> registerBuildingType(buildingEntityType, buildingConstructor);
+    }
+
+    private <A extends Treasure<A, B>, B extends TreasureType<A, B>> void registerTreasureType(B entityType, Array<B> treasureTypes) {
+        registerEntityType(entityType);
+
+        treasureTypes.add(entityType);
     }
 
     public MatchScreen(Game game) {
@@ -113,6 +124,12 @@ public class MatchScreen implements Screen {
         loadTypes(EntityType.PERSON_GENERATOR_DIRECTORY, PersonGeneratorType.class, getBuildingTypeRegisterer(PersonGenerator::new));
         loadTypes(EntityType.PROJECTILE_GENERATOR_DIRECTORY, ProjectileGeneratorType.class, getBuildingTypeRegisterer(ProjectileGenerator::new));
 
+        Array<ResourceTreasureType> resourceTreasureTypes = new Array<>();
+        Array<DataTreasureType> dataTreasureTypes = new Array<>();
+
+        loadTypes(EntityType.DATA_TREASURE_DIRECTORY, DataTreasureType.class, entityType -> registerTreasureType(entityType, dataTreasureTypes));
+        loadTypes(EntityType.RESOURCE_TREASURE_DIRECTORY, ResourceTreasureType.class, entityType -> registerTreasureType(entityType, resourceTreasureTypes));
+
         this.inputListener = new MatchScreenInputListener(this);
 
         this.batch = new SpriteBatch();
@@ -123,12 +140,12 @@ public class MatchScreen implements Screen {
         this.mapViewport = new StretchViewport(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT, getMapCamera());
 
         this.hudCamera = new OrthographicCamera();
-        this.hudViewport = new ScreenViewport(getHudCamera());
+        this.hudViewport = new ScreenViewport(getHUDCamera());
 
         this.mapStage = new Stage(getMapViewport(), getBatch());
-        this.hudStage = new Stage(getHudViewport(), getBatch());
+        this.hudStage = new Stage(getHUDViewport(), getBatch());
 
-        this.matchMap = new MatchMap(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
+        this.matchMap = new MatchMap(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT, this, dataTreasureTypes, resourceTreasureTypes);
 
         FileHandle checkMarkFileHandle = Gdx.files.internal("CheckMark.png");
         FileHandle xFileHandle = Gdx.files.internal("X.png");
@@ -153,7 +170,7 @@ public class MatchScreen implements Screen {
 
         Island chosenIsland = getMatchMap().getIslands().get(randomIslandNumber);
 
-        this.player = new HumanPlayer(chosenIsland);
+        this.player = new HumanPlayer(chosenIsland, 8);
 
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
@@ -171,8 +188,8 @@ public class MatchScreen implements Screen {
             getResourceMenu().addActor(resourceLabel);
         }
 
-        getBuildMenu().setPosition(getHudViewport().getWorldWidth() - 100, getHudViewport().getWorldHeight() - 20);
-        getResourceMenu().setPosition(100, getHudViewport().getWorldHeight() - 20);
+        getBuildMenu().setPosition(getHUDViewport().getWorldWidth() - 100, getHUDViewport().getWorldHeight() - 20);
+        getResourceMenu().setPosition(100, getHUDViewport().getWorldHeight() - 20);
 
         getHUDStage().addActor(getBuildMenu());
         getHUDStage().addActor(getResourceMenu());
@@ -180,24 +197,28 @@ public class MatchScreen implements Screen {
         getPlayer().getInventory().put(Resource.WOOD, 1000);
 
         this.inputProcessor = new InputMultiplexer(
-                getInputListener(),
-                getHUDStage(),
-                getMapStage()
+            getHUDStage(),
+            getInputListener(),
+            getMapStage()
         );
+
+        ;
     }
 
     private static boolean isBuildButtonInDragState(BuildButton buildButton) {
         return buildButton.getBuildPosition() != null;
     }
 
+    public InputProcessor getInputProcessor() {
+        return inputProcessor;
+    }
+
     @Override
     public void show() {
-        System.out.println("A");
-        Gdx.input.setInputProcessor(inputProcessor);
+        Gdx.input.setInputProcessor(getInputProcessor());
     }
 
     private void drawIslands() {
-        System.out.println("A");
         for (Island island : getMatchMap().getIslands())
             drawIsland(island);
     }
@@ -212,11 +233,11 @@ public class MatchScreen implements Screen {
                     Texture islandTexture = getIslandTextures().get(islandTileType);
 
                     getBatch().draw(
-                            islandTexture,
-                            island.x + islandTileX,
-                            island.y + islandTileY,
-                            1,
-                            1
+                        islandTexture,
+                        island.x + islandTileX,
+                        island.y + islandTileY,
+                        1,
+                        1
                     );
                 }
             }
@@ -239,8 +260,8 @@ public class MatchScreen implements Screen {
     }
 
     private void handleHUDRendering(float delta) {
-        getHudCamera().update();
-        getBatch().setProjectionMatrix(getHudCamera().combined);
+        getHUDCamera().update();
+        getBatch().setProjectionMatrix(getHUDCamera().combined);
 
         drawLabelsAndUpdateResources(delta);
     }
@@ -250,13 +271,13 @@ public class MatchScreen implements Screen {
         Gdx.gl.glClearColor(0.5f, 0.5f, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
         getMapViewport().apply(true);
 
         getMatchMap().flushDeadEntities();
-        getMapStage().getRoot().clearChildren();
-
-        for (Entity<?, ?> entity : getMatchMap().getEntities())
-            getMapStage().addActor(entity);
 
         getBatch().begin();
 
@@ -266,8 +287,10 @@ public class MatchScreen implements Screen {
         handleHUDRendering(delta);
         handleMapRendering();
         getBatch().end();
+
         getMapStage().act(delta);
         getMapStage().draw();
+
         getHUDStage().act(delta);
         getHUDStage().draw();
     }
@@ -284,31 +307,42 @@ public class MatchScreen implements Screen {
     }
 
     private void moveEntities(float delta) {
-        for (Entity<?, ?> entity : getMatchMap().getEntities()) {
-            float yDistance = (float) (Math.sin(entity.getVelocityPerSecond().y) * entity.getVelocityPerSecond().x);
-            float xDistance = (float) (Math.cos(entity.getVelocityPerSecond().y) * entity.getVelocityPerSecond().x);
+        for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
+            Array<Entity<?, ?>> priorityEntities = getMatchMap().getCertainPriorityEntities(entityPriority);
 
-            entity.getSprite().translate(xDistance * delta, yDistance * delta);
+            for (Entity<?, ?> entity : priorityEntities) {
+                float yDistance = (float) (Math.sin(entity.getDirection()) * entity.getSpeed());
+                float xDistance = (float) (Math.cos(entity.getDirection()) * entity.getSpeed());
+
+                entity.getSprite().translate(xDistance * delta, yDistance * delta);
+            }
         }
+
+
     }
 
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     private void presentEntities() {
-        for (Entity<?, ?> entity : getMatchMap().getEntities()) {
-            entity.present(getMapCamera(), getHUDStage(), getShapeRenderer());
+        for (int entityPriority = 0; entityPriority < getMatchMap().getAllPriorityEntities().length; entityPriority++) {
+            Array<Entity<?, ?>> priorityEntities = getMatchMap().getCertainPriorityEntities(entityPriority);
+
+            for (Entity<?, ?> entity : priorityEntities)
+                entity.present(getMapCamera(), getHUDStage(), getShapeRenderer());
         }
     }
 
     private void updateEntities(float delta) {
-        Array<Entity<?, ?>> entities = getMatchMap().getEntities();
+        for (int entityPriority = 0; entityPriority < getMatchMap().getAllPriorityEntities().length; entityPriority++) {
+            Array<Entity<?, ?>> priorityEntities = getMatchMap().getCertainPriorityEntities(entityPriority);
 
-        // I use an indexed for-loop here instead of a for-each loop because the entity check method might add
-        // a new entity to the list (people shooting projectiles for instance). This allows me to avoid
-        // concurrent modification exception.
-        for (int i = 0; i < entities.size; i++) {
-            Entity<?, ?> entity = entities.get(i);
-            entity.check(delta, getPlayer(), getMatchMap());
+            // I use an indexed for-loop here instead of a for-each loop because the entity check method might add
+            // a new entity to the list (people shooting projectiles for instance). This allows me to avoid
+            // concurrent modification exception.
+            for (int i = 0; i < priorityEntities.size; i++) {
+                Entity<?, ?> entity = priorityEntities.get(i);
+                entity.check(delta, getPlayer(), getMatchMap());
+            }
         }
     }
 
@@ -354,7 +388,7 @@ public class MatchScreen implements Screen {
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
             Building<A, B> building = buildButton.newBuilding(mouseTileXCoord, mouseTileYCoord);
 
-            getMatchMap().getEntities().add(building);
+            getMatchMap().addEntity(building);
 
             buildButton.setBuildPosition(null);
             //buildButton.getBuildingType().charge(getPlayer().getInventory());
@@ -363,7 +397,7 @@ public class MatchScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        getHudViewport().update(width, height, true);
+        getHUDViewport().update(width, height, true);
     }
 
     @Override
@@ -454,15 +488,19 @@ public class MatchScreen implements Screen {
         return inputListener;
     }
 
-    public Viewport getHudViewport() {
+    public Viewport getHUDViewport() {
         return hudViewport;
     }
 
-    public Camera getHudCamera() {
+    public Camera getHUDCamera() {
         return hudCamera;
     }
 
     public ShapeRenderer getShapeRenderer() {
         return shapeRenderer;
+    }
+
+    public BitSet getExploredTiles() {
+        return exploredTiles;
     }
 }

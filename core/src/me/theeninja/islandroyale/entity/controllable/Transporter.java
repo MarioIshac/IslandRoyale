@@ -7,21 +7,28 @@ import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.EntityAttribute;
-import me.theeninja.islandroyale.entity.Entity;
 
 public class Transporter extends ControllableEntity<Transporter, TransporterType> {
     @EntityAttribute
     private int maximumCapacity;
 
-    private final TransportAcceptorListener transportAcceptorListener = new TransportAcceptorListener(this);
-    private final Array<Person> carriedEntities = new Array<>();
+    private TransportAcceptorListener transportListener;
+    private Array<Person> carriedEntities;
 
     private Person requester;
+
+    @Override
+    public void initializeConstructorDependencies() {
+        super.initializeConstructorDependencies();
+
+        this.transportListener = new TransportAcceptorListener(this);
+        this.carriedEntities = new Array<>();
+    }
 
     public Transporter(TransporterType entityType, Player owner, float x, float y) {
         super(entityType, owner, x, y);
 
-        this.addListener(getTransportAcceptorListener());
+        this.addListener(getTransportListener());
     }
 
     @Override
@@ -29,8 +36,8 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
         return this;
     }
 
-    public TransportAcceptorListener getTransportAcceptorListener() {
-        return transportAcceptorListener;
+    public TransportAcceptorListener getTransportListener() {
+        return transportListener;
     }
 
     public Array<Person> getCarriedEntities() {
@@ -41,17 +48,7 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
     public void check(float delta, Player player, MatchMap matchMap) {
         super.check(delta, player, matchMap);
 
-        // Update all transporters within the load to transport listener.
-        getTransportAcceptorListener().getTransporters().clear();
-
-        for (Entity<?, ?> matchMapEntity : matchMap.getEntities()) {
-            if (!(matchMapEntity.getEntityType() instanceof TransporterType))
-                continue;
-
-            Transporter transporter = (Transporter) matchMapEntity;
-
-            transportAcceptorListener.getTransporters().add(transporter);
-        }
+        getTransportListener().refreshTransporters(matchMap.getAllPriorityEntities());
 
         updateMoveAttributes();
 
@@ -79,5 +76,10 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
     @Override
     public void present(Camera mapCamera, Stage hudStage, ShapeRenderer shapeRenderer) {
         super.present(mapCamera, hudStage, shapeRenderer);
+    }
+
+    @Override
+    protected boolean calculateUpgradable() {
+        return false;
     }
 }

@@ -7,14 +7,13 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
-import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.EntityListener;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
-public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B extends ControllableEntityType<A, B>> extends InputListener {
+public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B extends ControllableEntityType<A, B>> extends EntityListener<A, B> {
     private boolean inLeft;
     private boolean inRight;
     private boolean inUp;
@@ -22,70 +21,113 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
 
     private Vector3 pathComponentToAdd;
 
-    /**
-     * Set to true upon new construction of this listener.
-     * Set to false upon path confirmed of that listener.
-     */
-    public static ControllableEntity<?, ?> CURRENTLY_SHOWN_ENTITY = null;
+    public static ControllableEntity<?, ?> currentlyShownEntity = null;
+
+    public PathSelectionInputListener(A entity) {
+        super(entity);
+    }
+
+    public static ControllableEntity<?, ?> getCurrentlyShownEntity() {
+        return currentlyShownEntity;
+    }
+
+    public static void setCurrentlyShownEntity(ControllableEntity<?, ?> currentlyShownEntity) {
+        PathSelectionInputListener.currentlyShownEntity = currentlyShownEntity;
+    }
+
+    public void finish() {
+        setCurrentlyShownEntity(null);
+
+        revertToPlayerMap();
+        getEntity().getStage().removeListener(this);
+    }
+
+    public void request() {
+        setCurrentlyShownEntity(getEntity());
+
+        getEntity().getStage().addListener(this);
+        showFullMap();
+    }
+
+    public void copy() {
+        System.out.println("Path");
+
+        System.out.println();
+
+        getEntity().getPath().addAll(this.getPath());
+
+        Vector2 firstNewPathComponent = getPath().get(0);
+
+        float startingAngle = getEntity().orient(firstNewPathComponent);
+        getEntity().setDirection(startingAngle);
+    }
 
     @Override
     public boolean keyDown(InputEvent event, int keyCode) {
+        if (!isInUse()) {
+            return false;
+        }
+
         switch (keyCode) {
             case LEFT: {
-                inLeft = true;
+                setInLeft(true);
                 return true;
             }
+
             case RIGHT : {
-                inRight = true;
+                setInRight(true);
                 return true;
             }
+
             case UP: {
-                inUp = true;
+                System.out.println("Up");
+                setInUp(true);
                 return true;
             }
+
             case DOWN: {
-                inDown = true;
+                setInDown(true);
                 return true;
             }
+
             case ENTER: {
-                // No longer in process of selecting a path, so update respective property
-                getEntity().setPathSelectionInputListener(null);
-
-                revertToPlayerMap();
-
-                CURRENTLY_SHOWN_ENTITY = null;
-
-                System.out.println("Size of path " + getPath());
-
-                getEntity().getPath().clear();
-                getEntity().getPath().addAll(this.getPath());
-                getEntity().setPathIndex(0);
+                copy();
+                finish();
 
                 return true;
             }
+
             default: return false;
         }
     }
 
     @Override
     public boolean keyUp(InputEvent event, int keyCode) {
+        if (!isInUse())
+            return false;
+
         switch (keyCode) {
             case LEFT: {
-                inLeft = false;
+                setInLeft(false);
                 return true;
             }
+
             case RIGHT: {
-                inRight = false;
+                setInRight(false);
                 return true;
             }
+
             case UP: {
-                inUp = false;
+                System.out.println("Un Up");
+                setInUp(false);
                 return true;
             }
+
             case DOWN: {
-                inDown = false;
+                setInDown(false);
                 return true;
             }
+
             default:
                 return false;
         }
@@ -93,8 +135,8 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-        Camera matchCamera = entity.getStage().getCamera();
-        pathComponentToAdd = new Vector3(x, y, 0);
+        Camera matchCamera = getEntity().getStage().getCamera();
+        this.pathComponentToAdd = new Vector3(x, y, 0);
         matchCamera.unproject(pathComponentToAdd);
 
         return true;
@@ -107,9 +149,9 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
 
     @Override
     public void touchDragged(InputEvent event, float x, float y, int pointer) {
-        Camera matchCamera = entity.getStage().getCamera();
+        Camera mapCamera = getEntity().getStage().getCamera();
         pathComponentToAdd = new Vector3(x, Gdx.graphics.getHeight() - y, 0);
-        matchCamera.unproject(pathComponentToAdd);
+        mapCamera.unproject(pathComponentToAdd);
     }
 
     public void update() {
@@ -117,7 +159,7 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
         if (pathComponentToAdd == null) {
             // Handles case where user is drawing path with keys. We initialize the pre-translation vector
             // to path end
-            if (inLeft || inRight || inUp || inDown)
+            if (isInLeft() || isInRight() || isInUp() || isInDown())
                 pathComponentToAdd = new Vector3(getPathEnd(), 0);
 
             // In this case, no path component has been set through the toucher and no keyboard modification
@@ -128,13 +170,13 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
         }
 
         // Handles key drawing of path, while touch drawing of path is unaffected by this
-        if (inLeft)
+        if (isInLeft())
             pathComponentToAdd.x -= 1;
-        if (inRight)
+        if (isInRight())
             pathComponentToAdd.x += 1;
-        if (inUp)
+        if (isInUp())
             pathComponentToAdd.y += 1;
-        if (inDown)
+        if (isInDown())
             pathComponentToAdd.y -= 1;
         //
 
@@ -148,9 +190,9 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
             // this means that the user did not extend the path out of bounds, hence we can add their intended
             // extra path component
             getPath().add(new Vector2(pathComponentToAdd.x, pathComponentToAdd.y));
-    }
 
-    private final A entity;
+        pathComponentToAdd = null;
+    }
 
     private final Array<Vector2> path = new Array<>();
 
@@ -159,15 +201,6 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
             return new Vector2(getEntity().getSprite().getX(), getEntity().getSprite().getY());
 
         return getPath().get(getPath().size - 1);
-    }
-
-    public PathSelectionInputListener(A entity) {
-        this.entity = entity;
-        showFullMap();
-
-        CURRENTLY_SHOWN_ENTITY = entity;
-
-        //EntityType.setProperty(entity, ControllableEntityType.PATH_SELECTOR_LISTENER_TABLE, this);
     }
 
     private void showFullMap() {
@@ -180,11 +213,47 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
         getEntity().getStage().getViewport().apply(true);
     }
 
-    public A getEntity() {
-        return entity;
-    }
-
     public Array<Vector2> getPath() {
         return path;
+    }
+
+    public boolean isInUse() {
+        return getCurrentlyShownEntity() == getEntity();
+    }
+
+    public static boolean areAnyInUse() {
+        return getCurrentlyShownEntity() != null;
+    }
+
+    public boolean isInLeft() {
+        return inLeft;
+    }
+
+    public void setInLeft(boolean inLeft) {
+        this.inLeft = inLeft;
+    }
+
+    public boolean isInRight() {
+        return inRight;
+    }
+
+    public void setInRight(boolean inRight) {
+        this.inRight = inRight;
+    }
+
+    public boolean isInUp() {
+        return inUp;
+    }
+
+    public void setInUp(boolean inUp) {
+        this.inUp = inUp;
+    }
+
+    public boolean isInDown() {
+        return inDown;
+    }
+
+    public void setInDown(boolean inDown) {
+        this.inDown = inDown;
     }
 }

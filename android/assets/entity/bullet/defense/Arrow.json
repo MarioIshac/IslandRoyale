@@ -2,5 +2,6 @@
   "id": 6000,
   "name": "Arrow",
   "texturePath": "Arrow.png",
-  "baseMovementSpeed": 10
+  "baseMovementSpeed": 10,
+  "angleOffset": -45
 }

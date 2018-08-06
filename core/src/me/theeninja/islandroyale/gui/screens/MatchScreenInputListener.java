@@ -4,6 +4,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntity;
@@ -71,53 +72,57 @@ public class MatchScreenInputListener implements InputProcessor {
         Vector3 checkDescriptorCoords = checkEntityCoords.cpy();
 
         getMatchScreen().getMapCamera().unproject(checkEntityCoords);
-        getMatchScreen().getHudCamera().unproject(checkDescriptorCoords);
+        getMatchScreen().getHUDCamera().unproject(checkDescriptorCoords);
 
         // Represents whether any entity on the match map was touched
         boolean touchedEntity = false;
 
-        for (Entity<?, ?> entity : getMatchScreen().getMatchMap().getEntities()) {
-            // Entity is not interactable, no need to handle attempted interaction
-            if (!(entity.getEntityType() instanceof InteractableEntityType))
-                continue;
+        // Iterate over higher priority entities first, in order to handle touch events first
+        for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
+            Array<Entity<?, ?>> priorityEntities = getMatchScreen().getMatchMap().getCertainPriorityEntities(entityPriority);
 
-            InteractableEntity<?, ?> interactableEntity = (InteractableEntity<?, ?>) entity;
-
-            // If entity is transporter and a person entity type has requested to board this transporter,
-            // do not bring up descriptor and allow listeners further down to handle this event
-            if (interactableEntity.getEntityType() instanceof TransporterType) {
-                Transporter transporter = (Transporter) entity;
-
-                if (transporter.getRequester() != null)
+            for (Entity<?, ?> entity : priorityEntities) {
+                // Entity is not interactable, no need to handle attempted interaction
+                if (!(entity instanceof InteractableEntity))
                     continue;
+
+                InteractableEntity<?, ?> interactableEntity = (InteractableEntity<?, ?>) entity;
+
+                // If entity is transporter and a person entity type has requested to board this transporter,
+                // do not bring up descriptor and allow listeners further down to handle this event
+                if (interactableEntity instanceof Transporter) {
+                    Transporter transporter = (Transporter) entity;
+
+                    if (transporter.getRequester() != null)
+                        continue;
+                }
+
+                boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(checkEntityCoords.x, checkEntityCoords.y);
+
+                boolean touchInDescriptorBounds = false;
+
+                if (interactableEntity.isDescriptorShown()) {
+                    Actor descriptor = interactableEntity.getDescriptor();
+
+                    boolean xInBounds = descriptor.getX() < checkDescriptorCoords.x && checkDescriptorCoords.x < descriptor.getX() + descriptor.getWidth();
+                    boolean yInBounds = descriptor.getY() < checkDescriptorCoords.y && checkDescriptorCoords.y < descriptor.getY() + descriptor.getHeight();
+
+                    touchInDescriptorBounds = xInBounds && yInBounds;
+                }
+
+                // If we have already touched an entity, do not register a second touch upon an entity
+                // that is below the entity that firstly handled the touch.
+                // In other words, guarantee that only one entity is touched.
+                boolean touchHandledByEntity = (touchInEntityBounds || touchInDescriptorBounds) && !touchedEntity;
+
+                interactableEntity.setDescriptorShown(touchHandledByEntity);
+
+                if (touchHandledByEntity)
+                    touchedEntity = true;
             }
-
-            boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(checkEntityCoords.x, checkEntityCoords.y);
-            System.out.println("Touched in Entity Bounds: " + touchInEntityBounds);
-
-            boolean touchInDescriptorBounds = false;
-
-            if (interactableEntity.isDescriptorShown()) {
-                Actor descriptor = interactableEntity.getDescriptor();
-
-                boolean xInBounds = descriptor.getX() < checkDescriptorCoords.x && checkDescriptorCoords.x < descriptor.getX() + descriptor.getWidth();
-                boolean yInBounds = descriptor.getY() < checkDescriptorCoords.y && checkDescriptorCoords.y < descriptor.getY() + descriptor.getHeight();
-
-                touchInDescriptorBounds = xInBounds && yInBounds;
-            }
-
-            boolean touchHandledByEntity = touchInEntityBounds || touchInDescriptorBounds;
-
-            // If we have already touched an entity, do not register a second touch upon an entity
-            // that is below the entity that firstly handled the touch.
-            // In other words, guarantee that only one entity is touched.
-            touchHandledByEntity &= !touchedEntity;
-
-            interactableEntity.setDescriptorShown(touchHandledByEntity);
-
-            if (touchHandledByEntity)
-                touchedEntity = true;
         }
+
+        System.out.println("Any Entity Touched " + touchedEntity);
 
         return touchedEntity;
     }

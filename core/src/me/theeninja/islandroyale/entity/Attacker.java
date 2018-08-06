@@ -1,5 +1,6 @@
 package me.theeninja.islandroyale.entity;
 
+import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.bullet.BulletProjectile;
@@ -30,32 +31,38 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
         float minDistanceSquared = Float.MAX_VALUE;
         InteractableEntity<?, ?> closestEntity = null;
 
-        for (Entity<?, ?> otherEntity : matchMap.getEntities()) {
-            if (!(otherEntity.getEntityType() instanceof InteractableEntityType))
-                continue;
+        for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
+            Array<Entity<?, ?>> priorityEntities = matchMap.getCertainPriorityEntities(entityPriority);
 
-            InteractableEntity<?, ?> interactableOtherEntity = (InteractableEntity<?, ?>) otherEntity;
+            for (Entity<?, ?> otherEntity : priorityEntities) {
+                if (!(otherEntity.getEntityType() instanceof InteractableEntityType))
+                    continue;
 
-            // Do not let the entity target itself...
-            if (entity == interactableOtherEntity)
-                continue;
+                InteractableEntity<?, ?> interactableOtherEntity = (InteractableEntity<?, ?>) otherEntity;
 
-            // Do not let entitty target entities of same player...
-            //if (entity.getOwner() == otherEntity.getOwner())
-            //    continue;
+                // Do not let the entity target itself
+                if (entity == interactableOtherEntity)
+                    continue;
 
-            float xDiff = entity.getSprite().getX() - otherEntity.getSprite().getX();
-            float yDiff = entity.getSprite().getY() - otherEntity.getSprite().getY();
+                // Do not let entitty target entities of same player
+                //if (entity.getOwner() == otherEntity.getOwner())
+                //    continue;
 
-            float distanceSquared = xDiff * xDiff + yDiff * yDiff;
+                float xDiff = entity.getSprite().getX() - otherEntity.getSprite().getX();
+                float yDiff = entity.getSprite().getY() - otherEntity.getSprite().getY();
 
-            // Do not let entity target entities outside of range
-            if (distanceSquared > getRange() * getRange())
-                continue;
+                float distanceSquared = xDiff * xDiff + yDiff * yDiff;
 
-            if (distanceSquared < minDistanceSquared) {
-                minDistanceSquared = distanceSquared;
-                closestEntity = interactableOtherEntity;
+                //System.out.println("Against Entity " + entity.getEntityType().getName() + "> Distance = " + distanceSquared + " Range = " + (getRange() * getRange()));
+
+                // Do not let entity target entities outside of range
+                if (distanceSquared > getRange() * getRange())
+                    continue;
+
+                if (distanceSquared < minDistanceSquared) {
+                    minDistanceSquared = distanceSquared;
+                    closestEntity = interactableOtherEntity;
+                }
             }
         }
 
@@ -92,9 +99,13 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
 
     default A newProjectile(C attackerEntity) {
         B projectileType = EntityType.getEntityType(getStaticProjectileID());
-        A projectile = newGenericProjectile(projectileType, attackerEntity.getOwner(), attackerEntity.getSprite().getX(), attackerEntity.getSprite().getY(), attackerEntity);
 
-        projectile.setSpeed(projectileType.getBaseMovementSpeed());
+        float attackerCenterX = attackerEntity.getSprite().getX() + attackerEntity.getSprite().getWidth() / 2;
+        float attackerCenterY = attackerEntity.getSprite().getY() + attackerEntity.getSprite().getHeight() / 2;
+
+        A projectile = newGenericProjectile(projectileType, attackerEntity.getOwner(), attackerCenterX, attackerCenterY, attackerEntity);
+
+        projectile.setSpeed(projectile.getMovementSpeed());
 
         return projectile;
     }

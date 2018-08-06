@@ -4,29 +4,18 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Array;
 
-public class TransportInitiatorListener extends InputListener {
-    private final Person entity;
-    private final Array<Transporter> transporters = new Array<>();
-
+public class TransportInitiatorListener extends TransportListener<Person, PersonType> {
     TransportInitiatorListener(Person entity) {
-        this.entity = entity;
+        super(entity);
     }
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
+        System.out.println("Requesting transport");
 
         for (Transporter entity : getTransporters())
             entity.setRequester(getEntity());
 
         return true;
-    }
-
-    public Person getEntity() {
-        return entity;
-    }
-
-    public Array<Transporter> getTransporters() {
-        return transporters;
     }
 }
