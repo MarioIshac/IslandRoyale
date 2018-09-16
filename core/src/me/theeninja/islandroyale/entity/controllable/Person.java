@@ -1,10 +1,10 @@
 package me.theeninja.islandroyale.entity.controllable;
 
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
 import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectileType;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public class Person extends ControllableEntity<Person, PersonType> implements Attacker<PersonBulletProjectile, PersonBulletProjectileType, Person, PersonType> {
     @EntityAttribute
@@ -31,8 +31,8 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
 
     private Transporter carrier;
 
-    public Person(PersonType entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public Person(PersonType entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
     }
 
     @Override
@@ -43,10 +43,10 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
     public static final float ANGLE_CHANGE_FACTOR = 1;
 
     @Override
-    public void check(float timeChange, Player player, MatchMap matchMap) {
-        super.check(timeChange, player, matchMap);
+    public void check(float timeChange, Player player, Match match) {
+        super.check(timeChange, player, match);
 
-        getTransportListener().refreshTransporters(matchMap.getAllPriorityEntities());
+        getTransportListener().refreshTransporters(match.getMatchMap().getAllPriorityEntities());
 
         // If this person is being carried by transporation, let the transporter
         // take care of controllable this entity
@@ -57,7 +57,7 @@ public class Person extends ControllableEntity<Person, PersonType> implements At
 
         // If the current target entity has expired, i.e a new target entity is required
         if (isNewTargetEntityRequired(this)) {
-            InteractableEntity<?, ?> targetEntity = getNewTargetEntity(this, matchMap);
+            InteractableEntity<?, ?> targetEntity = getNewTargetEntity(this, match.getMatchMap());
             setTargetEntity(targetEntity);
         }
 

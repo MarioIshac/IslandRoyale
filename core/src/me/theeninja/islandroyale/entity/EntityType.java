@@ -2,6 +2,7 @@ package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectMap;
 
 import java.util.HashMap;
@@ -22,15 +23,6 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
 
     private int tileWidth;
     private int tileHeight;
-
-    public static final Map<Integer, EntityType<?, ?>> IDS = new HashMap<>();
-
-    @SuppressWarnings("unchecked") // As there is no possible way to perform type safety given an integer id that
-    // Represents many different types of entities
-    public static <Y extends Entity<Y, Z>, Z extends EntityType<Y, Z>> Z getEntityType(int id) {
-        return (Z) IDS.get(id);
-    }
-
     private static final String ENTITY_DIRECTORY = "entity/";
 
     private static final String INTERACTABLE_DIRECTORY = ENTITY_DIRECTORY + "interactable/";
@@ -40,12 +32,12 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
     private static final String BUILDING_DIRECTORY = INTERACTABLE_DIRECTORY + "building/";
     private static final String CONTROLLABLE_DIRECTORY = INTERACTABLE_DIRECTORY + "controllable/";
 
-    public static final String INTERACTABLE_PROJECTILE_DIRECTORY = CONTROLLABLE_DIRECTORY + "projectile/";
-
     public static final String RESOURCE_DIRECTORY = BUILDING_DIRECTORY + "resource/";
     public static final String DEFENSE_DIRECTORY = BUILDING_DIRECTORY + "defense/";
     public static final String OFFENSE_DIRECTORY = BUILDING_DIRECTORY + "offense/";
+    public static final String HEADQUARTERS_DIRECTORY = BUILDING_DIRECTORY + "headquarters/";
 
+    public static final String INTERACTABLE_PROJECTILE_DIRECTORY = CONTROLLABLE_DIRECTORY + "projectile/";
     public static final String PERSON_DIRECTORY = CONTROLLABLE_DIRECTORY + "person/";
     public static final String TRANSPORT_DIRECTORY = CONTROLLABLE_DIRECTORY + "transport/";
 

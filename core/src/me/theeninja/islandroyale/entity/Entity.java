@@ -5,22 +5,25 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import me.theeninja.islandroyale.MatchMap;
+import com.badlogic.gdx.utils.Align;
 import me.theeninja.islandroyale.ai.Player;
+import me.theeninja.islandroyale.gui.screens.Match;
+import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>> extends Actor {
     public static float rangeBetweenSquared(Entity<?, ?> entityOne, Entity<?, ?> entityTwo) {
-        float xDiff = entityOne.getSprite().getX() - entityTwo.getSprite().getY();
-        float yDiff = entityOne.getSprite().getY() - entityTwo.getSprite().getY();
+        final float insideXDiff = entityOne.getSprite().getX() - entityTwo.getSprite().getY();
+        final float insideYDiff = entityOne.getSprite().getY() - entityTwo.getSprite().getY();
 
-        return xDiff * xDiff + yDiff * yDiff;
-    }
+        final float outsideXDiff = MatchScreen.WHOLE_WORLD_TILE_WIDTH - insideXDiff;
+        final float outsideYDiff = MatchScreen.WHOLE_WORLD_TILE_HEIGHT - insideYDiff;
 
-    public static float rangeBetween(Entity<?, ?> entityOne, Entity<?, ?> entityTwo) {
-        return (float) Math.sqrt(rangeBetweenSquared(entityOne, entityTwo));
+        final float insideDistanceSquared = insideXDiff * insideXDiff + insideYDiff * insideYDiff;
+        final float outsideDistanceSquared = outsideXDiff * outsideXDiff + outsideYDiff * outsideYDiff;
+
+        return Math.max(insideDistanceSquared, outsideDistanceSquared);
     }
 
     /**
@@ -75,12 +78,14 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         this.owner = owner;
         this.sprite = new Sprite(entityType.getTexture());
 
-        getSprite().setSize(entityType.getTexture().getWidth() / 16, entityType.getTexture().getHeight() / 16);
-        getSprite().setPosition(x, y);
-        getSprite().setOriginCenter();
+        setSize(entityType.getTexture().getWidth() / 16, entityType.getTexture().getHeight() / 16);
+        setPosition(x, y);
+        setOrigin(Align.center);
 
         // Higher Z Index Correlates to Significant (Lower) Priority. Z Index determines drawing order of actors
         setZIndex(EntityType.NUMBER_OF_PRIORITIES - getEntityType().getDrawingPriority());
+
+        updateSprite();
     }
 
     /**
@@ -98,20 +103,36 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         return owner;
     }
 
-    public Sprite getSprite() {
+    private Sprite getSprite() {
         return sprite;
+    }
+
+    private void updateSprite() {
+        getSprite().setBounds(getX(), getY(), getWidth(), getHeight());
+        getSprite().setOriginCenter();
+    }
+
+    private void wrapPosition() {
+        final float lowerBoundedX = Math.max(0, getX());
+        final float doubleBoundedX = Math.min(getX(), MatchScreen.WHOLE_WORLD_TILE_WIDTH);
+
+        final float lowerBoundedY = Math.max(0, getY());
+        final float doubleBoundedY = Math.min(getY(), MatchScreen.WHOLE_WORLD_TILE_HEIGHT);
+
+        setX(doubleBoundedX);
+        setY(doubleBoundedY);
     }
 
     @Override
     public void act(float delta) {
         super.act(delta);
 
-        setBounds(getSprite().getX(), getSprite().getY(), getSprite().getWidth(), getSprite().getHeight());
+        updateSprite();
+        wrapPosition();
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        super.draw(batch, parentAlpha);
         getSprite().draw(batch);
     }
 
@@ -119,11 +140,11 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
      * Should perform any NON-VISUAL updates. This should be followed up by {@link #present(Camera, Stage, ShapeRenderer)}
      */
-    public abstract void check(float delta, Player player, MatchMap matchMap);
+    public abstract void check(float delta, Player player, Match match);
 
     /**
      * Performed every call to {@link me.theeninja.islandroyale.gui.screens.MatchScreen#render(float)}.
-     * Should perform any VISUAL updates. This should follow {@link #check(float, Player, MatchMap)}
+     * Should perform any VISUAL updates. This should follow {@link #check(float, Player, Match)}
      */
     public abstract void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer);
 
@@ -144,7 +165,11 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
      * Initializes fields that a super class constructor is dependent upon, prior to calling said super constructor.
      */
     public void initializeConstructorDependencies() {
+        // No default implementation
+    }
 
+    public void setRotation(float angle) {
+        getSprite().setRotation(angle);
     }
 
     public float getSpeed() {

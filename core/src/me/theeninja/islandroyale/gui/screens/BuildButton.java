@@ -27,8 +27,8 @@ public class BuildButton<A extends Building<A, B>, B extends BuildingType<A, B>>
         this.addListener(buildButtonListener);
     }
 
-    public A newBuilding(float x, float y) {
-        return getBuildingConstructor().construct(getBuildingType(), getPlayer(), x, y);
+    public A newBuilding(float x, float y, Match match) {
+        return getBuildingConstructor().construct(getBuildingType(), getPlayer(), x, y, match);
     }
 
     public B getBuildingType() {

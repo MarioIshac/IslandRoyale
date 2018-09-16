@@ -11,6 +11,8 @@ public class UserRemovalListener<A extends InteractableEntity<A, B>, B extends I
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+        System.out.println("Sold");
+
         getEntity().setHasUserRemoved(true);
 
         return true;

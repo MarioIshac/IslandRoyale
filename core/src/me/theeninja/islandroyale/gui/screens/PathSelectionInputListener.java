@@ -38,7 +38,6 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
     public void finish() {
         setCurrentlyShownEntity(null);
 
-        revertToPlayerMap();
         getEntity().getStage().removeListener(this);
     }
 
@@ -46,7 +45,6 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
         setCurrentlyShownEntity(getEntity());
 
         getEntity().getStage().addListener(this);
-        showFullMap();
     }
 
     public void copy() {
@@ -198,19 +196,9 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
 
     private Vector2 getPathEnd() {
         if (getPath().size == 0)
-            return new Vector2(getEntity().getSprite().getX(), getEntity().getSprite().getY());
+            return new Vector2(getEntity().getX(), getEntity().getY());
 
         return getPath().get(getPath().size - 1);
-    }
-
-    private void showFullMap() {
-        getEntity().getStage().getViewport().setWorldSize(MatchScreen.WHOLE_WORLD_TILE_WIDTH, MatchScreen.WHOLE_WORLD_TILE_HEIGHT);
-        getEntity().getStage().getViewport().apply(true);
-    }
-
-    private void revertToPlayerMap() {
-        getEntity().getStage().getViewport().setWorldSize(MatchScreen.VISIBLE_WORLD_TILE_WIDTH, MatchScreen.VISIBLE_WORLD_TILE_HEIGHT);
-        getEntity().getStage().getViewport().apply(true);
     }
 
     public Array<Vector2> getPath() {

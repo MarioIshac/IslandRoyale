@@ -3,9 +3,9 @@ package me.theeninja.islandroyale.entity.bullet;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B extends BulletProjectileType<A, B, C, D>, C extends InteractableEntity<C, D> & Attacker, D extends InteractableEntityType<C, D>> extends Entity<A, B> {
     private final C initiatorEntity;
@@ -44,7 +44,7 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
+    public void check(float delta, Player player, Match match) {
         boolean doesProjectileOverlapTarget = overlap(this, getTargetEntity());
 
         if (doesProjectileOverlapTarget) {
@@ -56,14 +56,11 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
             return;
         }
 
-        float centerXOfTarget = getTargetEntity().getSprite().getOriginX();
-        float centerYOfTarget = getTargetEntity().getSprite().getOriginY();
+        float centerXOfTarget = getTargetEntity().getOriginX();
+        float centerYOfTarget = getTargetEntity().getOriginY();
 
-        float centerXOfProjectile = getSprite().getOriginX();
-        float centerYOfProjectile = getSprite().getOriginY();
-
-        float yDistance = centerYOfTarget - centerYOfProjectile;
-        float xDistance = centerXOfTarget - centerXOfProjectile;
+        float yDistance = centerYOfTarget - getOriginX();
+        float xDistance = centerXOfTarget - getOriginY();
 
         // Arc tangent only returns valid value in quadrant 1 or 4, i.e other entity has to be
         // to the right of this entity. Solution is two if statements below
@@ -76,7 +73,7 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
         // Apply angle offset to guarantee that any projectile head or tail is along the segment between target and shooter entity
         resultingDegreeAngle += getEntityType().getAngleOffset();
 
-        getSprite().setRotation(resultingDegreeAngle);
+        setRotation(resultingDegreeAngle);
     }
 
     @Override

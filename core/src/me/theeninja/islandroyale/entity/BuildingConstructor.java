@@ -3,8 +3,9 @@ package me.theeninja.islandroyale.entity;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.building.Building;
 import me.theeninja.islandroyale.entity.building.BuildingType;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 @FunctionalInterface
 public interface BuildingConstructor<A extends Building<A, B>, B extends BuildingType<A, B>> {
-    A construct(B entityType, Player player, float x, float y);
+    A construct(B entityType, Player player, float x, float y, Match match);
 }

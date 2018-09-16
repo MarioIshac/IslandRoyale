@@ -18,12 +18,14 @@ public class InventorySerializer implements Json.Serializer<Inventory> {
         json.writeObjectStart();
         json.writeArrayStart(RESOURCE_ENTRIES_LABEL);
 
-        inventory.getResourceMap().forEach((resource, cost) -> {
+        for (Map.Entry<Resource, Float> entry : inventory.getResourceMap().entrySet()) {
+            Resource resource = entry.getKey();
+            Float cost = entry.getValue();
             json.writeObjectStart();
             json.writeValue(RESOURCE_LABEL, resource, Resource.class);
             json.writeValue(COST_LABEL, cost, Float.class);
             json.writeObjectEnd();
-        });
+        }
 
         json.writeArrayEnd();
         json.writeArrayEnd();

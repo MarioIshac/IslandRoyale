@@ -1,0 +1,13 @@
+{
+  "name": "Tribal Hut",
+  "id": 120000,
+  "inventoryCost": {
+    "resourceEntries": []
+  },
+  "baseHealth": 100,
+  "maxLevel": 10,
+  "tileWidth": 4,
+  "tileHeight": 4,
+  "minGroundFiles": 16,
+  "texturePath": "Native.png"
+}

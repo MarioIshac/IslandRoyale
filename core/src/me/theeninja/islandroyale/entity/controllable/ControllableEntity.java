@@ -7,11 +7,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Array;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.EntityAttribute;
 import me.theeninja.islandroyale.entity.InteractableEntity;
 import me.theeninja.islandroyale.entity.Skins;
+import me.theeninja.islandroyale.gui.screens.Match;
 import me.theeninja.islandroyale.gui.screens.PathSelectionInputListener;
 
 public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B extends ControllableEntityType<A, B>> extends InteractableEntity<A, B> {
@@ -36,8 +36,8 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     @EntityAttribute
     private float productionTime;
 
-    public ControllableEntity(B entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public ControllableEntity(B entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
 
         setMovementSpeed(getEntityType().getBaseMovementSpeed());
         setProductionTime(getEntityType().getProductionTime());
@@ -53,7 +53,7 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     private static final float EPSILON = 1e-3f;
 
     private float getXDifference(Vector2 pathComponent) {
-        float xDifference = pathComponent.x - getSprite().getX();
+        float xDifference = pathComponent.x - getX();
 
         xDifference = Math.abs(xDifference) < EPSILON ? 0 : xDifference;
 
@@ -63,7 +63,7 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     }
 
     private float getYDifference(Vector2 pathComponent) {
-        float yDifference = pathComponent.y - getSprite().getY();
+        float yDifference = pathComponent.y - getY();
 
         yDifference = Math.abs(yDifference) < EPSILON ? 0 : yDifference;
 
@@ -152,8 +152,8 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     private PathSelectionInputListener<A, B> pathSelectionInputListener;
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
-        super.check(delta, player, matchMap);
+    public void check(float delta, Player player, Match match) {
+        super.check(delta, player, match);
 
         boolean hasPath = getPath().size != 0;
 

@@ -3,16 +3,16 @@ package me.theeninja.islandroyale.entity.building;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.EntityAttribute;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public class ResourceGenerator extends Building<ResourceGenerator, ResourceGeneratorType> {
     @EntityAttribute
     private float rate;
 
-    public ResourceGenerator(ResourceGeneratorType entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public ResourceGenerator(ResourceGeneratorType entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
 
         setRate(getEntityType().getBaseRate());
     }
@@ -23,8 +23,8 @@ public class ResourceGenerator extends Building<ResourceGenerator, ResourceGener
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
-        super.check(delta, player, matchMap);
+    public void check(float delta, Player player, Match match) {
+        super.check(delta, player, match);
 
         float amountOfResource = delta * getRate();
 

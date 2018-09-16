@@ -7,14 +7,14 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B extends InteractableEntityType<A, B>> extends Entity<A, B> {
-    public InteractableEntity(B entityType, Player owner, float x, float y) {
+    public InteractableEntity(B entityType, Player owner, float x, float y, Match match) {
         super(entityType, owner, x, y);
 
-        getEntityType().configureEditor(getReference());
+        getEntityType().configureEditor(getReference(), match);
         setHealth(getEntityType().getBaseHealth());
         setLevel(getEntityType().getBaseLevel(getReference()));
     }
@@ -48,7 +48,7 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
+    public void check(float delta, Player player, Match match) {
         // If entity is removed, hide descriptor as entity is hidden as well
         if (shouldRemove())
             this.descriptorShown = false;
@@ -103,7 +103,6 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
     public void damage(float damageAmount) {
         this.health -= damageAmount;
     }
-
 
     public boolean hasUserRemoved() {
         return hasUserRemoved;

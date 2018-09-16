@@ -14,8 +14,6 @@ public class BuildButtonListener extends InputListener {
 
     @Override
     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-
         Vector2 relativeOverlayLocation = new Vector2(x, y);
         Vector2 absoluteOverlayLocation = getBuildButton().localToStageCoordinates(relativeOverlayLocation);
 

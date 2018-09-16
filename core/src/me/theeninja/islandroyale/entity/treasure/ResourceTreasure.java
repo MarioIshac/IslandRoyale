@@ -3,8 +3,8 @@ package me.theeninja.islandroyale.entity.treasure;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public class ResourceTreasure extends Treasure<ResourceTreasure, ResourceTreasureType> {
     private final int resourceCount;
@@ -31,7 +31,7 @@ public class ResourceTreasure extends Treasure<ResourceTreasure, ResourceTreasur
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
+    public void check(float delta, Player player, Match match) {
 
     }
 

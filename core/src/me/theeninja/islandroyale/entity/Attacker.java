@@ -1,10 +1,12 @@
 package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.IntMap;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.bullet.BulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.BulletProjectileType;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 /**
  *
@@ -32,13 +34,13 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
         InteractableEntity<?, ?> closestEntity = null;
 
         for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
-            Array<Entity<?, ?>> priorityEntities = matchMap.getCertainPriorityEntities(entityPriority);
+            final Array<Entity<?, ?>> priorityEntities = matchMap.getCertainPriorityEntities(entityPriority);
 
             for (Entity<?, ?> otherEntity : priorityEntities) {
                 if (!(otherEntity.getEntityType() instanceof InteractableEntityType))
                     continue;
 
-                InteractableEntity<?, ?> interactableOtherEntity = (InteractableEntity<?, ?>) otherEntity;
+                final InteractableEntity<?, ?> interactableOtherEntity = (InteractableEntity<?, ?>) otherEntity;
 
                 // Do not let the entity target itself
                 if (entity == interactableOtherEntity)
@@ -48,10 +50,7 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
                 //if (entity.getOwner() == otherEntity.getOwner())
                 //    continue;
 
-                float xDiff = entity.getSprite().getX() - otherEntity.getSprite().getX();
-                float yDiff = entity.getSprite().getY() - otherEntity.getSprite().getY();
-
-                float distanceSquared = xDiff * xDiff + yDiff * yDiff;
+                final float distanceSquared = Entity.rangeBetweenSquared(entity, otherEntity);
 
                 //System.out.println("Against Entity " + entity.getEntityType().getName() + "> Distance = " + distanceSquared + " Range = " + (getRange() * getRange()));
 
@@ -80,30 +79,25 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
         if (getTargetEntity() == null)
             return true;
 
-        boolean isCurrentTargetDead = getTargetEntity().getHealth() <= 0;
+        return
+            // current entity has been killed and removed
+            getTargetEntity().getHealth() <= 0 ||
 
-        float currentDistanceSquared = Entity.rangeBetweenSquared(attackerEntity, getTargetEntity());
-        float rangeSquared = attackerEntity.getRange() * attackerEntity.getRange();
-        boolean isTargetOutOfRange = currentDistanceSquared > rangeSquared;
-
-        System.out.println("Current Targets Health " + getTargetEntity().getHealth());
-        System.out.println("Current Range Squared " + rangeSquared);
-        System.out.println("Current Target Distance " + currentDistanceSquared);
-
-        return isCurrentTargetDead || isTargetOutOfRange;
+            // entity out of range
+            (Entity.rangeBetweenSquared(attackerEntity, getTargetEntity()) < attackerEntity.getRange() * attackerEntity.getRange());
     }
 
     default float damageHealth(float health, float damage) {
         return health - damage;
     }
 
-    default A newProjectile(C attackerEntity) {
-        B projectileType = EntityType.getEntityType(getStaticProjectileID());
+    default A newProjectile(C attackerEntity, Match match) {
+        final B projectileType = match.getEntityTypeManager().getEntityType(attackerEntity.getStaticProjectileID());
 
-        float attackerCenterX = attackerEntity.getSprite().getX() + attackerEntity.getSprite().getWidth() / 2;
-        float attackerCenterY = attackerEntity.getSprite().getY() + attackerEntity.getSprite().getHeight() / 2;
+        final float attackerCenterX = attackerEntity.getX() + attackerEntity.getWidth() / 2;
+        final float attackerCenterY = attackerEntity.getY() + attackerEntity.getHeight() / 2;
 
-        A projectile = newGenericProjectile(projectileType, attackerEntity.getOwner(), attackerCenterX, attackerCenterY, attackerEntity);
+        final A projectile = newGenericProjectile(projectileType, attackerEntity.getOwner(), attackerCenterX, attackerCenterY, attackerEntity);
 
         projectile.setSpeed(projectile.getMovementSpeed());
 

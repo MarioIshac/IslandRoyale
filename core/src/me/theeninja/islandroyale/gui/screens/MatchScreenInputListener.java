@@ -79,7 +79,7 @@ public class MatchScreenInputListener implements InputProcessor {
 
         // Iterate over higher priority entities first, in order to handle touch events first
         for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
-            Array<Entity<?, ?>> priorityEntities = getMatchScreen().getMatchMap().getCertainPriorityEntities(entityPriority);
+            Array<Entity<?, ?>> priorityEntities = getMatchScreen().getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
 
             for (Entity<?, ?> entity : priorityEntities) {
                 // Entity is not interactable, no need to handle attempted interaction
@@ -97,7 +97,13 @@ public class MatchScreenInputListener implements InputProcessor {
                         continue;
                 }
 
-                boolean touchInEntityBounds = entity.getSprite().getBoundingRectangle().contains(checkEntityCoords.x, checkEntityCoords.y);
+                float entityMaxX = entity.getX() + entity.getWidth();
+                float entityMaxY = entity.getY() + entity.getHeight();
+
+                boolean touchInXBounds = entity.getX() <= checkEntityCoords.x && checkEntityCoords.x <= entityMaxX;
+                boolean touchInYBounds = entity.getY() <= checkEntityCoords.y && checkEntityCoords.y <= entityMaxY;
+
+                boolean touchInEntityBounds = touchInXBounds && touchInYBounds;
 
                 boolean touchInDescriptorBounds = false;
 

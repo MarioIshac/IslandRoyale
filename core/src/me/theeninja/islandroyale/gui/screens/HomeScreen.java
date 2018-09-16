@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import me.theeninja.islandroyale.OfflineMatchButtonListener;
 import me.theeninja.islandroyale.entity.Skins;
 
 public class HomeScreen implements Screen {
@@ -31,45 +32,24 @@ public class HomeScreen implements Screen {
     private static final float WIDTH_SEPARATOR = 10f;
     private static final float HEIGHT_SEPARATOR = 10f;
 
-    private class OfflineMatchListener extends ClickListener {
-        @Override
-        public void clicked(InputEvent event, float x, float y) {
-
-        }
-    }
-
-    private class OnlineMatchListener extends ClickListener {
-        @Override
-        public void clicked(InputEvent event, float x, float y) {
-            super.clicked(event, x, y);
-        }
-    }
-
-    private class SettingsListener extends ClickListener {
-        @Override
-        public void clicked(InputEvent event, float x, float y) {
-            super.clicked(event, x, y);
-        }
-    }
-
     public HomeScreen(Game game) {
         this.game = game;
         this.batch = new SpriteBatch();
         this.stage = new Stage(new ScreenViewport(), getBatch());
 
-        FileHandle backgroundImageFileHandle = Gdx.files.internal(BACKGROUND_IMAGE_LOCATION);
+        final FileHandle backgroundImageFileHandle = Gdx.files.internal(BACKGROUND_IMAGE_LOCATION);
         this.backgroundImage = new Texture(backgroundImageFileHandle);
 
-        Button newOfflineMatchButton = new TextButton(NEW_OFFLINE_MATCH, Skins.getInstance().getFlatEarthSkin());
-        Button newOnlineMatchButton = new TextButton(NEW_ONLINE_MATCH, Skins.getInstance().getFlatEarthSkin());
-        Button settingsButton = new TextButton(SETTINGS, Skins.getInstance().getFlatEarthSkin());
+        final Button newOfflineMatchButton = new TextButton(NEW_OFFLINE_MATCH, Skins.getInstance().getFlatEarthSkin());
+        final Button newOnlineMatchButton = new TextButton(NEW_ONLINE_MATCH, Skins.getInstance().getFlatEarthSkin());
+        final Button settingsButton = new TextButton(SETTINGS, Skins.getInstance().getFlatEarthSkin());
 
         getStage().addActor(newOfflineMatchButton);
         getStage().addActor(newOnlineMatchButton);
         getStage().addActor(settingsButton);
 
-        float halfWidth = Gdx.graphics.getWidth();
-        float halfHeight = Gdx.graphics.getHeight();
+        final float halfWidth = Gdx.graphics.getWidth();
+        final float halfHeight = Gdx.graphics.getHeight();
 
         newOfflineMatchButton.setPosition(
             halfWidth - WIDTH_SEPARATOR / 2 - newOfflineMatchButton.getWidth(),
@@ -86,9 +66,9 @@ public class HomeScreen implements Screen {
                 halfHeight - HEIGHT_SEPARATOR / 2 - settingsButton.getHeight()
         );
 
-        newOfflineMatchButton.addListener(new ClickListener(
+        final OfflineMatchButtonListener offlineMatchListener = new OfflineMatchButtonListener(getGame());
 
-        ));
+        newOfflineMatchButton.addListener(offlineMatchListener);
     }
 
     @Override
@@ -104,6 +84,9 @@ public class HomeScreen implements Screen {
         getBatch().begin();
         getBatch().draw(getBackgroundImage(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         getBatch().end();
+
+        getStage().act();
+        getStage().draw();
     }
 
     @Override

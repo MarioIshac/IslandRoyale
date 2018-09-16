@@ -8,12 +8,12 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
 import me.theeninja.islandroyale.entity.bullet.BulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingType> implements Attacker<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> {
     @EntityAttribute
@@ -30,8 +30,8 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
 
     private final Sprite rangeSprite;
 
-    public DefenseBuilding(DefenseBuildingType entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public DefenseBuilding(DefenseBuildingType entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
 
         setRange(getEntityType().getBaseRange());
         setDamage(getEntityType().getBaseDamage());
@@ -50,8 +50,8 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
-        super.check(delta, player, matchMap);
+    public void check(float delta, Player player, Match match) {
+        super.check(delta, player, match);
 
         System.out.println("Checking");
 
@@ -68,7 +68,7 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
 
         // If the current target entity has expired, i.e a new target entity is required
         if (isNewTargetEntityRequired(this)) {
-            InteractableEntity<?, ?> newTargetEntity = getNewTargetEntity(this, matchMap);
+            InteractableEntity<?, ?> newTargetEntity = getNewTargetEntity(this, match.getMatchMap());
             setTargetEntity(newTargetEntity);
 
             System.out.println("Target Entity " + getTargetEntity());
@@ -80,8 +80,8 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
             }
         }
 
-        BulletProjectile<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> projectile = newProjectile(this);
-        matchMap.addEntity(projectile);
+        BulletProjectile<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> projectile = newProjectile(this, match);
+        match.getMatchMap().addEntity(projectile);
 
         System.out.println("Launched Attack");
 
@@ -98,8 +98,8 @@ public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingTy
     public void present(Camera projector, Stage hudStage, ShapeRenderer shapeRenderer) {
         super.present(projector, hudStage, shapeRenderer);
 
-        getRangeSprite().setPosition(getSprite().getX(), getSprite().getY());
-        System.out.println("(" + getSprite().getX() + " " + getSprite().getY() + ")");
+        getRangeSprite().setPosition(getX(), getY());
+        System.out.println("(" + getX() + " " +getY() + ")");
         getRangeSprite().setOriginCenter();
 
         // Scaling wll scale the width by the argument, so we must supply diameter

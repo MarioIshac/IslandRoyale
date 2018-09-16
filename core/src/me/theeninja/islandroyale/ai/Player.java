@@ -1,56 +1,22 @@
 package me.theeninja.islandroyale.ai;
 
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.Inventory;
-import me.theeninja.islandroyale.Island;
-import me.theeninja.islandroyale.IslandTileType;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.entity.Entity;
+import me.theeninja.islandroyale.entity.building.HeadQuarters;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
-import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
-
-import java.util.BitSet;
-import java.util.function.Consumer;
-
-import static me.theeninja.islandroyale.gui.screens.MatchScreen.*;
 
 public abstract class Player {
     private final Inventory inventory = new Inventory();
-    private final Island mainIsland;
-    private final int initialIslandReach;
+    private final Array<HeadQuarters> allHeadQuarters = new Array<>();
+    private final String playerName;
 
-    public Player(Island mainIsland, int initialIslandReach) {
-        this.mainIsland = mainIsland;
-        this.initialIslandReach = initialIslandReach;
+    private int x;
+    private int y;
 
-        exploreInitialTiles();
-    }
-
-    private void exploreInitialTiles() {
-        // TODO Currently some to-be-explored tiles are explored multiple times because they are in the reach of multiple tiles on the island.
-        // We can make this more efficient later, perhaps be incrementing by getInitialIslandReach() instead of 1
-
-        for (int xTileIndex = 0; xTileIndex < getMainIsland().getMaxWidth(); xTileIndex++) {
-            for (int yTileIndex = 0; yTileIndex < getMainIsland().getMaxHeight(); yTileIndex++) {
-                IslandTileType islandTileType = getMainIsland().getRepr()[xTileIndex][yTileIndex];
-
-                if (islandTileType == null)
-                    continue;
-
-                int absoluteXTileIndex = xTileIndex + getMainIsland().getX();
-                int absoluteYTileIndex = xTileIndex + getMainIsland().getY();
-
-                for (int xTileOffset = -getInitialIslandReach(); xTileOffset <= getInitialIslandReach(); xTileOffset++) {
-                    for (int yTileOffset = -getInitialIslandReach(); yTileOffset <= getInitialIslandReach(); yTileOffset++) {
-                        int exploredXTileIndex = absoluteXTileIndex + xTileOffset;
-                        int exploredYTileIndex = absoluteYTileIndex + yTileOffset;
-
-                        explore(exploredXTileIndex, exploredYTileIndex);
-                    }
-                }
-            }
-        }
+    public Player(String playerName) {
+        this.playerName = playerName;
     }
 
     public void sendMessage(String message) {
@@ -59,10 +25,6 @@ public abstract class Player {
 
     public Inventory getInventory() {
         return inventory;
-    }
-
-    public Island getMainIsland() {
-        return mainIsland;
     }
 
     /**
@@ -79,30 +41,43 @@ public abstract class Player {
         MatchMap matchMap
     );
 
-    private final BitSet exploredTiles = new BitSet(WHOLE_WORLD_TILE_WIDTH * WHOLE_WORLD_TILE_WIDTH + WHOLE_WORLD_TILE_HEIGHT);
-
-    private int toBitIndex(int xTile, int yTile) {
-        int weightedXIndex = xTile * WHOLE_WORLD_TILE_WIDTH;
-        return weightedXIndex + yTile;
+    public int getX() {
+        return x;
     }
 
-    public boolean isExplored(int xTile, int yTile) {
-        int tileIndex = toBitIndex(xTile, yTile);
-
-        return getExploredTiles().get(tileIndex);
+    public void setX(int x) {
+        this.x = x;
     }
 
-    public void explore(int xTile, int yTile) {
-        int tileIndex = toBitIndex(xTile, yTile);
-
-        getExploredTiles().set(tileIndex);
+    public int getY() {
+        return y;
     }
 
-    public BitSet getExploredTiles() {
-        return exploredTiles;
+    public void setY(int y) {
+        this.y = y;
     }
 
-    public int getInitialIslandReach() {
-        return initialIslandReach;
+    public Array<HeadQuarters> getAllHeadQuarters() {
+        return allHeadQuarters;
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPositionOnHeadQuarters(int headQuartersIndex) {
+        HeadQuarters headQuarters = getAllHeadQuarters().get(headQuartersIndex);
+
+        int playerX = (int) (headQuarters.getX() - MatchScreen.VISIBLE_WORLD_TILE_WIDTH / 2);
+        int playerY = (int) (headQuarters.getY() - MatchScreen.VISIBLE_WORLD_TILE_HEIGHT / 2);
+
+        playerX = Math.max(playerX, 0);
+        playerX = Math.min(playerX, MatchScreen.WHOLE_WORLD_TILE_WIDTH);
+
+        playerY = Math.max(playerY, 0);
+        playerY = Math.min(playerY, MatchScreen.WHOLE_WORLD_TILE_HEIGHT);
+
+        setX(playerX);
+        setY(playerY);
     }
 }

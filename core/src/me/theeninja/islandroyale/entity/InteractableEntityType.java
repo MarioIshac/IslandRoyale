@@ -1,12 +1,12 @@
 package me.theeninja.islandroyale.entity;
 
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import me.theeninja.islandroyale.*;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public abstract class InteractableEntityType<A extends InteractableEntity<A, B>, B extends InteractableEntityType<A, B>> extends EntityType<A, B> {
     private static final int STARTER_LEVEL = 1;
 
-    public abstract void configureEditor(A entity);
+    public abstract void configureEditor(A entity, Match match);
 
     private float baseHealth;
 
@@ -19,5 +19,9 @@ public abstract class InteractableEntityType<A extends InteractableEntity<A, B>,
     @Override
     protected int getBaseLevel(A entity) {
         return STARTER_LEVEL;
+    }
+
+    public Inventory getInventoryCost() {
+        return inventoryCost;
     }
 }

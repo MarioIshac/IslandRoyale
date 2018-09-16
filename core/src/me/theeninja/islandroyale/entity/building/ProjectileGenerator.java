@@ -6,10 +6,11 @@ import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntity;
 import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntityType;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public class ProjectileGenerator extends OffenseBuilding<ProjectileGenerator, ProjectileGeneratorType, InteractableProjectileEntity, InteractableProjectileEntityType> {
-    public ProjectileGenerator(ProjectileGeneratorType entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public ProjectileGenerator(ProjectileGeneratorType entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
     }
 
     @Override
@@ -18,7 +19,7 @@ public class ProjectileGenerator extends OffenseBuilding<ProjectileGenerator, Pr
     }
 
     @Override
-    InteractableProjectileEntity newGenericSpecificEntity(InteractableProjectileEntityType entityType, Player owner, float x, float y) {
-        return new InteractableProjectileEntity(entityType, owner, x, y);
+    InteractableProjectileEntity newGenericSpecificEntity(InteractableProjectileEntityType entityType, Player owner, float x, float y, Match match) {
+        return new InteractableProjectileEntity(entityType, owner, x, y, match);
     }
 }

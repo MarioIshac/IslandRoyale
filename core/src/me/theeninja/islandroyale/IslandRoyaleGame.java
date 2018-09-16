@@ -17,8 +17,9 @@ public class IslandRoyaleGame extends Game {
     @Override
     public void create() {
         Screen matchScreen = new MatchScreen(this);
+        Screen homeScreen = new HomeScreen(this);
 
-        setScreen(matchScreen);
+        setScreen(homeScreen);
     }
 
     private static final int FULLSCREEN_KEY = Keys.F11;
@@ -43,8 +44,6 @@ public class IslandRoyaleGame extends Game {
         JSON.setOutputType(JsonWriter.OutputType.json);
         JSON.setSerializer(Inventory.class, new InventorySerializer());
     }
-
-
 
     public void toggleFullScreen() {
         DisplayMode displayMode = Gdx.graphics.getDisplayMode();

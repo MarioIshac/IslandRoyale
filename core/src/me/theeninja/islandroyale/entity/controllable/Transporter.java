@@ -4,9 +4,9 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
-import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.EntityAttribute;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public class Transporter extends ControllableEntity<Transporter, TransporterType> {
     @EntityAttribute
@@ -25,8 +25,8 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
         this.carriedEntities = new Array<>();
     }
 
-    public Transporter(TransporterType entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public Transporter(TransporterType entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
 
         this.addListener(getTransportListener());
     }
@@ -45,10 +45,10 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
-        super.check(delta, player, matchMap);
+    public void check(float delta, Player player, Match match) {
+        super.check(delta, player, match);
 
-        getTransportListener().refreshTransporters(matchMap.getAllPriorityEntities());
+        getTransportListener().refreshTransporters(match.getMatchMap().getAllPriorityEntities());
 
         updateMoveAttributes();
 
@@ -57,11 +57,11 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
         float positionOffset = getEntityType().getPixelMargin() / 16f;
 
         for (Person person : getCarriedEntities()) {
-            float personXPos = positionOffset + getSprite().getX() + collectiveTotal;
-            float personYPos = positionOffset + getSprite().getY();
+            float personXPos = positionOffset + getX() + collectiveTotal;
+            float personYPos = positionOffset + getY();
 
-            person.getSprite().setPosition(personXPos, personYPos);
-            collectiveTotal += person.getSprite().getWidth();
+            person.setPosition(personXPos, personYPos);
+            collectiveTotal += person.getWidth();
         }
     }
 

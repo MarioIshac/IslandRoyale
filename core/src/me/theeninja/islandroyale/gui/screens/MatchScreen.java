@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
@@ -26,46 +25,37 @@ import me.theeninja.islandroyale.entity.building.DefenseBuildingType;
 import me.theeninja.islandroyale.entity.building.ResourceGeneratorType;
 import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
 import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectileType;
-import me.theeninja.islandroyale.entity.controllable.PersonType;
-import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntityType;
-import me.theeninja.islandroyale.entity.controllable.TransporterType;
-import me.theeninja.islandroyale.entity.treasure.DataTreasureType;
-import me.theeninja.islandroyale.entity.treasure.ResourceTreasureType;
-import me.theeninja.islandroyale.entity.treasure.Treasure;
-import me.theeninja.islandroyale.entity.treasure.TreasureType;
+import me.theeninja.islandroyale.entity.controllable.*;
+import me.theeninja.islandroyale.entity.treasure.*;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class MatchScreen implements Screen {
     public final static int WHOLE_WORLD_TILE_WIDTH = 1000;
     public final static int WHOLE_WORLD_TILE_HEIGHT = 1000;
 
-    private final BitSet exploredTiles = new BitSet(WHOLE_WORLD_TILE_WIDTH * WHOLE_WORLD_TILE_WIDTH + WHOLE_WORLD_TILE_HEIGHT);
-
     public final static int VISIBLE_WORLD_TILE_WIDTH = 80;
-    public final static int VISIBLE_WORLD_TILE_HEIGHT = 45;
+    public final static int VISIBLE_WORLD_TILE_HEIGHT = 46;
 
     private final Array<BuildButton<?, ?>> buildButtons = new Array<>();
 
     private final Game game;
 
-    private final MatchMap matchMap;
-    private final me.theeninja.islandroyale.ai.Player player;
-
     private final Stage hudStage;
     private final Stage mapStage;
 
-    private final Map<IslandTileType, Texture> islandTextures = new HashMap<>();
+    private final Match match;
+
+    private final Texture[] islandTextures = new Texture[IslandTileType.TILE_COUNT];
     private final Map<Resource, Texture> treasureTextures = new HashMap<>();
     private final Map<Resource, Texture> resourceTextures = new HashMap<>();
-    private final Map<Island, Vector2> visibleIslands = new HashMap<>();
 
     private final Texture checkmark;
     private final Texture x;
 
     private final Batch batch;
     private final InputProcessor inputProcessor;
+    private final Player player;
 
     private boolean isTouchDown;
 
@@ -73,11 +63,6 @@ public class MatchScreen implements Screen {
     private final VerticalGroup resourceMenu = new VerticalGroup();
 
     private final MatchScreenInputListener inputListener;
-
-    private <A extends Entity<A, B>, B extends EntityType<A, B>> void loadTypes(String directory, Class<B> classType, Consumer<B> consumer) {
-        EntityTypeFactory<A, B> entityTypeFactory = new EntityTypeFactory<>(directory, classType);
-        entityTypeFactory.loadEntityTypes(consumer);
-    }
 
     private final Camera mapCamera;
     private final Camera hudCamera;
@@ -88,47 +73,32 @@ public class MatchScreen implements Screen {
         return mapViewport;
     }
 
-    private <A extends Entity<A, B>, B extends EntityType<A, B>> void registerEntityType(B entityType) {
-        EntityType.IDS.put(entityType.getId(), entityType);
-    }
-
-    private <A extends Building<A, B>, B extends BuildingType<A, B>> void registerBuildingType(B buildingEntityType, BuildingConstructor<A, B> buildingConstructor) {
-        registerEntityType(buildingEntityType);
-
-        BuildButton<A, B> buildButton = new BuildButton<>(buildingEntityType, getPlayer(), buildingConstructor);
-        getBuildButtons().add(buildButton);
-    }
-
-    private <A extends Building<A, B>, B extends BuildingType<A, B>> Consumer<B> getBuildingTypeRegisterer(BuildingConstructor<A, B> buildingConstructor) {
-        return buildingEntityType -> registerBuildingType(buildingEntityType, buildingConstructor);
-    }
-
-    private <A extends Treasure<A, B>, B extends TreasureType<A, B>> void registerTreasureType(B entityType, Array<B> treasureTypes) {
-        registerEntityType(entityType);
-
-        treasureTypes.add(entityType);
-    }
-
     public MatchScreen(Game game) {
-        // Non Buildings
-        loadTypes(EntityType.PERSON_DIRECTORY, PersonType.class, this::registerEntityType);
-        loadTypes(EntityType.INTERACTABLE_PROJECTILE_DIRECTORY, InteractableProjectileEntityType.class, this::registerEntityType);
-        loadTypes(EntityType.DEFENSE_BULLET_PROJECTILE_DIRECTORY, DefenseBulletProjectileType.class, this::registerEntityType);
-        loadTypes(EntityType.PERSON_BULLET_PROJECTILE_DIRECTORY, PersonBulletProjectileType.class, this::registerEntityType);
-        loadTypes(EntityType.TRANSPORT_DIRECTORY, TransporterType.class, this::registerEntityType);
-
-        // Buildings
-        loadTypes(EntityType.DEFENSE_DIRECTORY, DefenseBuildingType.class, getBuildingTypeRegisterer(DefenseBuilding::new));
-        loadTypes(EntityType.RESOURCE_DIRECTORY, ResourceGeneratorType.class, getBuildingTypeRegisterer(ResourceGenerator::new));
-        loadTypes(EntityType.TRANSPORT_GENERATOR_DIRECTORY, TransporterGeneratorType.class, getBuildingTypeRegisterer(TransporterGenerator::new));
-        loadTypes(EntityType.PERSON_GENERATOR_DIRECTORY, PersonGeneratorType.class, getBuildingTypeRegisterer(PersonGenerator::new));
-        loadTypes(EntityType.PROJECTILE_GENERATOR_DIRECTORY, ProjectileGeneratorType.class, getBuildingTypeRegisterer(ProjectileGenerator::new));
+        EntityTypeManager entityTypeManager = new EntityTypeManager();
 
         Array<ResourceTreasureType> resourceTreasureTypes = new Array<>();
         Array<DataTreasureType> dataTreasureTypes = new Array<>();
+        Array<HeadQuartersType> headQuartersTypes = new Array<>();
 
-        loadTypes(EntityType.DATA_TREASURE_DIRECTORY, DataTreasureType.class, entityType -> registerTreasureType(entityType, dataTreasureTypes));
-        loadTypes(EntityType.RESOURCE_TREASURE_DIRECTORY, ResourceTreasureType.class, entityType -> registerTreasureType(entityType, resourceTreasureTypes));
+        EntityTypeRegisterer<?, ?>[] entityTypeRegisterers = {
+            new EntityTypeRegisterer<>(entityTypeManager, PersonType.class, EntityType.PERSON_DIRECTORY),
+            new EntityTypeRegisterer<>(entityTypeManager, DefenseBulletProjectileType.class, EntityType.DEFENSE_BULLET_PROJECTILE_DIRECTORY),
+            new EntityTypeRegisterer<>(entityTypeManager, PersonBulletProjectileType.class, EntityType.PERSON_BULLET_PROJECTILE_DIRECTORY),
+            new EntityTypeRegisterer<>(entityTypeManager, TransporterType.class, EntityType.TRANSPORT_DIRECTORY),
+            new BuildingTypeRegisterer<>(entityTypeManager, getBuildButtons(), DefenseBuildingType.class, getPlayer(), DefenseBuilding::new, EntityType.DEFENSE_DIRECTORY),
+            new BuildingTypeRegisterer<>(entityTypeManager, getBuildButtons(), ResourceGeneratorType.class, getPlayer(), ResourceGenerator::new, EntityType.RESOURCE_DIRECTORY),
+            new BuildingTypeRegisterer<>(entityTypeManager, getBuildButtons(), TransporterGeneratorType.class, getPlayer(), TransporterGenerator::new, EntityType.TRANSPORT_GENERATOR_DIRECTORY),
+            new BuildingTypeRegisterer<>(entityTypeManager, getBuildButtons(), PersonGeneratorType.class, getPlayer(), PersonGenerator::new, EntityType.PERSON_GENERATOR_DIRECTORY),
+            new BuildingTypeRegisterer<>(entityTypeManager, getBuildButtons(), ProjectileGeneratorType.class, getPlayer(), ProjectileGenerator::new, EntityType.PROJECTILE_GENERATOR_DIRECTORY),
+            new TreasureTypeRegisterer<>(entityTypeManager, resourceTreasureTypes, ResourceTreasureType.class, EntityType.RESOURCE_TREASURE_DIRECTORY),
+            new TreasureTypeRegisterer<>(entityTypeManager, dataTreasureTypes, DataTreasureType.class, EntityType.DATA_TREASURE_DIRECTORY),
+            new HeadQuartersTyoeRegisterer(entityTypeManager, headQuartersTypes, HeadQuartersType.class, EntityType.HEADQUARTERS_DIRECTORY),
+            new EntityTypeRegisterer<>(entityTypeManager, InteractableProjectileEntityType.class, EntityType.INTERACTABLE_PROJECTILE_DIRECTORY)
+        };
+
+        for (EntityTypeRegisterer<?, ?> entityTypeRegisterer : entityTypeRegisterers) {
+            entityTypeRegisterer.registerEntityTypeDirectory();
+        }
 
         this.inputListener = new MatchScreenInputListener(this);
 
@@ -145,7 +115,22 @@ public class MatchScreen implements Screen {
         this.mapStage = new Stage(getMapViewport(), getBatch());
         this.hudStage = new Stage(getHUDViewport(), getBatch());
 
-        this.matchMap = new MatchMap(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT, this, dataTreasureTypes, resourceTreasureTypes);
+        Player[] players = {
+            new HumanPlayer("Mario")
+        };
+
+        MatchMap matchMap = new MatchMap(
+            WHOLE_WORLD_TILE_WIDTH,
+            WHOLE_WORLD_TILE_HEIGHT,
+            this,
+            dataTreasureTypes,
+            resourceTreasureTypes,
+            headQuartersTypes,
+            players,
+            MapMode.NEUTRAL
+        );
+
+        this.match = new Match(matchMap, entityTypeManager);
 
         FileHandle checkMarkFileHandle = Gdx.files.internal("CheckMark.png");
         FileHandle xFileHandle = Gdx.files.internal("X.png");
@@ -153,38 +138,34 @@ public class MatchScreen implements Screen {
         this.checkmark = new Texture(checkMarkFileHandle);
         this.x = new Texture(xFileHandle);
 
-        for (IslandTileType islandTileType : IslandTileType.values()) {
-            String texturePath = islandTileType.getTexturePath();
+        for (byte islandTileType = 0; islandTileType <= IslandTileType.END_TILE; islandTileType++) {
+            final String texturePath = IslandTileType.TEXTURE_PATHS[islandTileType];
 
             if (texturePath == null)
                 continue;
 
-            FileHandle textureFileHandler = Gdx.files.internal(texturePath);
-            Texture texture = new Texture(textureFileHandler);
+            final FileHandle textureFileHandler = Gdx.files.internal(texturePath);
+            final Texture texture = new Texture(textureFileHandler);
 
-            getIslandTextures().put(islandTileType, texture);
+            getIslandTextures()[islandTileType] = texture;
         }
 
-        int numberOfIslands = getMatchMap().getIslands().size();
-        int randomIslandNumber = MathUtils.random(numberOfIslands - 1);
+        this.player = players[0];
 
-        Island chosenIsland = getMatchMap().getIslands().get(randomIslandNumber);
-
-        this.player = new HumanPlayer(chosenIsland, 8);
+        getPlayer().setPositionOnHeadQuarters(0);
 
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
 
-        for (BuildButton<?, ?> buildButton : getBuildButtons()) {
+        for (BuildButton<?, ?> buildButton : getBuildButtons())
             getBuildMenu().addActor(buildButton);
-        }
 
         for (Resource resource : Resource.values()) {
-            FileHandle fileHandle = Gdx.files.internal("resource/" + resource.name() + ".png");
-            Texture texture = new Texture(fileHandle);
+            final FileHandle fileHandle = Gdx.files.internal("resource/" + resource.name() + ".png");
+            final Texture texture = new Texture(fileHandle);
             getResourceTextures().put(resource, texture);
 
-            ResourceLabel resourceLabel = new ResourceLabel(resource, getResourceTextures().get(resource), getPlayer());
+            final ResourceLabel resourceLabel = new ResourceLabel(resource, getResourceTextures().get(resource), getPlayer());
             getResourceMenu().addActor(resourceLabel);
         }
 
@@ -218,28 +199,42 @@ public class MatchScreen implements Screen {
         Gdx.input.setInputProcessor(getInputProcessor());
     }
 
-    private void drawIslands() {
-        for (Island island : getMatchMap().getIslands())
-            drawIsland(island);
+    private void updateMapCamera() {
+        if (PathSelectionInputListener.areAnyInUse()) {
+            getMapViewport().setWorldSize(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
+            getMapCamera().position.set(WHOLE_WORLD_TILE_WIDTH / 2, WHOLE_WORLD_TILE_HEIGHT / 2, 0);
+        } else {
+            getMapViewport().setWorldSize(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT);
+            getMapCamera().position.set(getPlayer().getX() + VISIBLE_WORLD_TILE_WIDTH / 2, getPlayer().getY() + VISIBLE_WORLD_TILE_HEIGHT / 2, 0);
+        }
+
+        getMapViewport().apply(false);
     }
-    private void drawIsland(Island island) {
-        // Refers to position of island relative to bottom left of focus rectangle
-        for (int islandTileX = 0; islandTileX < island.getMaxWidth(); islandTileX++) {
-            for (int islandTileY = 0; islandTileY < island.getMaxHeight(); islandTileY++) {
-                IslandTileType islandTileType = island.getRepr()[islandTileX][islandTileY];
 
-                // Do not go into statement if island tile type is water i.e null
-                if (islandTileType != null) {
-                    Texture islandTexture = getIslandTextures().get(islandTileType);
+    private void drawWorld() {
+        final boolean inUse = PathSelectionInputListener.areAnyInUse();
 
-                    getBatch().draw(
-                        islandTexture,
-                        island.x + islandTileX,
-                        island.y + islandTileY,
-                        1,
-                        1
-                    );
-                }
+        for (int islandTileXOffset = 0; islandTileXOffset < getMapViewport().getWorldWidth(); islandTileXOffset++) {
+            final int islandTileX = inUse ? islandTileXOffset : (getPlayer().getX() + islandTileXOffset) % WHOLE_WORLD_TILE_WIDTH;
+
+            for (int islandTileYOffset = 0; islandTileYOffset < getMapViewport().getWorldHeight(); islandTileYOffset++) {
+                final int islandTileY = inUse ? islandTileYOffset : (getPlayer().getY() + islandTileYOffset) % WHOLE_WORLD_TILE_HEIGHT;
+
+                final byte islandTileType = getMatch().getMatchMap().getTiles()[islandTileX][islandTileY];
+
+                // Don't draw detailed ocean in map rendering
+                if (inUse && !IslandTileType.isGround(islandTileType))
+                    continue;
+
+                final Texture islandTexture = getIslandTextures()[islandTileType];
+
+                getBatch().draw(
+                    islandTexture,
+                    islandTileX,
+                    islandTileY,
+                    1,
+                    1
+                );
             }
         }
     }
@@ -248,14 +243,13 @@ public class MatchScreen implements Screen {
         getMapCamera().update();
         getBatch().setProjectionMatrix(getMapCamera().combined);
 
-        drawIslands();
+        drawWorld();
         presentEntities();
 
-        for (BuildButton<?, ?> buildButton : getBuildButtons()) {
-            if (!isBuildButtonInDragState(buildButton))
-                continue;
-
-            handleBuildButton(buildButton);
+        for (final BuildButton<?, ?> buildButton : getBuildButtons()) {
+            if (isBuildButtonInDragState(buildButton)) {
+                handleBuildButton(buildButton);
+            }
         }
     }
 
@@ -268,17 +262,20 @@ public class MatchScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.5f, 0.5f, 1, 1);
+        Gdx.gl.glClearColor(
+            IslandTileType.OCEAN_TILE_R_NORMALIZED,
+            IslandTileType.OCEAN_TILE_G_NORMALIZED,
+            IslandTileType.OCEAN_TILE_B_NORMALIZED,
+            1
+        );
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
-        getMapViewport().apply(true);
-
-        getMatchMap().flushDeadEntities();
-
+        updateMapCamera();
+        getMatch().getMatchMap().flushDeadEntities();
         getBatch().begin();
 
         updateEntities(delta);
@@ -286,21 +283,20 @@ public class MatchScreen implements Screen {
 
         handleHUDRendering(delta);
         handleMapRendering();
-        getBatch().end();
 
+        getBatch().end();
         getMapStage().act(delta);
         getMapStage().draw();
-
         getHUDStage().act(delta);
         getHUDStage().draw();
     }
 
     private void drawLabelsAndUpdateResources(float delta) {
-        for (Actor actor : getResourceMenu().getChildren()) {
+        for (final Actor actor : getResourceMenu().getChildren()) {
             if (!(actor instanceof ResourceLabel))
                 continue;
 
-            ResourceLabel resourceLabel = (ResourceLabel) actor;
+            final ResourceLabel resourceLabel = (ResourceLabel) actor;
 
             resourceLabel.update(delta);
         }
@@ -308,13 +304,16 @@ public class MatchScreen implements Screen {
 
     private void moveEntities(float delta) {
         for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
-            Array<Entity<?, ?>> priorityEntities = getMatchMap().getCertainPriorityEntities(entityPriority);
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
 
-            for (Entity<?, ?> entity : priorityEntities) {
-                float yDistance = (float) (Math.sin(entity.getDirection()) * entity.getSpeed());
-                float xDistance = (float) (Math.cos(entity.getDirection()) * entity.getSpeed());
+            for (final Entity<?, ?> entity : priorityEntities) {
+                final float yDistance = (float) (Math.sin(entity.getDirection()) * entity.getSpeed());
+                final float xDistance = (float) (Math.cos(entity.getDirection()) * entity.getSpeed());
 
-                entity.getSprite().translate(xDistance * delta, yDistance * delta);
+                entity.setPosition(
+                    entity.getX() + xDistance * delta,
+                    entity.getY() + yDistance * delta
+                );
             }
         }
 
@@ -324,8 +323,8 @@ public class MatchScreen implements Screen {
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     private void presentEntities() {
-        for (int entityPriority = 0; entityPriority < getMatchMap().getAllPriorityEntities().length; entityPriority++) {
-            Array<Entity<?, ?>> priorityEntities = getMatchMap().getCertainPriorityEntities(entityPriority);
+        for (int entityPriority = 0; entityPriority < getMatch().getMatchMap().getAllPriorityEntities().length; entityPriority++) {
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
 
             for (Entity<?, ?> entity : priorityEntities)
                 entity.present(getMapCamera(), getHUDStage(), getShapeRenderer());
@@ -333,15 +332,15 @@ public class MatchScreen implements Screen {
     }
 
     private void updateEntities(float delta) {
-        for (int entityPriority = 0; entityPriority < getMatchMap().getAllPriorityEntities().length; entityPriority++) {
-            Array<Entity<?, ?>> priorityEntities = getMatchMap().getCertainPriorityEntities(entityPriority);
+        for (int entityPriority = 0; entityPriority < getMatch().getMatchMap().getAllPriorityEntities().length; entityPriority++) {
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
 
             // I use an indexed for-loop here instead of a for-each loop because the entity check method might add
             // a new entity to the list (people shooting projectiles for instance). This allows me to avoid
             // concurrent modification exception.
             for (int i = 0; i < priorityEntities.size; i++) {
-                Entity<?, ?> entity = priorityEntities.get(i);
-                entity.check(delta, getPlayer(), getMatchMap());
+                final Entity<?, ?> entity = priorityEntities.get(i);
+                entity.check(delta, getPlayer(), getMatch());
             }
         }
     }
@@ -349,46 +348,43 @@ public class MatchScreen implements Screen {
     private <A extends Building<A, B>, B extends BuildingType<A, B>> void handleBuildButton(BuildButton<A, B> buildButton) {
         Texture associatedTexture = buildButton.getBuildingType().getTexture();
 
-        Vector3 worldCoordsOfMosue = new Vector3(
-            buildButton.getBuildPosition().x,
+        final float worldX = buildButton.getBuildPosition().x / Gdx.graphics.getWidth() * VISIBLE_WORLD_TILE_WIDTH + getPlayer().getX()
+                - buildButton.getBuildingType().getTileWidth() / 2f;
 
-            // Mouse coords are relative to upper left, not bottom left, so make y
-            // equal to height - y
-            Gdx.graphics.getHeight() - buildButton.getBuildPosition().y,
-            0
-        );
+        final float worldY = buildButton.getBuildPosition().y / Gdx.graphics.getHeight() * VISIBLE_WORLD_TILE_HEIGHT + getPlayer().getY()
+                - buildButton.getBuildingType().getTileHeight() / 2f;
 
-        // Convert from screen coords to world coords
-        getMapCamera().unproject(worldCoordsOfMosue);
+        System.out.println("World Coords of Mouse " + worldX + " " + worldY);
+        System.out.println("Player " + getPlayer().getX() + " " + getPlayer().getY());
+        System.out.println("Match Screen " + getMapCamera().position.x + " " + getMapCamera().position.y);
 
-        // Put mouse in center of buildign dragged, not bottom left
-        worldCoordsOfMosue.x -= buildButton.getBuildingType().getTileWidth() / 2f;
-        worldCoordsOfMosue.y -= buildButton.getBuildingType().getTileHeight() / 2f;
+        final int roundedWorldX = Math.round(worldX);
+        final int roundedWorldY = Math.round(worldY);
 
-        getBatch().draw(associatedTexture, worldCoordsOfMosue.x, worldCoordsOfMosue.y, buildButton.getBuildingType().getTileWidth(), buildButton.getBuildingType().getTileHeight());
+        getBatch().draw(associatedTexture, roundedWorldX, roundedWorldY, buildButton.getBuildingType().getTileWidth(), buildButton.getBuildingType().getTileHeight());
 
-        boolean canBuild = false;
+        final BuildingType<A, B> buildingType = buildButton.getBuildingType();
 
-        int mouseTileXCoord = Math.round(worldCoordsOfMosue.x);
-        int mouseTileYCoord = Math.round(worldCoordsOfMosue.y);
+        final Inventory requiredCost = buildButton.getBuildingType().getInventoryCost();
 
-        for (Island island : getMatchMap().getIslands()) {
-            int relativeToIslandX = (int) (mouseTileXCoord - island.x);
-            int relativeToIslandY = (int) (mouseTileYCoord - island.y);
+        final boolean canBuild =
+            // Can Afford
+            getPlayer().getInventory().has(requiredCost) &&
 
-            if (island.canBuild(buildButton.getBuildingType(), relativeToIslandX, relativeToIslandY, getMatchMap()))
-                canBuild = true;
-        }
+            // Can Place
+            getMatch().getMatchMap().canBuild(buildingType, roundedWorldX, roundedWorldY);
 
-        //if (!buildButton.getBuildingType().canCharge(getPlayer().getInventory()))
-        //    canBuild = false;
+        final float checkMarkX = roundedWorldX + buildButton.getBuildingType().getTileWidth() / 2f;
+        final float checkmarkY = roundedWorldY + buildButton.getBuildingType().getTileHeight();
 
-        getBatch().draw(canBuild ? checkmark : x, worldCoordsOfMosue.x, worldCoordsOfMosue.y + buildButton.getBuildingType().getTileHeight(), 1f, 1f);
+        final Texture canBuildIndication = canBuild ? checkmark : x;
+
+        getBatch().draw(canBuildIndication, checkMarkX, checkmarkY, 1f, 1f);
 
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
-            Building<A, B> building = buildButton.newBuilding(mouseTileXCoord, mouseTileYCoord);
+            final Building<A, B> building = buildButton.newBuilding(roundedWorldX, roundedWorldY, getMatch());
 
-            getMatchMap().addEntity(building);
+            getMatch().getMatchMap().addEntity(building);
 
             buildButton.setBuildPosition(null);
             //buildButton.getBuildingType().charge(getPlayer().getInventory());
@@ -423,12 +419,8 @@ public class MatchScreen implements Screen {
     public Game getGame() {
         return game;
     }
-
-    public MatchMap getMatchMap() {
-        return matchMap;
-    }
-
-    public Map<IslandTileType, Texture> getIslandTextures() {
+    
+    public Texture[] getIslandTextures() {
         return islandTextures;
     }
 
@@ -458,10 +450,6 @@ public class MatchScreen implements Screen {
 
     public VerticalGroup getBuildMenu() {
         return buildMenu;
-    }
-
-    public Map<Island, Vector2> getVisibleIslands() {
-        return visibleIslands;
     }
 
     public VerticalGroup getResourceMenu() {
@@ -500,7 +488,7 @@ public class MatchScreen implements Screen {
         return shapeRenderer;
     }
 
-    public BitSet getExploredTiles() {
-        return exploredTiles;
+    public Match getMatch() {
+        return match;
     }
 }

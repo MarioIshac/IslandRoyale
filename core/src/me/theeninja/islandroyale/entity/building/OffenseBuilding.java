@@ -14,6 +14,7 @@ import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
+import me.theeninja.islandroyale.gui.screens.Match;
 
 public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B extends OffenseBuildingType<A, B, C, D>, C extends ControllableEntity<C, D>, D extends ControllableEntityType<C, D>> extends Building<A, B> {
     private Queue<D> entityTypesInQueue;
@@ -32,8 +33,8 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         this.queueDisplay = new HorizontalGroup();
     }
 
-    public OffenseBuilding(B entityType, Player owner, float x, float y) {
-        super(entityType, owner, x, y);
+    public OffenseBuilding(B entityType, Player owner, float x, float y, Match match) {
+        super(entityType, owner, x, y, match);
     }
 
     @Override
@@ -83,8 +84,8 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
     }
 
     @Override
-    public void check(float delta, Player player, MatchMap matchMap) {
-        super.check(delta, player, matchMap);
+    public void check(float delta, Player player, Match match) {
+        super.check(delta, player, match);
 
         updateQueue();
 
@@ -98,9 +99,9 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
             return;
 
         D producedEntityType = removeQueueHead();
-        C newEntity = produceEntity(producedEntityType, matchMap);
+        C newEntity = produceEntity(producedEntityType, match);
 
-        matchMap.addEntity(newEntity);
+        match.getMatchMap().addEntity(newEntity);
 
         // No more entities left to process
         if (getEntityTypesInQueue().size == 0)
@@ -150,13 +151,13 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
 
     }
 
-    abstract C newGenericSpecificEntity(D entityType, Player owner, float x, float y);
+    abstract C newGenericSpecificEntity(D entityType, Player owner, float x, float y, Match match);
 
-    public C produceEntity(D entityType, MatchMap matchMap) {
-        Vector2 availablePosition = getAvailableCoordinates(entityType, matchMap);
-        modifyForSurroundingEntities(availablePosition, matchMap.getAllPriorityEntities());
+    public C produceEntity(D entityType, Match match) {
+        Vector2 availablePosition = getAvailableCoordinates(entityType, match.getMatchMap());
+        modifyForSurroundingEntities(availablePosition, match.getMatchMap().getAllPriorityEntities());
 
-        return newGenericSpecificEntity(entityType, getOwner(), availablePosition.x, availablePosition.y);
+        return newGenericSpecificEntity(entityType, getOwner(), availablePosition.x, availablePosition.y, match);
     }
 
     public Group getQueueDisplay() {

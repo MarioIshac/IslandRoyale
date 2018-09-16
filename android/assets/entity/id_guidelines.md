@@ -11,3 +11,4 @@
 ##Person Bullet Projectiles [90000 - 99999]
 ##Resource Treasures [100000 - 109999]
 ##Data Treasures [110000 - 119999]
+##Headquarters [120000 - 129999]
