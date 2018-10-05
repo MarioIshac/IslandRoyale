@@ -20,6 +20,11 @@ public class TransporterType extends ControllableEntityType<Transporter, Transpo
      */
     private int baseMaximumCapacity;
 
+    /**
+     * Represents the base vision.
+     */
+    private int baseRange;
+
     @Override
     public int getDrawingPriority() {
         return EntityType.TRANSPORT_PRIORITY;

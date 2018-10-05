@@ -48,8 +48,8 @@ public class HomeScreen implements Screen {
         getStage().addActor(newOnlineMatchButton);
         getStage().addActor(settingsButton);
 
-        final float halfWidth = Gdx.graphics.getWidth();
-        final float halfHeight = Gdx.graphics.getHeight();
+        final float halfWidth = Gdx.graphics.getWidth() / 2f;
+        final float halfHeight = Gdx.graphics.getHeight() / 2f;
 
         newOfflineMatchButton.setPosition(
             halfWidth - WIDTH_SEPARATOR / 2 - newOfflineMatchButton.getWidth(),
@@ -63,12 +63,14 @@ public class HomeScreen implements Screen {
 
         settingsButton.setPosition(
                 halfWidth - settingsButton.getWidth() / 2,
-                halfHeight - HEIGHT_SEPARATOR / 2 - settingsButton.getHeight()
+                halfHeight - HEIGHT_SEPARATOR / 2 - settingsButton.getHeight() * 3 / 2
         );
 
         final OfflineMatchButtonListener offlineMatchListener = new OfflineMatchButtonListener(getGame());
 
         newOfflineMatchButton.addListener(offlineMatchListener);
+
+        Gdx.input.setInputProcessor(getStage());
     }
 
     @Override

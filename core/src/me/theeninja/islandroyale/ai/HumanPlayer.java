@@ -12,4 +12,9 @@ public class HumanPlayer extends Player {
     public void requestTransportationRoute(ControllableEntity<?, ?> entity, MatchMap matchMap) {
         entity.getPathSelectionInputListener().request();
     }
+
+    @Override
+    public void update(MatchMap matchMap) {
+
+    }
 }

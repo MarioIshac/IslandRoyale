@@ -15,12 +15,10 @@ public abstract class Player {
     private int x;
     private int y;
 
+    private int headQuartersIndex;
+
     public Player(String playerName) {
         this.playerName = playerName;
-    }
-
-    public void sendMessage(String message) {
-
     }
 
     public Inventory getInventory() {
@@ -65,7 +63,13 @@ public abstract class Player {
         return playerName;
     }
 
-    public void setPositionOnHeadQuarters(int headQuartersIndex) {
+    public int getHeadQuartersIndex() {
+        return headQuartersIndex;
+    }
+
+    public void setHeadQuartersIndex(int headQuartersIndex) {
+        this.headQuartersIndex = headQuartersIndex;
+
         HeadQuarters headQuarters = getAllHeadQuarters().get(headQuartersIndex);
 
         int playerX = (int) (headQuarters.getX() - MatchScreen.VISIBLE_WORLD_TILE_WIDTH / 2);
@@ -79,5 +83,21 @@ public abstract class Player {
 
         setX(playerX);
         setY(playerY);
+    }
+
+    /**
+     *
+     *
+     * @param matchMap
+     */
+    public void update(MatchMap matchMap) {
+        // Remove headquarters references in case they have been removed elsewhere
+        for (int index = getAllHeadQuarters().size - 1; index >= 0; index--) {
+            HeadQuarters headQuarters = getAllHeadQuarters().get(index);
+
+            if (headQuarters.shouldRemove()) {
+                getAllHeadQuarters().removeIndex(index);
+            }
+        }
     }
 }

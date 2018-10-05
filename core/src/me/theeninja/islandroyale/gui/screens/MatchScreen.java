@@ -11,7 +11,10 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.*;
@@ -71,6 +74,13 @@ public class MatchScreen implements Screen {
 
     public Viewport getMapViewport() {
         return mapViewport;
+    }
+
+    private final Button cycleToPreviousHeadQuartersButton = new TextButton("<", Skins.getInstance().getFlatEarthSkin());
+    private final Button cycleToNextHeadQuartersButton = new TextButton(">", Skins.getInstance().getFlatEarthSkin());
+
+    public Button getCycleToNextHeadQuartersButton() {
+        return cycleToNextHeadQuartersButton;
     }
 
     public MatchScreen(Game game) {
@@ -152,7 +162,7 @@ public class MatchScreen implements Screen {
 
         this.player = players[0];
 
-        getPlayer().setPositionOnHeadQuarters(0);
+        getPlayer().setHeadQuartersIndex(0);
 
         getResourceMenu().space(20f);
         getBuildMenu().space(20f);
@@ -183,7 +193,31 @@ public class MatchScreen implements Screen {
             getMapStage()
         );
 
-        ;
+        getHUDStage().addActor(getCycleToPreviousHeadQuartersButton());
+        getHUDStage().addActor(getCycleToNextHeadQuartersButton());
+
+        getCycleToNextHeadQuartersButton().setPosition(
+                Gdx.graphics.getWidth() - getCycleToNextHeadQuartersButton().getWidth() - 20,
+                20
+        );
+
+        getCycleToPreviousHeadQuartersButton().setPosition(
+                getCycleToNextHeadQuartersButton().getX() - getCycleToPreviousHeadQuartersButton().getWidth() - 20,
+                20
+        );
+
+        InputListener cycleToPreviousHeadQuartersListener = new HeadquartersCycleListener(getPlayer(), -1);
+        InputListener cycleToNextHeadQuartersListener = new HeadquartersCycleListener(getPlayer(), 1);
+
+        getCycleToPreviousHeadQuartersButton().addListener(cycleToPreviousHeadQuartersListener);
+        getCycleToNextHeadQuartersButton().addListener(cycleToNextHeadQuartersListener);
+    }
+
+    private void toggleHeadQuarterCycleButtons() {
+        boolean headQuartersAvailableToCycleTo = getPlayer().getAllHeadQuarters().size != 1;
+
+        getCycleToPreviousHeadQuartersButton().setDisabled(headQuartersAvailableToCycleTo);
+        getCycleToNextHeadQuartersButton().setDisabled(headQuartersAvailableToCycleTo);
     }
 
     private static boolean isBuildButtonInDragState(BuildButton buildButton) {
@@ -202,10 +236,10 @@ public class MatchScreen implements Screen {
     private void updateMapCamera() {
         if (PathSelectionInputListener.areAnyInUse()) {
             getMapViewport().setWorldSize(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
-            getMapCamera().position.set(WHOLE_WORLD_TILE_WIDTH / 2, WHOLE_WORLD_TILE_HEIGHT / 2, 0);
+            getMapCamera().position.set(WHOLE_WORLD_TILE_WIDTH / 2f, WHOLE_WORLD_TILE_HEIGHT / 2f, 0);
         } else {
             getMapViewport().setWorldSize(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT);
-            getMapCamera().position.set(getPlayer().getX() + VISIBLE_WORLD_TILE_WIDTH / 2, getPlayer().getY() + VISIBLE_WORLD_TILE_HEIGHT / 2, 0);
+            getMapCamera().position.set(getPlayer().getX() + VISIBLE_WORLD_TILE_WIDTH / 2f, getPlayer().getY() + VISIBLE_WORLD_TILE_HEIGHT / 2, 0);
         }
 
         getMapViewport().apply(false);
@@ -289,6 +323,8 @@ public class MatchScreen implements Screen {
         getMapStage().draw();
         getHUDStage().act(delta);
         getHUDStage().draw();
+
+        toggleHeadQuarterCycleButtons();
     }
 
     private void drawLabelsAndUpdateResources(float delta) {
@@ -490,5 +526,9 @@ public class MatchScreen implements Screen {
 
     public Match getMatch() {
         return match;
+    }
+
+    public Button getCycleToPreviousHeadQuartersButton() {
+        return cycleToPreviousHeadQuartersButton;
     }
 }

@@ -21,7 +21,7 @@ public class OfflineMatchButtonListener extends InputListener {
         return true;
     }
 
-    public Game getGame() {
+    private Game getGame() {
         return game;
     }
 }

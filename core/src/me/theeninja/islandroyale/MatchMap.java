@@ -6,11 +6,11 @@ import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.building.*;
-import me.theeninja.islandroyale.entity.treasure.DataTreasure;
-import me.theeninja.islandroyale.entity.treasure.DataTreasureType;
-import me.theeninja.islandroyale.entity.treasure.ResourceTreasure;
-import me.theeninja.islandroyale.entity.treasure.ResourceTreasureType;
+import me.theeninja.islandroyale.entity.treasure.*;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
+
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
 public class MatchMap {
     private final int tileWidth;
@@ -144,8 +144,9 @@ public class MatchMap {
 
         this.tileHeights = populateTiles();
         setUpEntitiesArray();
-        generateResourceTreasures();
-        generateDataTreasures();
+
+        generateTreasures(getResourceTreasureTypes(), ResourceTreasure::new, 5);
+        generateTreasures(getDataTreasureTypes(), DataTreasure::new, 5);
 
         populateHeadquarters();
     }
@@ -227,35 +228,32 @@ public class MatchMap {
         return buildTileCount >= buildingType.getMinGroundTiles();
     }
 
-    private int resourceTreasureGenerationCountPerIteration;
-    private int dataTreasureGenerationCountPerIteration;
-
-    private void generateResourceTreasures() {
-        for (int generationIndex = 0; generationIndex < getResourceTreasureGenerationCountPerIteration(); generationIndex++) {
-            final int randomXTile = MathUtils.random(getTileWidth());
-            final int randomYTile = MathUtils.random(getTileHeight());
-            final int randomResourceTreasureTypeIndex = MathUtils.random(getResourceTreasureTypes().size);
-            final ResourceTreasureType randomResourceTreasuretype = getResourceTreasureTypes().get(randomResourceTreasureTypeIndex);
-
-            final ResourceTreasure resourceTreasure = new ResourceTreasure(randomResourceTreasuretype, null, randomXTile, randomYTile);
-
-            getCertainPriorityEntities(randomResourceTreasuretype.getDrawingPriority()).add(resourceTreasure);
-        }
+    @FunctionalInterface
+    private interface TreasureConstructor<A extends Treasure<A, B>, B extends TreasureType<A, B>> {
+        A construct(B treasureType, Player owner, float x, float y);
     }
 
-    private void generateDataTreasures() {
-        for (int generationIndex = 0; generationIndex < getDataTreasureGenerationCountPerIteration(); generationIndex++) {
+    private <A extends Treasure<A, B>, B extends TreasureType<A, B>> void generateTreasures(Array<B> treasures, TreasureConstructor<A, B> treasureConstructor, int amountOfTreasures) {
+        for (int generationIndex = 0; generationIndex < amountOfTreasures; generationIndex++) {
             final int randomXTile = MathUtils.random(getTileWidth());
             final int randomYTile = MathUtils.random(getTileHeight());
-            final int randomResourceTreasureTypeIndex = MathUtils.random(getDataTreasureTypes().size);
-            final DataTreasureType dataTreasureType = getDataTreasureTypes().get(randomResourceTreasureTypeIndex);
 
-            final DataTreasure dataTreasure = new DataTreasure(dataTreasureType, null, randomXTile, randomYTile);
+            // TODO Fix bug, as size of treasures is always 0
 
-            getCertainPriorityEntities(dataTreasureType.getDrawingPriority()).add(dataTreasure);
+            final int maxIndex = treasures.size - 1;
+
+            // Indicates there are loaded treasure types
+            if (maxIndex != -1) {
+                final int treasureTypeIndex = MathUtils.random(maxIndex);
+                final B randomTreasureType = treasures.get(treasureTypeIndex);
+
+                final A resourceTreasure = treasureConstructor.construct(randomTreasureType, null, randomXTile, randomYTile);
+
+                getCertainPriorityEntities(randomTreasureType.getDrawingPriority()).add(resourceTreasure);
+            }
         }
     }
-
+    
     public int getTileHeight() {
         return tileHeight;
     }
@@ -274,14 +272,6 @@ public class MatchMap {
 
     public MatchScreen getMatchScreen() {
         return matchScreen;
-    }
-
-    public int getDataTreasureGenerationCountPerIteration() {
-        return dataTreasureGenerationCountPerIteration;
-    }
-
-    public int getResourceTreasureGenerationCountPerIteration() {
-        return resourceTreasureGenerationCountPerIteration;
     }
 
     public float[][] getTileHeights() {

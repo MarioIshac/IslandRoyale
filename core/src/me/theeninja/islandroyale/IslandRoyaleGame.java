@@ -16,7 +16,6 @@ import me.theeninja.islandroyale.gui.screens.MatchScreen;
 public class IslandRoyaleGame extends Game {
     @Override
     public void create() {
-        Screen matchScreen = new MatchScreen(this);
         Screen homeScreen = new HomeScreen(this);
 
         setScreen(homeScreen);
