@@ -15,14 +15,14 @@ import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
 import me.theeninja.islandroyale.gui.screens.Match;
 
-public class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingType> implements Attacker<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> {
-    @EntityAttribute
+public final class DefenseBuilding extends Building<DefenseBuilding, DefenseBuildingType> implements Attacker<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> {
+    @EntityAttribute(BASE_RANGE_FIELD_NAME)
     private float range;
 
-    @EntityAttribute
+    @EntityAttribute(BASE_FIRE_RATE_FIELD_NAME)
     private float fireRate;
 
-    @EntityAttribute
+    @EntityAttribute(BASE_DAMAGE_FIELD_NAME)
     private float damage;
 
     private float timeUntilAttack;

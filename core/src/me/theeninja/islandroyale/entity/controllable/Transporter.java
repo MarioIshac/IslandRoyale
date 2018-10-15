@@ -12,10 +12,13 @@ import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.gui.screens.Match;
 
 public class Transporter extends ControllableEntity<Transporter, TransporterType> {
-    @EntityAttribute
+    private static final String BASE_MAXIMUM_CAPACITY_FIELD_NAME = "baseMaximumCapacity";
+    private static final String BASE_RANGE_FIELD_NAME = "baseRange";
+
+    @EntityAttribute(BASE_MAXIMUM_CAPACITY_FIELD_NAME)
     private int maximumCapacity;
 
-    @EntityAttribute
+    @EntityAttribute(BASE_RANGE_FIELD_NAME)
     private int range;
 
     private TransportAcceptorListener transportListener;
@@ -76,8 +79,6 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
         Array<Entity<?, ?>> treasures = matchMap.getCertainPriorityEntities(EntityType.TREASURE_PRIORITY);
 
         for (Entity<?, ?> transporter : transporters) {
-            float rangeSquared = transporter.get
-
             for (Entity<?, ?> treasure : treasures) {
                 float distanceSquared = Entity.rangeBetweenSquared(transporter, treasure);
             }

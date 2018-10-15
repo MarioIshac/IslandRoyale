@@ -30,17 +30,21 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
         this.pathSelectionInputListener = new PathSelectionInputListener<>(getReference());
     }
 
-    @EntityAttribute
+    private static final String BASE_MOVEMENT_SPEED_FIELD_NAME = "baseMovementSpeed";
+
+    @EntityAttribute(BASE_MOVEMENT_SPEED_FIELD_NAME)
     private float movementSpeed;
 
-    @EntityAttribute
+    private static final String BASE_PRODUCTION_TIME_FIELD_NAME = "baseProductionTime";
+
+    @EntityAttribute(BASE_PRODUCTION_TIME_FIELD_NAME)
     private float productionTime;
 
     public ControllableEntity(B entityType, Player owner, float x, float y, Match match) {
         super(entityType, owner, x, y, match);
 
-        setMovementSpeed(getEntityType().getBaseMovementSpeed());
-        setProductionTime(getEntityType().getProductionTime());
+        //setMovementSpeed(getEntityType().getBaseMovementSpeed());
+        //setProductionTime(getEntityType().getProductionTime());
     }
 
     public TextButton getTargetSelector() {
@@ -115,7 +119,7 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
         // Indicates that we have passed the path component we are on route to, adjust course with respect
         // to next available path component.
         if (isPastX(getDirection(), getXDifference(nextPathComponent)) &&
-                isPastY(getDirection(), getYDifference(nextPathComponent))) {
+            isPastY(getDirection(), getYDifference(nextPathComponent))) {
 
             setPathIndex(getPathIndex() + 1);
 

@@ -53,17 +53,17 @@ public class HomeScreen implements Screen {
 
         newOfflineMatchButton.setPosition(
             halfWidth - WIDTH_SEPARATOR / 2 - newOfflineMatchButton.getWidth(),
-                halfHeight + HEIGHT_SEPARATOR / 2 - newOfflineMatchButton.getHeight() / 2
+            halfHeight + HEIGHT_SEPARATOR / 2 - newOfflineMatchButton.getHeight() / 2
         );
 
         newOnlineMatchButton.setPosition(
-                halfWidth + WIDTH_SEPARATOR / 2,
-                halfHeight + HEIGHT_SEPARATOR / 2 - newOnlineMatchButton.getHeight() / 2
+            halfWidth + WIDTH_SEPARATOR / 2,
+            halfHeight + HEIGHT_SEPARATOR / 2 - newOnlineMatchButton.getHeight() / 2
         );
 
         settingsButton.setPosition(
-                halfWidth - settingsButton.getWidth() / 2,
-                halfHeight - HEIGHT_SEPARATOR / 2 - settingsButton.getHeight() * 3 / 2
+            halfWidth - settingsButton.getWidth() / 2,
+            halfHeight - HEIGHT_SEPARATOR / 2 - settingsButton.getHeight() * 3 / 2
         );
 
         final OfflineMatchButtonListener offlineMatchListener = new OfflineMatchButtonListener(getGame());

@@ -213,35 +213,35 @@ public class PathSelectionInputListener<A extends ControllableEntity<A, B>, B ex
         return getCurrentlyShownEntity() != null;
     }
 
-    public boolean isInLeft() {
+    private boolean isInLeft() {
         return inLeft;
     }
 
-    public void setInLeft(boolean inLeft) {
+    private void setInLeft(boolean inLeft) {
         this.inLeft = inLeft;
     }
 
-    public boolean isInRight() {
+    private boolean isInRight() {
         return inRight;
     }
 
-    public void setInRight(boolean inRight) {
+    private void setInRight(boolean inRight) {
         this.inRight = inRight;
     }
 
-    public boolean isInUp() {
+    private boolean isInUp() {
         return inUp;
     }
 
-    public void setInUp(boolean inUp) {
+    private void setInUp(boolean inUp) {
         this.inUp = inUp;
     }
 
-    public boolean isInDown() {
+    private boolean isInDown() {
         return inDown;
     }
 
-    public void setInDown(boolean inDown) {
+    private void setInDown(boolean inDown) {
         this.inDown = inDown;
     }
 }

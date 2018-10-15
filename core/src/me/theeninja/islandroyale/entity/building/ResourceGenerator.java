@@ -8,7 +8,9 @@ import me.theeninja.islandroyale.entity.EntityAttribute;
 import me.theeninja.islandroyale.gui.screens.Match;
 
 public class ResourceGenerator extends Building<ResourceGenerator, ResourceGeneratorType> {
-    @EntityAttribute
+    private static final String BASE_RATE_FIELD_NAME = "baseRate";
+
+    @EntityAttribute(BASE_RATE_FIELD_NAME)
     private float rate;
 
     public ResourceGenerator(ResourceGeneratorType entityType, Player owner, float x, float y, Match match) {

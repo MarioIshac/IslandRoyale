@@ -15,11 +15,13 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
         super(entityType, owner, x, y);
 
         getEntityType().configureEditor(getReference(), match);
-        setHealth(getEntityType().getBaseHealth());
-        setLevel(getEntityType().getBaseLevel(getReference()));
+        //setHealth(getEntityType().getBaseHealth());
+        //setLevel(getEntityType().getBaseLevel(getReference()));
     }
 
-    @EntityAttribute
+    private static final String BASE_HEALTH_FIELD_NAME = "baseHealth";
+
+    @EntityAttribute(BASE_HEALTH_FIELD_NAME)
     private float health;
 
     private final Table descriptor = new Table();

@@ -15,7 +15,11 @@ import me.theeninja.islandroyale.gui.screens.Match;
  * @param <C>
  * @param <D>
  */
-public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends BulletProjectileType<A, B, C, D>, C extends InteractableEntity<C, D> & Attacker, D extends InteractableEntityType<C, D>> {
+public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends BulletProjectileType<A, B, C, D>, C extends InteractableEntity<C, D> & Attacker<A, B, C, D>, D extends InteractableEntityType<C, D> & AttackerType<A, B, C, D>> {
+    String BASE_RANGE_FIELD_NAME = "baseRange";
+    String BASE_FIRE_RATE_FIELD_NAME = "baseFireRate";
+    String BASE_DAMAGE_FIELD_NAME = "baseDamage";
+
     int getStaticProjectileID();
 
     /**
@@ -28,7 +32,7 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
      *
      * @return another entity that is closest to {@code entity}
      */
-    default InteractableEntity<?, ?> getNewTargetEntity(C entity, MatchMap matchMap) {
+    default InteractableEntity<?, ?> getNewTargetEntity(final C entity, final MatchMap matchMap) {
         // We keep the minimum distance SQUARED in order to improve performance
         float minDistanceSquared = Float.MAX_VALUE;
         InteractableEntity<?, ?> closestEntity = null;
@@ -75,7 +79,7 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
      *         health of the attacked entity need not be 0 at the time this method is called for it to return true,
      *         as projectiles that have been launched but have not yet landed are taken into consideration.
      */
-    default boolean isNewTargetEntityRequired(C attackerEntity) {
+    default boolean isNewTargetEntityRequired(final C attackerEntity) {
         if (getTargetEntity() == null)
             return true;
 
@@ -85,10 +89,6 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
 
             // entity out of range
             (Entity.rangeBetweenSquared(attackerEntity, getTargetEntity()) < attackerEntity.getRange() * attackerEntity.getRange());
-    }
-
-    default float damageHealth(float health, float damage) {
-        return health - damage;
     }
 
     default A newProjectile(C attackerEntity, Match match) {

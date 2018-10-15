@@ -4,8 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import me.theeninja.islandroyale.entity.Attacker;
+import me.theeninja.islandroyale.entity.AttackerType;
+import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectile;
+import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
 
-public class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBuildingType> {
+public final class DefenseBuildingType extends BuildingType<DefenseBuilding, DefenseBuildingType> implements AttackerType<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> {
     private float baseDamage;
 
     /**

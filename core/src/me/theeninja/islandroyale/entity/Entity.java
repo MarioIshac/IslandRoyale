@@ -55,7 +55,9 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         return !doesNotOverlap;
     }
 
-    @EntityAttribute
+    private static final String BASE_LEVEL_FIELD_NAMe = "baseLevel";
+
+    @EntityAttribute(BASE_LEVEL_FIELD_NAMe)
     private int level;
 
     private final Sprite sprite;
@@ -86,6 +88,8 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         setZIndex(EntityType.NUMBER_OF_PRIORITIES - getEntityType().getDrawingPriority());
 
         updateSprite();
+
+        EntityAttributeInitializer.initializeAttributes(getReference());
     }
 
     /**

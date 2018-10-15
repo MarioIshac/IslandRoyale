@@ -4,10 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap;
 import me.theeninja.islandroyale.MatchMap;
-import me.theeninja.islandroyale.entity.Entity;
-import me.theeninja.islandroyale.entity.EntityType;
-import me.theeninja.islandroyale.entity.EntityTypeManager;
-import me.theeninja.islandroyale.entity.InteractableEntity;
+import me.theeninja.islandroyale.entity.*;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.api.Updater;
@@ -23,11 +20,13 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.collection.IntArrayKeyMap;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.learning.config.RmsProp;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -48,6 +47,29 @@ public class AIPlayer extends Player {
         super(playerName);
         this.level = level;
         this.computationGraph = this.createComputationGraph(entityMap);
+
+        this.indArrayMap = initializeIndArrayMap(entityMap);
+    }
+
+    private Map<INDArray, InteractableEntity<?, ?>> initializeIndArrayMap(final IntMap<Entity<?, ?>> entityMap) {
+        final Map<INDArray, InteractableEntity<?, ?>> indArrayMap = new HashMap<>();
+
+        int entityIndex = 0;
+
+        for (final Entity<?, ?> entity : entityMap.values()) {
+            if (!(entity.getEntityType() instanceof InteractableEntityType)) {
+                continue;
+            }
+
+            final InteractableEntity<?, ?> interactableEntity = (InteractableEntity<?, ?>) entity;
+
+            final INDArray indArray = Nd4j.zeros(entityMap.size);
+            indArray.putScalar(entityIndex++, 1);
+
+            indArrayMap.put(indArray, interactableEntity);
+        }
+
+        return indArrayMap;
     }
 
     public int getLevel() {
@@ -58,10 +80,7 @@ public class AIPlayer extends Player {
     private static final int EMBEDDING_WIDTH = 256;
     private static final double LEARNING_RATE = 0.001;
 
-    private final Map<INDArray, InteractableEntity<?, ?>> indArrayMap = new HashMap<>();
-
-    {
-    }
+    private final Map<INDArray, InteractableEntity<?, ?>> indArrayMap;
 
     private ComputationGraph createComputationGraph(IntMap<Entity<?, ?>> entityMap) {
         final IUpdater adamOptimizer = new Adam(LEARNING_RATE);
@@ -175,5 +194,9 @@ public class AIPlayer extends Player {
 
     public Array<InteractableEntity<?, ?>> getQueriedEntities() {
         return queriedEntities;
+    }
+
+    public Map<INDArray, InteractableEntity<?, ?>> getIndArrayMap() {
+        return indArrayMap;
     }
 }

@@ -6,14 +6,14 @@ import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectileType;
 import me.theeninja.islandroyale.gui.screens.Match;
 
-public class Person extends ControllableEntity<Person, PersonType> implements Attacker<PersonBulletProjectile, PersonBulletProjectileType, Person, PersonType> {
-    @EntityAttribute
+public final class Person extends ControllableEntity<Person, PersonType> implements Attacker<PersonBulletProjectile, PersonBulletProjectileType, Person, PersonType> {
+    @EntityAttribute(BASE_RANGE_FIELD_NAME)
     private float range;
 
-    @EntityAttribute
+    @EntityAttribute(BASE_FIRE_RATE_FIELD_NAME)
     private float fireRate;
 
-    @EntityAttribute
+    @EntityAttribute(BASE_DAMAGE_FIELD_NAME)
     private float damage;
 
     private float timeUntilAttack;

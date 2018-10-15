@@ -11,10 +11,14 @@ public abstract class BulletProjectile<A extends BulletProjectile<A, B, C, D>, B
     private final C initiatorEntity;
     private final InteractableEntity<?, ?> targetEntity;
 
-    @EntityAttribute
+    private static final String BASE_DAMAGE_FIELD_NAME = "baseDamage";
+
+    @EntityAttribute(BASE_DAMAGE_FIELD_NAME)
     private float damage;
 
-    @EntityAttribute
+    private static final String BASE_MOVEMENT_SPEED_FIELD_NAME = "baseMovementSpeed";
+
+    @EntityAttribute(BASE_MOVEMENT_SPEED_FIELD_NAME)
     private float movementSpeed;
 
     public BulletProjectile(B entityType, Player owner, float x, float y, C initiatorEntity) {
