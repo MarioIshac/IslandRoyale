@@ -26,11 +26,6 @@ public abstract class BulletProjectileType<A extends BulletProjectile<A, B, C, D
      */
     private int angleOffset;
 
-    @Override
-    public int getDrawingPriority() {
-        return EntityType.BULLET_PROJECTILE_PRIORITY;
-    }
-
     public float getBaseMovementSpeed() {
         return baseMovementSpeed;
     }

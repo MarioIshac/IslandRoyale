@@ -9,6 +9,7 @@ import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityAttribute;
 import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.treasure.Treasure;
 import me.theeninja.islandroyale.gui.screens.Match;
 
 public class Transporter extends ControllableEntity<Transporter, TransporterType> {
@@ -57,7 +58,7 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
     public void check(float delta, Player player, Match match) {
         super.check(delta, player, match);
 
-        getTransportListener().refreshTransporters(match.getMatchMap().getAllPriorityEntities());
+        getTransportListener().refreshTransporters(match.getMatchMap());
 
         updateMoveAttributes();
 
@@ -71,17 +72,6 @@ public class Transporter extends ControllableEntity<Transporter, TransporterType
 
             person.setPosition(personXPos, personYPos);
             collectiveTotal += person.getWidth();
-        }
-    }
-
-    private void checkTreasure(MatchMap matchMap) {
-        Array<Entity<?, ?>> transporters = matchMap.getCertainPriorityEntities(EntityType.TRANSPORT_PRIORITY);
-        Array<Entity<?, ?>> treasures = matchMap.getCertainPriorityEntities(EntityType.TREASURE_PRIORITY);
-
-        for (Entity<?, ?> transporter : transporters) {
-            for (Entity<?, ?> treasure : treasures) {
-                float distanceSquared = Entity.rangeBetweenSquared(transporter, treasure);
-            }
         }
     }
 

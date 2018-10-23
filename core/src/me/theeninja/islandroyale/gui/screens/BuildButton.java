@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.ai.Player;
-import me.theeninja.islandroyale.entity.BuildingConstructor;
+import me.theeninja.islandroyale.entity.InteractableEntityConstructor;
 import me.theeninja.islandroyale.entity.Skins;
 import me.theeninja.islandroyale.entity.building.Building;
 import me.theeninja.islandroyale.entity.building.BuildingType;
@@ -12,11 +12,11 @@ import me.theeninja.islandroyale.entity.building.BuildingType;
 public class BuildButton<A extends Building<A, B>, B extends BuildingType<A, B>> extends TextButton {
     private final B buildingEntityType;
     private final Player player;
-    private final BuildingConstructor<A, B> buildingConstructor;
+    private final InteractableEntityConstructor<A, B> buildingConstructor;
 
     private Vector2 buildPosition;
 
-    public BuildButton(B buildingEntityType, Player player, BuildingConstructor<A, B> buildingConstructor) {
+    public BuildButton(B buildingEntityType, Player player, InteractableEntityConstructor<A, B> buildingConstructor) {
         super(buildingEntityType.getName(), Skins.getInstance().getFlatEarthSkin());
 
         this.buildingEntityType = buildingEntityType;
@@ -47,7 +47,7 @@ public class BuildButton<A extends Building<A, B>, B extends BuildingType<A, B>>
         return player;
     }
 
-    public BuildingConstructor<A, B> getBuildingConstructor() {
+    public InteractableEntityConstructor<A, B> getBuildingConstructor() {
         return buildingConstructor;
     }
 }

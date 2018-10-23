@@ -9,34 +9,31 @@ import me.theeninja.islandroyale.entity.building.*;
 import me.theeninja.islandroyale.entity.treasure.*;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
-
 public class MatchMap {
     private final int tileWidth;
     private final int tileHeight;
     private final MatchScreen matchScreen;
 
-    public void addEntity(Entity<?, ?> entity) {
+    public <A extends Entity<A, B>, B extends EntityType<A, B>> void addEntity(A entity) {
         // Add entity to stage
         getMatchScreen().getMapStage().addActor(entity);
 
-        Array<Entity<?, ?>> priorityEntities = getCertainPriorityEntities(entity.getEntityType().getDrawingPriority());
+        Array<A> entities = getEntitiesOfType(entity.getEntityType());
 
         // Add entity to entity list
-        priorityEntities.add(entity);
+        entities.add(entity);
     }
 
     private final byte[][] tiles = new byte[MatchScreen.WHOLE_WORLD_TILE_WIDTH][MatchScreen.WHOLE_WORLD_TILE_HEIGHT];
     private final float[][] tileHeights;
 
     @SuppressWarnings("unchecked") // Generic Array Creation not Allowed in Java
-    private final Array<Entity<?, ?>>[] entities = new Array[EntityType.NUMBER_OF_PRIORITIES];
+    private final Array<Entity<?, ?>>[] entities = new Array[EntityType.NUMBER_OF_ENTITY_TYPES];
 
     public void flushDeadEntities() {
         // Iterate backwards to allow removing entities on the way
-        for (int entityPriority = 0; entityPriority < getAllPriorityEntities().length; entityPriority++) {
-            final Array<Entity<?, ?>> certainPriorityEntities = getCertainPriorityEntities(entityPriority);
+        for (int entityPriority = 0; entityPriority < getEntities().length; entityPriority++) {
+            final Array<Entity<?, ?>> certainPriorityEntities = getEntities()[entityPriority];
 
             final int lastEntityIndex = certainPriorityEntities.size - 1;
 
@@ -152,8 +149,8 @@ public class MatchMap {
     }
 
     private void setUpEntitiesArray() {
-        for (int entityPriority = 0; entityPriority < getAllPriorityEntities().length; entityPriority++)
-            getAllPriorityEntities()[entityPriority] = new Array<>();
+        for (int entityPriority = 0; entityPriority < getEntities().length; entityPriority++)
+            getEntities()[entityPriority] = new Array<>();
     }
 
 
@@ -189,10 +186,10 @@ public class MatchMap {
         return heightMap;
     }
 
-    public <A extends Building<A, B>, B extends BuildingType<A, B>> boolean canBuild(BuildingType<A, B> buildingType, int buildingTileX, int buildingTileY) {
+    public <A extends Building<A, B>, B extends BuildingType<A, B>> boolean canBuild(B buildingType, int buildingTileX, int buildingTileY) {
         int buildTileCount = 0;
 
-        final Array<Entity<?, ?>> buildingEntities = getCertainPriorityEntities(EntityType.BUILDING_PRIORITY);
+        final Array<A> buildingEntities = getEntitiesOfType(buildingType);
 
         final float rightX = buildingTileX + buildingType.getTileWidth();
         final float upperY = buildingTileY + buildingType.getTileHeight();
@@ -249,7 +246,7 @@ public class MatchMap {
 
                 final A resourceTreasure = treasureConstructor.construct(randomTreasureType, null, randomXTile, randomYTile);
 
-                getCertainPriorityEntities(randomTreasureType.getDrawingPriority()).add(resourceTreasure);
+                getEntitiesOfType(randomTreasureType).add(resourceTreasure);
             }
         }
     }
@@ -258,12 +255,19 @@ public class MatchMap {
         return tileHeight;
     }
 
-    public Array<Entity<?, ?>>[] getAllPriorityEntities() {
+    public Array<Entity<?, ?>>[] getEntities() {
         return entities;
     }
 
-    public Array<Entity<?, ?>> getCertainPriorityEntities(int entityPriority) {
-        return getAllPriorityEntities()[entityPriority];
+    public <A extends Entity<A, B>, B extends EntityType<A, B>> Array<A> getEntitiesOfType(B entityType) {
+        return getEntitiesOfType(entityType.getEntityTypeIndex());
+    }
+
+    @SuppressWarnings("unchecked")
+    public <A extends Entity<A, B>, B extends EntityType<A, B>> Array<A> getEntitiesOfType(int entityTypeIndex) {
+        Array<Entity<?, ?>> uncastedEntities = getEntities()[entityTypeIndex];
+
+        return (Array<A>) uncastedEntities;
     }
 
     public int getTileWidth() {

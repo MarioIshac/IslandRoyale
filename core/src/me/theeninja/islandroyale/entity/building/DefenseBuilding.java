@@ -80,7 +80,7 @@ public final class DefenseBuilding extends Building<DefenseBuilding, DefenseBuil
             }
         }
 
-        BulletProjectile<DefenseBulletProjectile, DefenseBulletProjectileType, DefenseBuilding, DefenseBuildingType> projectile = newProjectile(this, match);
+        DefenseBulletProjectile projectile = newProjectile(this, match);
         match.getMatchMap().addEntity(projectile);
 
         System.out.println("Launched Attack");

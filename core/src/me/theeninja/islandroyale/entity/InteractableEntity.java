@@ -11,12 +11,22 @@ import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.gui.screens.Match;
 
 public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B extends InteractableEntityType<A, B>> extends Entity<A, B> {
+    private final Match match;
+
     public InteractableEntity(B entityType, Player owner, float x, float y, Match match) {
         super(entityType, owner, x, y);
+        this.match = match;
 
-        getEntityType().configureEditor(getReference(), match);
-        //setHealth(getEntityType().getBaseHealth());
-        //setLevel(getEntityType().getBaseLevel(getReference()));
+        getEntityType().configureEditor(getReference(), getMatch());
+    }
+
+    public static <OA extends InteractableEntity<OA, OB>, OB extends InteractableEntityType<OA, OB>> OA copy(OA sourceEntity, InteractableEntityConstructor<OA, OB> interactableEntityConstructor) {
+        return interactableEntityConstructor.construct(sourceEntity.getEntityType(), sourceEntity.getOwner(), sourceEntity.getX(), sourceEntity.getY(), sourceEntity.getMatch());
+    }
+
+    public static <OA extends InteractableEntity<OA, OB>, OB extends InteractableEntityType<OA, OB>> void resetState(OA entity) {
+        float baseHealth = entity.getEntityType().getBaseHealth();
+        entity.setHealth(baseHealth);
     }
 
     private static final String BASE_HEALTH_FIELD_NAME = "baseHealth";
@@ -122,5 +132,9 @@ public abstract class InteractableEntity<A extends InteractableEntity<A, B>, B e
 
     public Button getUpgradeButton() {
         return upgradeButton;
+    }
+
+    public Match getMatch() {
+        return match;
     }
 }

@@ -14,8 +14,8 @@ public final class PersonType extends ControllableEntityType<Person, PersonType>
     private float baseFireRate;
 
     @Override
-    public int getDrawingPriority() {
-        return EntityType.PERSON_PRIORITY;
+    public int getEntityTypeIndex() {
+        return PERSON_TYPE;
     }
 
     @Override

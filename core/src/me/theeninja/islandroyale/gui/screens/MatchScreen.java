@@ -236,10 +236,20 @@ public class MatchScreen implements Screen {
     private void updateMapCamera() {
         if (PathSelectionInputListener.areAnyInUse()) {
             getMapViewport().setWorldSize(WHOLE_WORLD_TILE_WIDTH, WHOLE_WORLD_TILE_HEIGHT);
-            getMapCamera().position.set(WHOLE_WORLD_TILE_WIDTH / 2f, WHOLE_WORLD_TILE_HEIGHT / 2f, 0);
+
+            getMapCamera().position.set(
+                WHOLE_WORLD_TILE_WIDTH / 2f,
+                WHOLE_WORLD_TILE_HEIGHT / 2f,
+                0
+            );
         } else {
             getMapViewport().setWorldSize(VISIBLE_WORLD_TILE_WIDTH, VISIBLE_WORLD_TILE_HEIGHT);
-            getMapCamera().position.set(getPlayer().getX() + VISIBLE_WORLD_TILE_WIDTH / 2f, getPlayer().getY() + VISIBLE_WORLD_TILE_HEIGHT / 2, 0);
+
+            getMapCamera().position.set(
+                getPlayer().getX() + VISIBLE_WORLD_TILE_WIDTH / 2f,
+                getPlayer().getY() + VISIBLE_WORLD_TILE_HEIGHT / 2f,
+                0
+            );
         }
 
         getMapViewport().apply(false);
@@ -339,8 +349,8 @@ public class MatchScreen implements Screen {
     }
 
     private void moveEntities(float delta) {
-        for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
-            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
+        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.NUMBER_OF_ENTITY_TYPES; entityTypeIndex++) {
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getEntities()[entityTypeIndex];
 
             for (final Entity<?, ?> entity : priorityEntities) {
                 final float yDistance = (float) (Math.sin(entity.getDirection()) * entity.getSpeed());
@@ -359,8 +369,8 @@ public class MatchScreen implements Screen {
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     private void presentEntities() {
-        for (int entityPriority = 0; entityPriority < getMatch().getMatchMap().getAllPriorityEntities().length; entityPriority++) {
-            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
+        for (int entityTypeIndex = 0; entityTypeIndex < getMatch().getMatchMap().getEntities().length; entityTypeIndex++) {
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getEntities()[entityTypeIndex];
 
             for (Entity<?, ?> entity : priorityEntities)
                 entity.present(getMapCamera(), getHUDStage(), getShapeRenderer());
@@ -368,8 +378,8 @@ public class MatchScreen implements Screen {
     }
 
     private void updateEntities(float delta) {
-        for (int entityPriority = 0; entityPriority < getMatch().getMatchMap().getAllPriorityEntities().length; entityPriority++) {
-            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
+        for (int entityTypeIndex = 0; entityTypeIndex < getMatch().getMatchMap().getEntities().length; entityTypeIndex++) {
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getEntities()[entityTypeIndex];
 
             // I use an indexed for-loop here instead of a for-each loop because the entity check method might add
             // a new entity to the list (people shooting projectiles for instance). This allows me to avoid
@@ -399,7 +409,7 @@ public class MatchScreen implements Screen {
 
         getBatch().draw(associatedTexture, roundedWorldX, roundedWorldY, buildButton.getBuildingType().getTileWidth(), buildButton.getBuildingType().getTileHeight());
 
-        final BuildingType<A, B> buildingType = buildButton.getBuildingType();
+        final B buildingType = buildButton.getBuildingType();
 
         final Inventory requiredCost = buildButton.getBuildingType().getInventoryCost();
 
@@ -418,7 +428,7 @@ public class MatchScreen implements Screen {
         getBatch().draw(canBuildIndication, checkMarkX, checkmarkY, 1f, 1f);
 
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
-            final Building<A, B> building = buildButton.newBuilding(roundedWorldX, roundedWorldY, getMatch());
+            final A building = buildButton.newBuilding(roundedWorldX, roundedWorldY, getMatch());
 
             getMatch().getMatchMap().addEntity(building);
 

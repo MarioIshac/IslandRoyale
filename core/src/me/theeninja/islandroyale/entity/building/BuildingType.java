@@ -15,11 +15,6 @@ public abstract class BuildingType<A extends Building<A, B>, B extends BuildingT
     }
 
     @Override
-    public int getDrawingPriority() {
-        return EntityType.BUILDING_PRIORITY;
-    }
-
-    @Override
     public void configureEditor(A entity, Match match) {
         TextButton sellButton = new TextButton("Sell", Skins.getInstance().getFlatEarthSkin());
 

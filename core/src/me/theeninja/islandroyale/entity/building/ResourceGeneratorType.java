@@ -19,4 +19,9 @@ public class ResourceGeneratorType extends BuildingType<ResourceGenerator, Resou
     public Resource getResource() {
         return resource;
     }
+
+    @Override
+    public int getEntityTypeIndex() {
+        return RESOURCE_GENERATOR_TYPE;
+    }
 }

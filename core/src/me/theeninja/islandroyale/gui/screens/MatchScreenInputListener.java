@@ -8,9 +8,7 @@ import com.badlogic.gdx.utils.Array;
 import me.theeninja.islandroyale.entity.Entity;
 import me.theeninja.islandroyale.entity.EntityType;
 import me.theeninja.islandroyale.entity.InteractableEntity;
-import me.theeninja.islandroyale.entity.InteractableEntityType;
 import me.theeninja.islandroyale.entity.controllable.Transporter;
-import me.theeninja.islandroyale.entity.controllable.TransporterType;
 
 public class MatchScreenInputListener implements InputProcessor {
 
@@ -78,8 +76,8 @@ public class MatchScreenInputListener implements InputProcessor {
         boolean touchedEntity = false;
 
         // Iterate over higher priority entities first, in order to handle touch events first
-        for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
-            Array<Entity<?, ?>> priorityEntities = getMatchScreen().getMatch().getMatchMap().getCertainPriorityEntities(entityPriority);
+        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.NUMBER_OF_ENTITY_TYPES; entityTypeIndex++) {
+            Array<Entity<?, ?>> priorityEntities = getMatchScreen().getMatch().getMatchMap().getEntities()[entityTypeIndex];
 
             for (Entity<?, ?> entity : priorityEntities) {
                 // Entity is not interactable, no need to handle attempted interaction

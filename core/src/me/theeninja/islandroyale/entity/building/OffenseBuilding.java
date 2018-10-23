@@ -155,7 +155,7 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
 
     public C produceEntity(D entityType, Match match) {
         Vector2 availablePosition = getAvailableCoordinates(entityType, match.getMatchMap());
-        modifyForSurroundingEntities(availablePosition, match.getMatchMap().getAllPriorityEntities());
+        modifyForSurroundingEntities(availablePosition, match.getMatchMap().getEntities());
 
         return newGenericSpecificEntity(entityType, getOwner(), availablePosition.x, availablePosition.y, match);
     }

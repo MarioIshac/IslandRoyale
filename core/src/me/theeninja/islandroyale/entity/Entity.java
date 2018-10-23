@@ -12,7 +12,7 @@ import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.gui.screens.Match;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
-public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>> extends Actor {
+public abstract class Entity<A extends Entity<A, B, C>, B extends EntityType<A, B, C>, C extends EntityBrand<A, B, C>> extends Actor {
     public static float rangeBetweenSquared(Entity<?, ?> entityOne, Entity<?, ?> entityTwo) {
         final float insideXDiff = entityOne.getSprite().getX() - entityTwo.getSprite().getY();
         final float insideYDiff = entityOne.getSprite().getY() - entityTwo.getSprite().getY();
@@ -85,7 +85,7 @@ public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>>
         setOrigin(Align.center);
 
         // Higher Z Index Correlates to Significant (Lower) Priority. Z Index determines drawing order of actors
-        setZIndex(EntityType.NUMBER_OF_PRIORITIES - getEntityType().getDrawingPriority());
+        setZIndex(EntityType.NUMBER_OF_ENTITY_TYPES - getEntityType().getEntityTypeIndex());
 
         updateSprite();
 

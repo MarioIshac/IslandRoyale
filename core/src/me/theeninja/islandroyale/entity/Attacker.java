@@ -1,7 +1,6 @@
 package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.IntMap;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.bullet.BulletProjectile;
@@ -37,8 +36,8 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
         float minDistanceSquared = Float.MAX_VALUE;
         InteractableEntity<?, ?> closestEntity = null;
 
-        for (int entityPriority = 0; entityPriority < EntityType.NUMBER_OF_PRIORITIES; entityPriority++) {
-            final Array<Entity<?, ?>> priorityEntities = matchMap.getCertainPriorityEntities(entityPriority);
+        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.NUMBER_OF_ENTITY_TYPES; entityTypeIndex++) {
+            final Array<Entity<?, ?>> priorityEntities = matchMap.getEntities()[entityTypeIndex];
 
             for (Entity<?, ?> otherEntity : priorityEntities) {
                 if (!(otherEntity.getEntityType() instanceof InteractableEntityType))

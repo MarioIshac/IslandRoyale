@@ -4,5 +4,8 @@ import me.theeninja.islandroyale.entity.controllable.Person;
 import me.theeninja.islandroyale.entity.controllable.PersonType;
 
 public final class PersonBulletProjectileType extends BulletProjectileType<PersonBulletProjectile, PersonBulletProjectileType, Person, PersonType> {
-    // No Specific Implementation
+    @Override
+    public int getEntityTypeIndex() {
+        return PERSON_BULLET_PROJECTILE_TYPE;
+    }
 }

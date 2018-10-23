@@ -46,7 +46,7 @@ public final class Person extends ControllableEntity<Person, PersonType> impleme
     public void check(float timeChange, Player player, Match match) {
         super.check(timeChange, player, match);
 
-        getTransportListener().refreshTransporters(match.getMatchMap().getAllPriorityEntities());
+        getTransportListener().refreshTransporters(match.getMatchMap());
 
         // If this person is being carried by transporation, let the transporter
         // take care of controllable this entity

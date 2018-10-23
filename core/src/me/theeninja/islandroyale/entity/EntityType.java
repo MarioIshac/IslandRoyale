@@ -2,8 +2,10 @@ package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectMap;
+import me.theeninja.islandroyale.MatchMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +15,7 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
 
     private String texturePath;
 
-    public abstract int getDrawingPriority();
+    public abstract int getEntityTypeIndex();
 
     protected abstract int getBaseLevel(A entity);
 
@@ -51,17 +53,24 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
     public static final String RESOURCE_TREASURE_DIRECTORY = TREASURE_DIRECTORY + "resource/";
     public static final String DATA_TREASURE_DIRECTORY = TREASURE_DIRECTORY + "data/";
 
-    public static final int INTERACTABLE_PROJECTILE_PRIORITY = 0;
-    public static final int PERSON_PRIORITY = 1;
-    public static final int TRANSPORT_PRIORITY = 2;
+    public static final int DATA_TREASURE_TYPE = 0;
+    public static final int RESOURCE_TREASURE_TYPE = 1;
+    public static final int TRANSPORTER_TYPE = 2;
+    public static final int PERSON_TYPE = 3;
+    public static final int INTERACTABLE_PROJECTILE_ENTITY_TYPE = 4;
+    public static final int DEFENSE_BULLET_PROJECTILE_TYPE = 5;
+    public static final int PERSON_BULLET_PROJECTILE_TYPE = 6;
+    public static final int TRANSPORTER_GENERATOR_TYPE = 7;
+    public static final int RESOURCE_GENERATOR_TYPE = 8;
+    public static final int PROJECTILE_GENERATOR_TYPE = 9;
+    public static final int PERSON_GENERATOR_TYPE = 10;
+    public static final int HEAD_QUARTERS_TYPE = 11;
+    public static final int DEFENSE_BUILDING_ENTITY_TYPE = 12;
+
+    public static final int NUMBER_OF_ENTITY_TYPES = 13;
+
     public static final int TREASURE_SEEKER_PRIORITY_MIN = 1;
     public static final int TREASURE_SEEKER_PRIORITY_MAX = 2;
-
-    public static final int TREASURE_PRIORITY = 3;
-    public static final int BUILDING_PRIORITY = 4;
-    public static final int BULLET_PROJECTILE_PRIORITY = 5;
-
-    public static final int NUMBER_OF_PRIORITIES = 6;
 
     private int id;
 

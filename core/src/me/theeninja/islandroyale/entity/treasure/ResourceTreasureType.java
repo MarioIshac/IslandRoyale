@@ -31,4 +31,9 @@ public class ResourceTreasureType extends TreasureType<ResourceTreasure, Resourc
     public int getMaxResourceCount() {
         return maxResourceCount;
     }
+
+    @Override
+    public int getEntityTypeIndex() {
+        return RESOURCE_TREASURE_TYPE;
+    }
 }

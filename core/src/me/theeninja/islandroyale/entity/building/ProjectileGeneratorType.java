@@ -4,5 +4,8 @@ import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntit
 import me.theeninja.islandroyale.entity.controllable.InteractableProjectileEntityType;
 
 public class ProjectileGeneratorType extends OffenseBuildingType<ProjectileGenerator, ProjectileGeneratorType, InteractableProjectileEntity, InteractableProjectileEntityType> {
-
+    @Override
+    public int getEntityTypeIndex() {
+        return PROJECTILE_GENERATOR_TYPE;
+    }
 }

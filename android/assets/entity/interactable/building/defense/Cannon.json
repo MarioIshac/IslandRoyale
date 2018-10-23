@@ -18,5 +18,6 @@
       }
     ]
   },
-  "texturePath": "Cannon.png"
+  "texturePath": "Cannon.png",
+  "bestEntityResponseID": 50000
 }

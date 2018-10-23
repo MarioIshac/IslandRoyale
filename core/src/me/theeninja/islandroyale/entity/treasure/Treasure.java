@@ -17,11 +17,11 @@ public abstract class Treasure<A extends Treasure<A, B>, B extends TreasureType<
 
     @Override
     public void check(float delta, Player player, Match match) {
-        for (int entityPriorityLevel = EntityType.TREASURE_SEEKER_PRIORITY_MIN; entityPriorityLevel < EntityType.TREASURE_SEEKER_PRIORITY_MAX; entityPriorityLevel++) {
-            Array<Entity<?, ?>> priorityEntities = match.getMatchMap().getCertainPriorityEntities(entityPriorityLevel);
+        for (int entityTypeIndex = EntityType.TREASURE_SEEKER_PRIORITY_MIN; entityTypeIndex < EntityType.TREASURE_SEEKER_PRIORITY_MAX; entityTypeIndex++) {
+            Array<Entity<?, ?>> priorityEntities = match.getMatchMap().getEntities()[entityTypeIndex];
 
             for (Entity<?, ?> receivingEntity : priorityEntities)
-                if (overlap(this, receivingEntity))
+                if (Entity.overlap(this, receivingEntity))
                     setFound(true);
         }
     }
