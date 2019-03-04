@@ -8,6 +8,5 @@
   "tileWidth": 2,
   "tileHeight": 1,
   "texturePath": "RefugeeBoat.png",
-  "pixelMargin": 4,
-  "bestEntityResponseID": 50000
+  "pixelMargin": 4
 }

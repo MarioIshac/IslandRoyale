@@ -14,11 +14,19 @@ public class MatchMap {
     private final int tileHeight;
     private final MatchScreen matchScreen;
 
-    public <A extends Entity<A, B>, B extends EntityType<A, B>> void addEntity(A entity) {
+    public <A extends Entity<A, B>, B extends EntityType<A, B>> void addEntitySafely(A entity) {
+        Class<? extends EntityType> entityTypeClass = entity.getEntityType().getClass();
+
+        int entityTypeIndex = EntityType.Unsafe.getEntityTypeKey(entityTypeClass);
+
+        addEntityUnsafely(entity, entityTypeIndex);
+    }
+
+    public void addEntityUnsafely(Entity<?, ?> entity, int entityTypeIndex) {
         // Add entity to stage
         getMatchScreen().getMapStage().addActor(entity);
 
-        Array<A> entities = getEntitiesOfType(entity.getEntityType());
+        Array<Entity<?, ?>> entities = getEntities()[entityTypeIndex];
 
         // Add entity to entity list
         entities.add(entity);
@@ -27,11 +35,11 @@ public class MatchMap {
     private final byte[][] tiles = new byte[MatchScreen.WHOLE_WORLD_TILE_WIDTH][MatchScreen.WHOLE_WORLD_TILE_HEIGHT];
     private final float[][] tileHeights;
 
-    @SuppressWarnings("unchecked") // Generic Array Creation not Allowed in Java
-    private final Array<Entity<?, ?>>[] entities = new Array[EntityType.NUMBER_OF_ENTITY_TYPES];
+    @SuppressWarnings("unchecked")
+    private final Array<Entity<?, ?>>[] entities = new Array[EntityType.Unsafe.ENTITY_TYPE_CLASS_INDICES.length];
 
     public void flushDeadEntities() {
-        // Iterate backwards to allow removing entities on the way
+        // Iterate backwards to allow removing entities while still in iteration
         for (int entityPriority = 0; entityPriority < getEntities().length; entityPriority++) {
             final Array<Entity<?, ?>> certainPriorityEntities = getEntities()[entityPriority];
 
@@ -115,7 +123,7 @@ public class MatchMap {
             System.out.println("Head X " + newHeadQuarters.getX());
             System.out.println("Head Y " + newHeadQuarters.getY());
 
-            addEntity(newHeadQuarters);
+            addEntitySafely(newHeadQuarters);
         }
     }
 
@@ -189,7 +197,8 @@ public class MatchMap {
     public <A extends Building<A, B>, B extends BuildingType<A, B>> boolean canBuild(B buildingType, int buildingTileX, int buildingTileY) {
         int buildTileCount = 0;
 
-        final Array<A> buildingEntities = getEntitiesOfType(buildingType);
+        int buildingEntityTypeKey = EntityType.Unsafe.getEntityTypeKey(buildingType.getClass());
+        final Array<Entity<?, ?>> buildingEntities = getEntities()[buildingEntityTypeKey];
 
         final float rightX = buildingTileX + buildingType.getTileWidth();
         final float upperY = buildingTileY + buildingType.getTileHeight();
@@ -230,7 +239,9 @@ public class MatchMap {
         A construct(B treasureType, Player owner, float x, float y);
     }
 
-    private <A extends Treasure<A, B>, B extends TreasureType<A, B>> void generateTreasures(Array<B> treasures, TreasureConstructor<A, B> treasureConstructor, int amountOfTreasures) {
+    private static final int RESOURCE_TREASURE_TYPE_KEY = EntityType.Unsafe.getEntityTypeKey(ResourceTreasureType.class);
+
+    private <A extends Treasure<A, B>, B extends TreasureType<A, B>> void generateTreasures(final Array<B> treasures, TreasureConstructor<A, B> treasureConstructor, int amountOfTreasures) {
         for (int generationIndex = 0; generationIndex < amountOfTreasures; generationIndex++) {
             final int randomXTile = MathUtils.random(getTileWidth());
             final int randomYTile = MathUtils.random(getTileHeight());
@@ -246,7 +257,7 @@ public class MatchMap {
 
                 final A resourceTreasure = treasureConstructor.construct(randomTreasureType, null, randomXTile, randomYTile);
 
-                getEntitiesOfType(randomTreasureType).add(resourceTreasure);
+                getEntities()[RESOURCE_TREASURE_TYPE_KEY].add(resourceTreasure);
             }
         }
     }
@@ -259,13 +270,9 @@ public class MatchMap {
         return entities;
     }
 
-    public <A extends Entity<A, B>, B extends EntityType<A, B>> Array<A> getEntitiesOfType(B entityType) {
-        return getEntitiesOfType(entityType.getEntityTypeIndex());
-    }
-
     @SuppressWarnings("unchecked")
-    public <A extends Entity<A, B>, B extends EntityType<A, B>> Array<A> getEntitiesOfType(int entityTypeIndex) {
-        Array<Entity<?, ?>> uncastedEntities = getEntities()[entityTypeIndex];
+    public <A extends Entity<A, B>, B extends EntityType<A, B>> Array<A> getEntitiesOfTypeUnsafely(final int entityTypeIndex) {
+        final Array<? extends Entity<?, ?>> uncastedEntities = getEntities()[entityTypeIndex];
 
         return (Array<A>) uncastedEntities;
     }

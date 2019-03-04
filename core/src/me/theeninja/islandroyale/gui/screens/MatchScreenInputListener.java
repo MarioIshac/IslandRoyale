@@ -76,7 +76,7 @@ public class MatchScreenInputListener implements InputProcessor {
         boolean touchedEntity = false;
 
         // Iterate over higher priority entities first, in order to handle touch events first
-        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.NUMBER_OF_ENTITY_TYPES; entityTypeIndex++) {
+        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.Unsafe.ENTITY_TYPE_CLASS_INDICES.length; entityTypeIndex++) {
             Array<Entity<?, ?>> priorityEntities = getMatchScreen().getMatch().getMatchMap().getEntities()[entityTypeIndex];
 
             for (Entity<?, ?> entity : priorityEntities) {

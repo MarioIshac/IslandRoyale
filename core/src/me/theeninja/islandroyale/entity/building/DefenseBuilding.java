@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
-import me.theeninja.islandroyale.entity.bullet.BulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectile;
 import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
 import me.theeninja.islandroyale.gui.screens.Match;
@@ -81,7 +80,7 @@ public final class DefenseBuilding extends Building<DefenseBuilding, DefenseBuil
         }
 
         DefenseBulletProjectile projectile = newProjectile(this, match);
-        match.getMatchMap().addEntity(projectile);
+        match.getMatchMap().addEntitySafely(projectile);
 
         System.out.println("Launched Attack");
 

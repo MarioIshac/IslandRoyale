@@ -36,7 +36,7 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
         float minDistanceSquared = Float.MAX_VALUE;
         InteractableEntity<?, ?> closestEntity = null;
 
-        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.NUMBER_OF_ENTITY_TYPES; entityTypeIndex++) {
+        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.Unsafe.ENTITY_TYPE_CLASS_INDICES.length; entityTypeIndex++) {
             final Array<Entity<?, ?>> priorityEntities = matchMap.getEntities()[entityTypeIndex];
 
             for (Entity<?, ?> otherEntity : priorityEntities) {
@@ -55,7 +55,7 @@ public interface Attacker<A extends BulletProjectile<A, B, C, D>, B extends Bull
 
                 final float distanceSquared = Entity.rangeBetweenSquared(entity, otherEntity);
 
-                //System.out.println("Against Entity " + entity.getEntityType().getName() + "> Distance = " + distanceSquared + " Range = " + (getRange() * getRange()));
+                //System.out.println("Against Entity " + entity.getRandomInteractableEntityTypeInstance().getName() + "> Distance = " + distanceSquared + " Range = " + (getRange() * getRange()));
 
                 // Do not let entity target entities outside of range
                 if (distanceSquared > getRange() * getRange())

@@ -22,11 +22,11 @@ allprojects {
 
     ext {
         appName = "Island Royale"
-        gdxVersion = '1.9.9-SNAPSHOT'
+        gdxVersion = '1.9.9'
         roboVMVersion = '2.3.3'
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.0'
-        aiVersion = '1.8.0'
+        aiVersion = '1.8.1'
     }
 
     repositories {

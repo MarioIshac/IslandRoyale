@@ -2,20 +2,21 @@ package me.theeninja.islandroyale.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.IntMap;
-import com.badlogic.gdx.utils.ObjectMap;
-import me.theeninja.islandroyale.MatchMap;
-
-import java.util.HashMap;
-import java.util.Map;
+import me.theeninja.islandroyale.entity.building.*;
+import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectile;
+import me.theeninja.islandroyale.entity.bullet.DefenseBulletProjectileType;
+import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectile;
+import me.theeninja.islandroyale.entity.bullet.PersonBulletProjectileType;
+import me.theeninja.islandroyale.entity.controllable.*;
+import me.theeninja.islandroyale.entity.treasure.DataTreasure;
+import me.theeninja.islandroyale.entity.treasure.DataTreasureType;
+import me.theeninja.islandroyale.entity.treasure.ResourceTreasure;
+import me.theeninja.islandroyale.entity.treasure.ResourceTreasureType;
 
 public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A, B>> {
     private int maxLevel;
 
     private String texturePath;
-
-    public abstract int getEntityTypeIndex();
 
     protected abstract int getBaseLevel(A entity);
 
@@ -53,24 +54,77 @@ public abstract class EntityType<A extends Entity<A, B>, B extends EntityType<A,
     public static final String RESOURCE_TREASURE_DIRECTORY = TREASURE_DIRECTORY + "resource/";
     public static final String DATA_TREASURE_DIRECTORY = TREASURE_DIRECTORY + "data/";
 
-    public static final int DATA_TREASURE_TYPE = 0;
-    public static final int RESOURCE_TREASURE_TYPE = 1;
-    public static final int TRANSPORTER_TYPE = 2;
-    public static final int PERSON_TYPE = 3;
-    public static final int INTERACTABLE_PROJECTILE_ENTITY_TYPE = 4;
-    public static final int DEFENSE_BULLET_PROJECTILE_TYPE = 5;
-    public static final int PERSON_BULLET_PROJECTILE_TYPE = 6;
-    public static final int TRANSPORTER_GENERATOR_TYPE = 7;
-    public static final int RESOURCE_GENERATOR_TYPE = 8;
-    public static final int PROJECTILE_GENERATOR_TYPE = 9;
-    public static final int PERSON_GENERATOR_TYPE = 10;
-    public static final int HEAD_QUARTERS_TYPE = 11;
-    public static final int DEFENSE_BUILDING_ENTITY_TYPE = 12;
-
-    public static final int NUMBER_OF_ENTITY_TYPES = 13;
-
     public static final int TREASURE_SEEKER_PRIORITY_MIN = 1;
     public static final int TREASURE_SEEKER_PRIORITY_MAX = 2;
+
+    @SuppressWarnings("unchecked")
+    public static final class Unsafe {
+        public static final Class<? extends EntityType>[] ENTITY_TYPE_CLASS_INDICES = new Class[] {
+            DataTreasureType.class,
+            ResourceTreasureType.class,
+            TransporterType.class,
+            PersonType.class,
+            InteractableProjectileEntityType.class,
+            DefenseBulletProjectileType.class,
+            PersonBulletProjectileType.class,
+            TransporterGeneratorType.class,
+            ResourceGeneratorType.class,
+            ProjectileGeneratorType.class,
+            PersonGeneratorType.class,
+            HeadQuartersType.class,
+            DefenseBuildingType.class
+        };
+
+        public static final Class<? extends Entity>[] ENTITY_CLASS_INDICES = new Class[] {
+            DataTreasure.class,
+            ResourceTreasure.class,
+            Transporter.class,
+            Person.class,
+            InteractableProjectileEntity.class,
+            DefenseBulletProjectile.class,
+            PersonBulletProjectile.class,
+            TransporterGenerator.class,
+            ResourceGenerator.class,
+            ProjectileGenerator.class,
+            PersonGenerator.class,
+            HeadQuarters.class,
+            DefenseBuilding.class
+        };
+
+        private static final int MIN_ENTITY_PRODUCER_TYPE_INDEX = getReverseValue(ENTITY_TYPE_CLASS_INDICES, TransporterType.class);
+
+        private static final Class<? extends OffenseBuilding>[] PRODUCED_ENTITY_PRODUCER_TYPES = new Class[] {
+            TransporterGenerator.class,
+            PersonGenerator.class,
+            InteractableProjectileEntity.class
+        };
+
+        public static Class<? extends OffenseBuilding> getEntityProducerClass(final Class<? extends ControllableEntity> controllableEntityClass) {
+            final int entityTypeKey = getReverseValue(ENTITY_CLASS_INDICES, controllableEntityClass);
+
+            return PRODUCED_ENTITY_PRODUCER_TYPES[entityTypeKey - MIN_ENTITY_PRODUCER_TYPE_INDEX];
+        }
+
+        public static <B extends EntityType<?, ?>> int getEntityTypeKey(Class<? extends B> entityTypeClass) {
+            return getReverseValue(ENTITY_TYPE_CLASS_INDICES, entityTypeClass);
+        }
+
+        public static <A extends Entity<?, ?>> int getEntityKey(Class<? extends A> entityClass) {
+            return getReverseValue(ENTITY_CLASS_INDICES, entityClass);
+        }
+
+        private static <T> int getReverseValue(T[] classes, T value) {
+            for (int possibleEntityTypeIndex = 0; possibleEntityTypeIndex < ENTITY_TYPE_CLASS_INDICES.length; possibleEntityTypeIndex++) {
+                final T possibleValue = classes[possibleEntityTypeIndex];
+
+                if (possibleValue == value) {
+                    return possibleEntityTypeIndex;
+                }
+            }
+
+            throw new IllegalStateException("SubClass exists without associated serialization type key in EntityType.Unsafe");
+        }
+    }
 
     private int id;
 

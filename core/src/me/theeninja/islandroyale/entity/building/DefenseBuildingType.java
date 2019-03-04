@@ -42,9 +42,4 @@ public final class DefenseBuildingType extends BuildingType<DefenseBuilding, Def
     public float getBaseRange() {
         return baseRange;
     }
-
-    @Override
-    public int getEntityTypeIndex() {
-        return DEFENSE_BUILDING_ENTITY_TYPE;
-    }
 }

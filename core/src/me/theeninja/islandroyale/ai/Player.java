@@ -5,6 +5,7 @@ import me.theeninja.islandroyale.Inventory;
 import me.theeninja.islandroyale.MatchMap;
 import me.theeninja.islandroyale.entity.building.HeadQuarters;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
+import me.theeninja.islandroyale.gui.screens.Match;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
 public abstract class Player {
@@ -88,9 +89,9 @@ public abstract class Player {
     /**
      *
      *
-     * @param matchMap
+     * @param match
      */
-    public void update(MatchMap matchMap) {
+    public void update(Match match) {
         // Remove headquarters references in case they have been removed elsewhere
         for (int index = getAllHeadQuarters().size - 1; index >= 0; index--) {
             HeadQuarters headQuarters = getAllHeadQuarters().get(index);

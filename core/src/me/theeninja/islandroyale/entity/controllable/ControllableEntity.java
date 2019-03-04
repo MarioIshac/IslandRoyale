@@ -43,8 +43,8 @@ public abstract class ControllableEntity<A extends ControllableEntity<A, B>, B e
     public ControllableEntity(B entityType, Player owner, float x, float y, Match match) {
         super(entityType, owner, x, y, match);
 
-        //setMovementSpeed(getEntityType().getBaseMovementSpeed());
-        //setProductionTime(getEntityType().getProductionTime());
+        //setMovementSpeed(getRandomInteractableEntityTypeInstance().getBaseMovementSpeed());
+        //setProductionTime(getRandomInteractableEntityTypeInstance().getProductionTime());
     }
 
     public TextButton getTargetSelector() {

@@ -17,7 +17,7 @@ import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
 import me.theeninja.islandroyale.gui.screens.Match;
 
 public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B extends OffenseBuildingType<A, B, C, D>, C extends ControllableEntity<C, D>, D extends ControllableEntityType<C, D>> extends Building<A, B> {
-    private Queue<D> entityTypesInQueue;
+    private Queue<C> entitiesInQueue;
     private Array<QueueButtonListener<C, D>> queueButtonListeners;
     private Group queueDisplay;
 
@@ -28,7 +28,7 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         super.initializeConstructorDependencies();
 
         // By initializing prior to super constructor execution, configureEditor can use this variable
-        this.entityTypesInQueue = new Queue<>();
+        this.entitiesInQueue = new Queue<>();
         this.queueButtonListeners = new Array<>();
         this.queueDisplay = new HorizontalGroup();
     }
@@ -42,16 +42,26 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         return false;
     }
 
-    private void updateQueue() {
+    @SuppressWarnings("unchecked")
+    public void queryUnsafely(ControllableEntity<?, ?> entityTypeProduced) {
+        getEntitiesInQueue().addLast((C) entityTypeProduced);
+    }
+
+    public void querySafely(C entityTypeProduced) {
+        getEntitiesInQueue().addLast(entityTypeProduced);
+    }
+
+    private void updateQueue(Match match) {
         for (QueueButtonListener<C, D> queueButtonListener : getQueueButtonListeners()) {
             if (queueButtonListener.shouldQueryEntity()) {
                 D entityTypeProduced = queueButtonListener.getEntityTypeProduced();
+                C entityProduced = produceEntity(entityTypeProduced, match);
                 float productionTime = entityTypeProduced.getProductionTime();
 
-                if (getEntityTypesInQueue().size == 0)
+                if (getEntitiesInQueue().size == 0)
                     setTimeUntilProduction(productionTime);
 
-                getEntityTypesInQueue().addLast(entityTypeProduced);
+                querySafely(entityProduced);
 
                 Texture texture = entityTypeProduced.getTexture();
 
@@ -73,24 +83,24 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
      *
      * @return The first entity type in the queue that was removed.
      */
-    private D removeQueueHead() {
-        D producedEntityType = getEntityTypesInQueue().removeFirst();
+    private C removeQueueHead() {
+        C producedEntity = getEntitiesInQueue().removeFirst();
 
         Actor associatedEntityDisplay = getQueueDisplay().getChildren().get(0);
         // Remove entity display from queue display, signifying that entity is exiting queue and is now being produced
         associatedEntityDisplay.remove();
 
-        return producedEntityType;
+        return producedEntity;
     }
 
     @Override
     public void check(float delta, Player player, Match match) {
         super.check(delta, player, match);
 
-        updateQueue();
+        updateQueue(match);
 
         // No entities left to process
-        if (getEntityTypesInQueue().size == 0)
+        if (getEntitiesInQueue().size == 0)
             return;
 
         this.timeUntilProduction -= delta;
@@ -98,17 +108,16 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         if (getTimeUntilProduction() > 0)
             return;
 
-        D producedEntityType = removeQueueHead();
-        C newEntity = produceEntity(producedEntityType, match);
+        C producedEntity = removeQueueHead();
 
-        match.getMatchMap().addEntity(newEntity);
+        match.getMatchMap().addEntitySafely(producedEntity);
 
         // No more entities left to process
-        if (getEntityTypesInQueue().size == 0)
+        if (getEntitiesInQueue().size == 0)
             return;
 
-        D nextProducedEntityType = getEntityTypesInQueue().first();
-        float requiredTime = nextProducedEntityType.getProductionTime();
+        C nextProducedEntity = getEntitiesInQueue().first();
+        float requiredTime = nextProducedEntity.getProductionTime();
 
         setTimeUntilProduction(requiredTime);
     }
@@ -118,8 +127,8 @@ public abstract class OffenseBuilding<A extends OffenseBuilding<A, B, C, D>, B e
         super.present(projector, hudStage, shapeRenderer);
     }
 
-    public Queue<D> getEntityTypesInQueue() {
-        return entityTypesInQueue;
+    public Queue<C> getEntitiesInQueue() {
+        return entitiesInQueue;
     }
 
     public float getTimeUntilProduction() {

@@ -12,10 +12,14 @@ import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.gui.screens.Match;
 import me.theeninja.islandroyale.gui.screens.MatchScreen;
 
-public abstract class Entity<A extends Entity<A, B, C>, B extends EntityType<A, B, C>, C extends EntityBrand<A, B, C>> extends Actor {
+public abstract class Entity<A extends Entity<A, B>, B extends EntityType<A, B>> extends Actor {
     public static float rangeBetweenSquared(Entity<?, ?> entityOne, Entity<?, ?> entityTwo) {
-        final float insideXDiff = entityOne.getSprite().getX() - entityTwo.getSprite().getY();
-        final float insideYDiff = entityOne.getSprite().getY() - entityTwo.getSprite().getY();
+        return rangeBetweenSquared(entityOne, entityTwo.getX(), entityTwo.getY());
+    }
+
+    public static float rangeBetweenSquared(Entity<?, ?> entityOne, float targetX, float targetY) {
+        final float insideXDiff = entityOne.getX() - targetX;
+        final float insideYDiff = entityOne.getY() - targetY;
 
         final float outsideXDiff = MatchScreen.WHOLE_WORLD_TILE_WIDTH - insideXDiff;
         final float outsideYDiff = MatchScreen.WHOLE_WORLD_TILE_HEIGHT - insideYDiff;
@@ -85,7 +89,11 @@ public abstract class Entity<A extends Entity<A, B, C>, B extends EntityType<A, 
         setOrigin(Align.center);
 
         // Higher Z Index Correlates to Significant (Lower) Priority. Z Index determines drawing order of actors
-        setZIndex(EntityType.NUMBER_OF_ENTITY_TYPES - getEntityType().getEntityTypeIndex());
+        final Class<? extends EntityType> entityTypeClass = getEntityType().getClass();
+
+        final int entityTypeKey = EntityType.Unsafe.getEntityTypeKey(entityTypeClass);
+
+        setZIndex(EntityType.Unsafe.ENTITY_TYPE_CLASS_INDICES.length - entityTypeKey);
 
         updateSprite();
 
@@ -118,10 +126,10 @@ public abstract class Entity<A extends Entity<A, B, C>, B extends EntityType<A, 
 
     private void wrapPosition() {
         final float lowerBoundedX = Math.max(0, getX());
-        final float doubleBoundedX = Math.min(getX(), MatchScreen.WHOLE_WORLD_TILE_WIDTH);
+        final float doubleBoundedX = Math.min(lowerBoundedX, MatchScreen.WHOLE_WORLD_TILE_WIDTH);
 
         final float lowerBoundedY = Math.max(0, getY());
-        final float doubleBoundedY = Math.min(getY(), MatchScreen.WHOLE_WORLD_TILE_HEIGHT);
+        final float doubleBoundedY = Math.min(lowerBoundedY, MatchScreen.WHOLE_WORLD_TILE_HEIGHT);
 
         setX(doubleBoundedX);
         setY(doubleBoundedY);

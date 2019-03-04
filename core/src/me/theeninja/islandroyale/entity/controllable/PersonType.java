@@ -14,11 +14,6 @@ public final class PersonType extends ControllableEntityType<Person, PersonType>
     private float baseFireRate;
 
     @Override
-    public int getEntityTypeIndex() {
-        return PERSON_TYPE;
-    }
-
-    @Override
     public void configureEditor(Person entity, Match match) {
         super.configureEditor(entity, match);
 

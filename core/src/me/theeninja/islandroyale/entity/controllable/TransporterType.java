@@ -25,11 +25,6 @@ public class TransporterType extends ControllableEntityType<Transporter, Transpo
      */
     private int baseRange;
 
-    @Override
-    public int getEntityTypeIndex() {
-        return TRANSPORTER_TYPE;
-    }
-
     public int getPixelMargin() {
         return pixelMargin;
     }

@@ -23,7 +23,7 @@ final class EntityAttributeInitializer {
             final String baseValueFieldName = entityAttribute.value();
             Field baseValueField = null;
 
-            // We must search the hiearchy again, rather than just fetching the declared field by name from entity.getEntityType().getClass()
+            // We must search the hiearchy again, rather than just fetching the declared field by name from entity.getRandomInteractableEntityTypeInstance().getClass()
             for (final Field potentialBaseValueField : entityTypeHierarchyFields) {
                 System.out.println("potentialBaseValueField.getName() = " + potentialBaseValueField.getName());
 
@@ -41,9 +41,9 @@ final class EntityAttributeInitializer {
 
             // Attempt to set starting value of entity's enttiy attribute to its base value
             try {
-                Object baseValue = baseValueField.get(entity.getEntityType());
+                final Object baseValue = baseValueField.get(entity.getEntityType());
                 hierarchyField.set(entity, baseValue);
-            } catch (IllegalAccessException e) {
+            } catch (final IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
@@ -57,11 +57,11 @@ final class EntityAttributeInitializer {
      * @param currentEntityClass The class of a subclass of Entity
      * @return The collected declared fields of classes between (on the hiearchy, inclusively) {@code currentEntityClass} and {@link Entity}.class
      */
-    private static Array<Field> getEntityHiearchyFields(Class<?> currentEntityClass) {
+    private static Array<Field> getEntityHiearchyFields(final Class<?> currentEntityClass) {
         return getHiearchyFields(currentEntityClass, ENTITY_SUPER_CLASS);
     }
 
-    private static Array<Field> getEntityTypeHiearchyFields(Class<?> currentEntityTypeClass) {
+    private static Array<Field> getEntityTypeHiearchyFields(final Class<?> currentEntityTypeClass) {
         return getHiearchyFields(currentEntityTypeClass, ENTITY_TYPE_SUPER_CLASS);
     }
 

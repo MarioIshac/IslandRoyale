@@ -9,6 +9,5 @@
   "tileWidth": 4,
   "tileHeight": 4,
   "minGroundFiles": 16,
-  "texturePath": "Native.png",
-  "bestEntityResponseID": 120000
+  "texturePath": "Native.png"
 }

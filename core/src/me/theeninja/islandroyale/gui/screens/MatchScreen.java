@@ -19,6 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.*;
 import me.theeninja.islandroyale.*;
+import me.theeninja.islandroyale.ai.AIPlayer;
 import me.theeninja.islandroyale.ai.HumanPlayer;
 import me.theeninja.islandroyale.ai.Player;
 import me.theeninja.islandroyale.entity.*;
@@ -126,7 +127,8 @@ public class MatchScreen implements Screen {
         this.hudStage = new Stage(getHUDViewport(), getBatch());
 
         Player[] players = {
-            new HumanPlayer("Mario")
+            new HumanPlayer("Mario"),
+            new AIPlayer(1, "Hola")
         };
 
         MatchMap matchMap = new MatchMap(
@@ -312,11 +314,16 @@ public class MatchScreen implements Screen {
             IslandTileType.OCEAN_TILE_B_NORMALIZED,
             1
         );
+
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        for (Player player : getMatch().getMatchMap().getPlayers()) {
+            player.update(getMatch());
+        }
 
         updateMapCamera();
         getMatch().getMatchMap().flushDeadEntities();
@@ -349,8 +356,8 @@ public class MatchScreen implements Screen {
     }
 
     private void moveEntities(float delta) {
-        for (int entityTypeIndex = 0; entityTypeIndex < EntityType.NUMBER_OF_ENTITY_TYPES; entityTypeIndex++) {
-            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getEntities()[entityTypeIndex];
+        for (int entityTypeKey = 0; entityTypeKey < EntityType.Unsafe.ENTITY_TYPE_CLASS_INDICES.length; entityTypeKey++) {
+            final Array<Entity<?, ?>> priorityEntities = getMatch().getMatchMap().getEntities()[entityTypeKey];
 
             for (final Entity<?, ?> entity : priorityEntities) {
                 final float yDistance = (float) (Math.sin(entity.getDirection()) * entity.getSpeed());
@@ -430,7 +437,7 @@ public class MatchScreen implements Screen {
         if (canBuild && Gdx.input.isKeyJustPressed(Keys.ENTER)) {
             final A building = buildButton.newBuilding(roundedWorldX, roundedWorldY, getMatch());
 
-            getMatch().getMatchMap().addEntity(building);
+            getMatch().getMatchMap().addEntitySafely(building);
 
             buildButton.setBuildPosition(null);
             //buildButton.getBuildingType().charge(getPlayer().getInventory());

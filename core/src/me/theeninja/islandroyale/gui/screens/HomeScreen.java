@@ -67,7 +67,6 @@ public class HomeScreen implements Screen {
         );
 
         final OfflineMatchButtonListener offlineMatchListener = new OfflineMatchButtonListener(getGame());
-
         newOfflineMatchButton.addListener(offlineMatchListener);
 
         Gdx.input.setInputProcessor(getStage());

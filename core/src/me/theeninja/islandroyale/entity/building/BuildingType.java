@@ -1,11 +1,10 @@
 package me.theeninja.islandroyale.entity.building;
 
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import me.theeninja.islandroyale.entity.EntityType;
-import me.theeninja.islandroyale.entity.InteractableEntityType;
-import me.theeninja.islandroyale.entity.Skins;
-import me.theeninja.islandroyale.entity.UserRemovalListener;
+import me.theeninja.islandroyale.entity.*;
 import me.theeninja.islandroyale.gui.screens.Match;
+
+import java.lang.annotation.Documented;
 
 public abstract class BuildingType<A extends Building<A, B>, B extends BuildingType<A, B>> extends InteractableEntityType<A, B> {
     private int minGroundFiles;

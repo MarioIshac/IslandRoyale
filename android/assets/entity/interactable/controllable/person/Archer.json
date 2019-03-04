@@ -7,6 +7,5 @@
   "tileHeight": 2,
   "baseHealth": 100,
   "baseMovementSpeed": 2,
-  "texturePath": "Archer.png",
-  "bestEntityResponseID": "10000"
+  "texturePath": "Archer.png"
 }

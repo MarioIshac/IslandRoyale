@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import me.theeninja.islandroyale.entity.EntityType;
+import me.theeninja.islandroyale.entity.Respondable;
 import me.theeninja.islandroyale.entity.Skins;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntity;
 import me.theeninja.islandroyale.entity.controllable.ControllableEntityType;
@@ -19,6 +20,9 @@ import java.util.List;
  *           {@link PersonType} and
  *           {@link TransporterType}
  */
+@Respondable({
+    DefenseBuildingType.class
+})
 public abstract class OffenseBuildingType<A extends OffenseBuilding<A, B, C, D>, B extends OffenseBuildingType<A, B, C, D>, C extends ControllableEntity<C, D>, D extends ControllableEntityType<C, D>> extends BuildingType<A, B> {
     private List<Integer> entityIDsProduced;
 
